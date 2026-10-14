@@ -8,6 +8,8 @@ ROOT=Path(__file__).resolve().parents[1]
 
 def restore(root: Path=ROOT) -> None:
     if (root/'.git').exists():
+        probe=subprocess.run(['git','rev-parse','--verify','HEAD'],cwd=root,capture_output=True,text=True)
+        if probe.returncode:raise RuntimeError('Incomplete Git metadata already exists; inspect it before retrying restore.')
         print('Git metadata already present; no restore performed.');return
     bundle=root/'research-ppt-skill.bundle'
     if not bundle.is_file():raise RuntimeError('No Git metadata/bundle. Clone the published repository instead.')
@@ -16,9 +18,12 @@ def restore(root: Path=ROOT) -> None:
     def run(*args):subprocess.run(['git',*args],cwd=root,check=True,timeout=60)
     run('init','--initial-branch=main')
     run('bundle','verify',str(bundle))
-    run('fetch',str(bundle),'refs/heads/main:refs/heads/main')
+    run('fetch',str(bundle),'refs/heads/main')
+    run('update-ref','refs/heads/main','FETCH_HEAD')
     # Reset only the index. Existing working files are never overwritten.
     run('reset','--mixed','HEAD')
+    # An empty directory represents an uninitialized submodule, not a deletion.
+    (root/'third_party/ppt-master').mkdir(parents=True,exist_ok=True)
     print('Restored main and its real submodule gitlink; upstream bytes are not bundled.')
 
 if __name__=='__main__':

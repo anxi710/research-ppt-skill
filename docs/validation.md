@@ -4,12 +4,13 @@ The generic helper layer was tested locally during preparation of this repositor
 
 ## Actually exercised
 
-`RUN_RENDER_TESTS=1 python -m unittest discover -s tests -v` completed **22 tests**,
+`RUN_RENDER_TESTS=1 python -m unittest discover -s tests -v` completed **23 tests**,
 with zero failures and zero skips in the available Python environment.
 
 The tests include source/contract mutation invalidation, missing evidence/style/assets,
 immutable handoffs, pending review initialization, missing hidden-slide coverage, stale
 backend receipts, unrelated reviewed images, source crop geometry, notes/hidden flags,
+safe offline Git-bundle restoration without overwriting working files,
 and a real LibreOffice render of a two-slide synthetic deck (one hidden backup).
 The render test checks both all-slide and visible-only output and confirms that the source
 PPTX bytes are unchanged. Fabricated approval records exist **only inside unit tests**;
