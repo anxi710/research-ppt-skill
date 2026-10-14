@@ -1,0 +1,14 @@
+{
+  "name": "project-style",
+  "review_status": "pending",
+  "basis": "User brief / rendered template / declared assumption",
+  "canvas": "16:9",
+  "typography": {
+    "font_family": "Choose installed suitable font"
+  },
+  "palette": {},
+  "density": "large core figure with short annotations",
+  "logo_policy": "No identity inherited without permission",
+  "source_footer": true,
+  "layouts": []
+}

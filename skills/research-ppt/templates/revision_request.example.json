@@ -1,0 +1,14 @@
+{
+  "issues": [
+    {
+      "id": "I1",
+      "slide_id": "P01",
+      "category": "asset",
+      "severity": "blocker",
+      "evidence": "Describe the clipping and point to its rendered image.",
+      "requested_change": "Restore the full relevant legend without shrinking the plot to unreadability.",
+      "acceptance": "Legend and axis units readable in the final PPTX render.",
+      "status": "open"
+    }
+  ]
+}

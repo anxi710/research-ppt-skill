@@ -1,0 +1,20 @@
+{
+  "claims": [
+    {
+      "id": "C1",
+      "kind": "source_claim",
+      "statement": "Replace with a precise claim from the supplied source.",
+      "source_ids": [
+        "S1"
+      ],
+      "locator": "PDF page, section, figure or table",
+      "conditions": [
+        "Actual evaluation scope"
+      ],
+      "limitations": [
+        "Boundaries, not invented caveats"
+      ],
+      "review_status": "pending"
+    }
+  ]
+}

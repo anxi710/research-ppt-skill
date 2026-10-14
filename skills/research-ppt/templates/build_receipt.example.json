@@ -1,0 +1,15 @@
+{
+  "status": "pending",
+  "backend_name": "ppt-master",
+  "backend_path": "",
+  "backend_revision": "",
+  "documents_read": [],
+  "commands_executed": [],
+  "handoff_manifest_sha256": "",
+  "outputs": {
+    "pptx": "",
+    "source_workspace": ""
+  },
+  "limitations": [],
+  "pptx_sha256": ""
+}

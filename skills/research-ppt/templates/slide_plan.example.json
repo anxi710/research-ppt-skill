@@ -1,0 +1,33 @@
+{
+  "slides": [
+    {
+      "id": "P01",
+      "section": "Method",
+      "question": "What does this page explain?",
+      "topic": "One precise topic",
+      "evidence_ids": [
+        "C1"
+      ],
+      "primary_visual": {
+        "type": "original_figure",
+        "asset_ids": [
+          "F1"
+        ],
+        "description": "Core figure or related panel group"
+      },
+      "reading_order": [
+        "Explain axes",
+        "Compare conditions",
+        "State the scoped observation"
+      ],
+      "on_slide_text": [
+        "One short headline",
+        "Two reading hints at most when appropriate"
+      ],
+      "takeaway": "A scoped conclusion",
+      "speaker_notes": "Detailed reading path, interpretation, scope, source and transition.",
+      "seconds": 90,
+      "hidden": false
+    }
+  ]
+}

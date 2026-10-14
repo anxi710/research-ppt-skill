@@ -1,0 +1,24 @@
+{
+  "figures": [
+    {
+      "id": "F1",
+      "source_id": "S1",
+      "kind": "original_figure",
+      "pdf_page": 1,
+      "bbox_pt": [
+        20,
+        20,
+        280,
+        100
+      ],
+      "path": "assets/paper/F1.png",
+      "sha256": "",
+      "caption": "Original figure identifier and context",
+      "evidence_ids": [
+        "C1"
+      ],
+      "review_status": "pending",
+      "review_notes": "Check axes, ticks, legend, labels and caption context."
+    }
+  ]
+}

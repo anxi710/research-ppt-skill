@@ -1,0 +1,5 @@
+# Helper dependencies only; install ppt-master separately per its current instructions.
+python-pptx>=1.0
+Pillow>=10
+lxml>=4.9
+pypdfium2>=4.30
