@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- Explicit parent intake before evidence preparation: resolve audience, purpose, time/Q&A,
+  language, style, structure and deliverables, then capture actual acceptance or delegation.
+- Pending intake snapshots and preflight/handoff checks prevent missing or stale brief
+  confirmation; resumed work reuses accepted requirements and reconfirms material changes.
+
 ## 0.2.0
 
 - General research presentation skill with explicit preparation/production/review boundaries.

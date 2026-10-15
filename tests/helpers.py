@@ -13,7 +13,13 @@ def workspace(root: Path) -> Path:
     source.write_text('# Synthetic teaching source\nFor this fixture only: two plus three is five.\n')
     project=root/'talk'
     w.init(Namespace(project=project,source=[source],template=None,minutes=2,language='en',audience='researchers'))
-    brief=d.load(project/'brief.json');brief['sources'][0]['version']='synthetic fixture v1';d.write(project/'brief.json',brief)
+    brief=d.load(project/'brief.json');brief['sources'][0]['version']='synthetic fixture v1'
+    brief.update(qa_time_included=False,style_intent='Synthetic neutral style; no institution')
+    # Fictional intake record for synthetic tests/examples, never actual user consent.
+    brief['intake_confirmation']={'status':'confirmed',
+                                  'user_response':'SYNTHETIC FIXTURE ONLY: fictional acceptance of these test requirements.',
+                                  'requirements':w.intake_requirements(brief)}
+    d.write(project/'brief.json',brief)
     d.write(project/'analysis/evidence.json',{'claims':[{'id':'C1','kind':'illustration','statement':'Synthetic arithmetic demonstration; not an empirical result.','source_ids':['S1'],'locator':'Synthetic source line 2','conditions':[],'limitations':['No scientific interpretation'],'review_status':'verified'}]})
     d.write(project/'design/style_profile.json',{'name':'synthetic','review_status':'verified','basis':'Synthetic fixture; no institution'})
     slides=[]

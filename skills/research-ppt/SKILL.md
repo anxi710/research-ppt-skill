@@ -8,12 +8,14 @@ description: >
   style, original figures, production handoff and independent post-production QA;
   delegate actual slide authoring and export to the current ppt-master backend.
 license: MIT
-compatibility: Requires a tool-capable agent with file access, image inspection and code execution; ppt-master and a real PPTX renderer for production.
 metadata:
-  version: "0.2.0"
+  version: "0.3.0"
 ---
 
 # Research PPT
+
+Requires a tool-capable agent with file access, image inspection and code execution;
+production also requires ppt-master and a real PPTX renderer.
 
 ## Mission and boundaries
 
@@ -27,7 +29,9 @@ not silently changed to make a layout easier.
 User requirements determine language, duration, structure, medium and style. Never
 hard-code an institution, brand, presenter, research topic, 21-page count or 27-minute
 length. Select defaults only for genuinely unspecified, low-risk choices and record
-them as assumptions. Do not ask again for information already supplied.
+them as proposed assumptions for intake confirmation. Do not ask again for information
+already supplied. Repository development and project-structure questions do not start
+a presentation intake.
 
 ## Load only what the stage needs
 
@@ -48,7 +52,7 @@ user supplies its path. Do not search unrelated home directories for credentials
 Keep each talk in its own **private workspace**, normally outside this repository:
 
 ```text
-brief.json                    # goals, audience, time, language, source fingerprints
+brief.json                    # requirements, source fingerprints, intake confirmation
 analysis/evidence.json        # claims, source locators, conditions, uncertainty
 analysis/figure_manifest.json # assets and their original-source provenance
 analysis/backend.json         # actual backend path/revision, not a version constraint
@@ -64,6 +68,22 @@ state.json                    # stage, accepted artifacts, unresolved issues
 Restore from these files before resuming. Never infer completion from a previous
 assistant message or a successful export alone. Do not overwrite accepted inputs,
 previous snapshots, earlier QA or final versions.
+
+### 0. Agree on the presentation brief
+
+Read the Intake procedure in `references/preparation.md` before evidence preparation.
+Extract known requirements and check source availability, then ask only missing or
+contradictory essentials in small batches: audience/expertise and purpose, duration
+and Q&A, language, style/reference intent, structure/focus and requested deliverables.
+Offer concrete choices and explicit delegation where useful. Present a readable brief
+that distinguishes supplied requirements, proposed defaults and delegated decisions.
+
+**Gate:** Wait for the user's explicit acceptance before substantive evidence reading,
+story design or production, unless an actual prior instruction already authorizes
+proceeding with the stated requirements or delegates the necessary choices. Record
+that real response/directive and its requirement snapshot in `brief.json`; generic
+requests to make a PPT do not grant delegation. For resumed work, reuse the accepted
+brief and confirm only material changes. Parent intake does not waive backend gates.
 
 ### 1. Prepare the evidence
 

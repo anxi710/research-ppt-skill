@@ -2,6 +2,8 @@
 
 This example demonstrates the preparation contract, not scientific claims or an actual
 paper analysis. It references no private paper, image, institution or presenter.
+Its intake records are fictional fixtures for demonstrating the contract, not evidence
+of actual user approval. Real work must capture the user's actual acceptance or delegation.
 
 Run from the repository root:
 

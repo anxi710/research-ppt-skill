@@ -5,6 +5,7 @@ No model calls, PPT production, automatic review approval, or external publishin
 """
 from __future__ import annotations
 import argparse
+import copy
 from datetime import datetime, timezone
 import json
 import math
@@ -20,6 +21,8 @@ PREP = ['brief.json', 'analysis/evidence.json', 'analysis/figure_manifest.json',
         'design/style_profile.json', 'design/slide_plan.json']
 CHECKS = ['visual', 'facts', 'sources', 'notes', 'crop_completeness']
 KINDS = {'source_claim','author_interpretation','presenter_analysis','illustration'}
+INTAKE_FIELDS = ['audience','target_minutes','qa_time_included','qa_minutes','language','purpose',
+                 'sections','style_intent','deliverables']
 
 
 def now() -> str:
@@ -32,6 +35,63 @@ def nonempty(value: Any) -> bool:
 
 def positive(value: Any) -> bool:
     return type(value) in (int,float) and math.isfinite(value) and value > 0
+
+
+def intake_requirements(brief: dict) -> dict:
+    """Snapshot user-facing choices, excluding later evidence/design review details."""
+    result={key:brief.get(key) for key in INTAKE_FIELDS}
+    result['sources']=[{key:src.get(key) for key in ['id','sha256','role']}
+                       for src in brief.get('sources',[])]
+    return copy.deepcopy(result)
+
+
+def intake_errors(brief: dict, *, require_confirmation: bool=True) -> list[str]:
+    errors=[]
+    for key in ['audience','language','purpose','style_intent']:
+        if not nonempty(brief.get(key)):errors.append(f'Intake: {key} missing')
+    if not positive(brief.get('target_minutes')):errors.append('Intake: time budget missing/invalid')
+    if type(brief.get('qa_time_included')) is not bool:
+        errors.append('Intake: specify whether the time includes Q&A')
+    qa_minutes=brief.get('qa_minutes')
+    if brief.get('qa_time_included') is True:
+        if not positive(qa_minutes) or (positive(brief.get('target_minutes')) and qa_minutes>=brief['target_minutes']):
+            errors.append('Intake: Q&A minutes must be positive and less than the total time')
+    elif type(qa_minutes) not in (int,float) or qa_minutes!=0:
+        errors.append('Intake: Q&A minutes must be zero when excluded from the time budget')
+    for key in ['sections','deliverables']:
+        value=brief.get(key)
+        if not isinstance(value,list) or any(not nonempty(item) for item in value):
+            errors.append(f'Intake: {key} must be a list of nonempty strings')
+        elif key=='deliverables' and not value:errors.append('Intake: deliverables missing')
+    if require_confirmation:
+        record=brief.get('intake_confirmation')
+        if not isinstance(record,dict) or record.get('status') not in {'confirmed','delegated'}:
+            errors.append('Intake: user confirmation or explicit delegation is pending')
+        else:
+            if not nonempty(record.get('user_response')):
+                errors.append('Intake: actual user response or message reference missing')
+            if record.get('requirements')!=intake_requirements(brief):
+                errors.append('Intake: requirements changed; summarize and confirm the changes')
+    return errors
+
+
+def intake(args: argparse.Namespace) -> int:
+    """Prepare a pending summary; never infer or manufacture user confirmation."""
+    path=args.project.resolve()/'brief.json';brief=load(path)
+    errors=intake_errors(brief,require_confirmation=False)
+    if errors:raise ValueError('; '.join(errors))
+    requirements=intake_requirements(brief)
+    record=brief.get('intake_confirmation',{})
+    # Reprinting a current record must not erase an actual response.
+    current=(isinstance(record,dict) and record.get('requirements')==requirements
+             and record.get('status') in {'confirmed','delegated'}
+             and nonempty(record.get('user_response')))
+    if not current:
+        record={'status':'pending','user_response':'','requirements':requirements}
+        brief['intake_confirmation']=record;write(path,brief)
+    print(json.dumps(record,ensure_ascii=False,indent=2))
+    print('Present a readable summary to the user. Record only an actual confirmation or explicit delegation; this command does not obtain consent.')
+    return 0
 
 
 def init(args: argparse.Namespace) -> int:
@@ -56,7 +116,9 @@ def init(args: argparse.Namespace) -> int:
         sources.append({'id':'STYLE','path':str(dest.relative_to(root)),
                         'original_name':args.template.name,'sha256':sha256(dest),'role':'style_reference'})
     brief={'language':args.language,'audience':args.audience,'target_minutes':args.minutes,
-           'qa_time_included':False,'purpose':'research_talk','sections':[],
+           'qa_time_included':None,'qa_minutes':0,'purpose':'research_talk','sections':[],
+           'style_intent':'','deliverables':['pptx','pdf','speaker_notes'],
+           'intake_confirmation':{'status':'pending','user_response':'','requirements':{}},
            'sources':sources,'assumptions':[],'research_connection':None,
            'confidentiality':'private_workspace','backend_preference':'ppt-master'}
     write(root/'brief.json',brief)
@@ -77,9 +139,7 @@ def preflight_report(root: Path) -> dict:
         except (OSError,ValueError) as exc: errors.append(f'{name}: {exc}')
     if errors: return {'status':'fail','errors':errors,'warnings':warnings}
     brief=data['brief.json'];sources=brief.get('sources',[]);source_ids=set()
-    if not nonempty(brief.get('audience')):errors.append('Audience missing')
-    if not nonempty(brief.get('language')):errors.append('Language missing')
-    if not positive(brief.get('target_minutes')):errors.append('Time budget missing/invalid')
+    errors.extend(intake_errors(brief))
     if not sources:errors.append('No source inventory')
     for src in sources:
         sid=src.get('id')
@@ -146,8 +206,11 @@ def preflight_report(root: Path) -> dict:
             if fid not in asset_ids:errors.append(f'{sid}: unknown visual {fid}')
         if not slide.get('reading_order'):errors.append(f'{sid}: reading order missing')
         if len(slide.get('on_slide_text',[]))>4:warnings.append(f'{sid}: check display-text density')
-    if positive(brief.get('target_minutes')) and abs(seconds-60*brief['target_minutes'])>max(60,brief['target_minutes']*6):
-        errors.append('Visible-slide timing differs materially from the requested budget; revise plan or brief')
+    speaking_minutes=brief.get('target_minutes')
+    if positive(speaking_minutes) and brief.get('qa_time_included') is True and positive(brief.get('qa_minutes')):
+        speaking_minutes-=brief['qa_minutes']
+    if positive(speaking_minutes) and abs(seconds-60*speaking_minutes)>max(60,speaking_minutes*6):
+        errors.append('Visible-slide timing differs materially from the speaking budget (excluding reserved Q&A); revise plan or brief')
     return {'status':'fail' if errors else 'pass','errors':errors,'warnings':warnings,
             'planned_seconds':seconds,'slides':len(slides),'meaning':'Metadata and provenance preflight; agent still judges evidence and design.'}
 
@@ -282,6 +345,7 @@ def gate(args: argparse.Namespace) -> int:
 def parser() -> argparse.ArgumentParser:
     p=argparse.ArgumentParser(description=__doc__);subs=p.add_subparsers(dest='command',required=True)
     s=subs.add_parser('init');s.add_argument('--project',type=Path,required=True);s.add_argument('--source',type=Path,action='append',required=True);s.add_argument('--template',type=Path);s.add_argument('--minutes',type=float,required=True);s.add_argument('--language',required=True);s.add_argument('--audience',required=True);s.set_defaults(func=init)
+    s=subs.add_parser('intake',help='Prepare a pending requirements summary; does not confirm it');s.add_argument('--project',type=Path,required=True);s.set_defaults(func=intake)
     s=subs.add_parser('preflight');s.add_argument('--project',type=Path,required=True);s.add_argument('--out',type=Path,required=True);s.set_defaults(func=preflight)
     s=subs.add_parser('handoff');s.add_argument('--project',type=Path,required=True);s.add_argument('--run-id');s.set_defaults(func=handoff)
     s=subs.add_parser('review-init');

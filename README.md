@@ -41,6 +41,10 @@ instructions. This skill does not assume a stable `generate` command.
 
 Give your agent the absolute path to `skills/research-ppt/SKILL.md`, the source
 papers, an optional style reference, your audience, talk duration and output language.
+The parent skill first resolves missing requirements and presents a brief covering
+purpose, audience, time/Q&A, language, style, structure and deliverables. It waits for
+acceptance before evidence preparation; you may explicitly delegate choices or authorize
+the supplied requirements without another round. Existing answers are reused.
 Copy/symlink the complete `research-ppt` skill folder into your host's skill discovery
 location when desired; supply the backend path explicitly if installed separately.
 Do not copy only SKILL.md: the references, scripts and templates are part of the skill.
@@ -57,7 +61,7 @@ Example request:
 ## Workflow and files
 
 ```text
-Intake → evidence → audience/story → style/assets → production handoff
+Confirm brief → evidence → audience/story → style/assets → production handoff
                                                       ↓
                                               current ppt-master
                                                       ↓
@@ -69,8 +73,16 @@ Intake → evidence → audience/story → style/assets → production handoff
 Initialize a **private** workspace outside this repository:
 
 ```bash
-python skills/research-ppt/scripts/workflow.py init   --project ../my-research-talk --source /path/paper.pdf   --minutes 27 --language zh-CN --audience "AI researchers outside this subfield"
+python skills/research-ppt/scripts/workflow.py init \
+  --project ../my-research-talk --source /path/paper.pdf \
+  --minutes 27 --language zh-CN --audience "AI researchers outside this subfield"
 ```
+
+Fill the remaining brief fields, then run
+`python skills/research-ppt/scripts/workflow.py intake --project ../my-research-talk`
+to create a pending requirement snapshot, not consent.
+Record only the user's actual acceptance or delegation in
+`brief.json`. Preparation checks and handoff reject pending or stale confirmation.
 
 Sources, evidence, figure inventory, style profile and slide plan become an
 immutable, checksummed production handoff. The tools validate metadata and artifact

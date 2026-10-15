@@ -5,7 +5,17 @@ semantically, choose a narrative, judge visual correctness, or produce the talk 
 Use Python 3.10+ and a current tool-capable host. Run from this repository's root or use
 absolute script paths when the skill is installed separately.
 
-## 1. Setup and new workspace
+## 1. Confirm requirements and initialize a workspace
+
+Start a new presentation with the parent's intake procedure in
+`skills/research-ppt/references/preparation.md`. Reuse requirements already supplied;
+ask short batches only for missing or contradictory essentials: audience and prior
+knowledge, purpose, duration and whether it includes Q&A, language, style/template,
+structure/focus and deliverables. Source availability checks and template previews may
+support this conversation; substantive evidence preparation and story design wait for
+acceptance. Repository development and project-structure questions do not start intake.
+
+Initialize a private workspace once the core command values are available:
 
 ```bash
 python -m pip install -r requirements.txt
@@ -20,8 +30,35 @@ python skills/research-ppt/scripts/workflow.py init \
 
 Omit `--template` without a reference. Repeat `--source` for multiple source files.
 Inputs are copied into the private workspace and fingerprinted. Update the exact source
-version, requested sections, Q&A policy and explicit assumptions in `brief.json`.
-An initialized workspace deliberately fails preflight until evidence/style/plan are ready.
+version, purpose, sections, Q&A policy/reserved minutes, style intent, deliverables and
+explicit assumptions in `brief.json`. Set `qa_minutes` to the included Q&A reservation,
+or zero when Q&A is outside the budget. Visible-slide time is `target_minutes` minus
+that reservation. Initialization leaves Q&A unspecified and intake pending; its defaults
+are proposals, not user approval. Then prepare the requirement snapshot:
+
+```bash
+python skills/research-ppt/scripts/workflow.py intake --project ../paper-talk
+```
+
+`intake` validates the brief and writes a **pending** `intake_confirmation` snapshot
+(an unchanged, already accepted snapshot is preserved).
+Present a readable summary of supplied requirements, proposed defaults and delegated
+decisions. Wait for the user's acceptance unless a prior actual instruction already
+authorizes this brief or explicitly delegates the relevant choices. A generic request to
+make a PPT is not delegation; an instruction such as "use these requirements and start"
+can authorize proceeding without another confirmation round.
+
+Only after that actual response/directive, record `status: confirmed` or `delegated`
+and the real user message quote or retrievable reference in `user_response`, retaining
+the generated `requirements` snapshot. There is no CLI approval flag: the script neither
+asks the user nor supplies consent. A recorded quote/reference is metadata; the agent
+must ensure it reflects a real instruction. `preflight` and `handoff` reject a missing, pending
+or stale confirmation. For resumed work, reuse the accepted brief; reconfirm material
+changes to the captured requirements or source identities/content/roles. Updating source
+version labels or internal assumptions alone does not invalidate the snapshot.
+
+An initialized workspace deliberately fails preflight until intake and evidence/style/plan
+are ready. Parent confirmation does not waive any current ppt-master confirmation gate.
 
 `upstream.py update` requires Git/network access and a real gitlink. It follows the current
 configured branch, does not discard dirty changes and does not execute upstream code.
