@@ -6,8 +6,12 @@ The current version is recorded in [SKILL.md](skills/research-ppt/SKILL.md)'s
 
 ## Unreleased
 
+## 0.4.0 - 2026-10-15
+
 ### Added
 
+- A repository `bump_version.py` helper previews or applies SemVer increments while
+  synchronizing skill metadata, README badges and dated changelog entries.
 - Figure framing keeps paper captions in notes and verifiable local context while
   preserving the data, axes, units and series legends in displayed crops.
 - Default section navigation, fixed typography roles and a limited accent palette

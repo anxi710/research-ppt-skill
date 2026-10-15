@@ -1,7 +1,7 @@
 # Research PPT Skill
 
 <p align="center">
-  <a href="CHANGELOG.md"><img src="https://img.shields.io/static/v1?label=Skill&amp;message=v0.3.0&amp;color=2563eb" alt="Skill v0.3.0" height="20"></a>
+  <a href="CHANGELOG.md"><img src="https://img.shields.io/static/v1?label=Skill&amp;message=v0.4.0&amp;color=2563eb" alt="Skill v0.4.0" height="20"></a>
   <a href="skills/research-ppt/references/environment-setup.md"><img src="https://img.shields.io/badge/Python-3.11-3776AB?logo=python&amp;logoColor=white" alt="Python 3.11" height="20"></a>
   <a href="https://github.com/anxi710/research-ppt-skill/actions/workflows/ci.yml"><img src="https://github.com/anxi710/research-ppt-skill/actions/workflows/ci.yml/badge.svg?branch=main" alt="Validate skill" height="20"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License: MIT" height="20"></a>
@@ -119,7 +119,8 @@ Third-party materials/dependencies keep their own licenses. See
 [LICENSE](LICENSE) and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 Skill versions follow [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html).
-See the [changelog](CHANGELOG.md) and [versioning rules](CONTRIBUTING.md#versioning).
+Use [bump_version.py](scripts/bump_version.py) to prepare a version; see the
+[changelog](CHANGELOG.md) and [versioning instructions](CONTRIBUTING.md#versioning).
 
 ## Validation status
 

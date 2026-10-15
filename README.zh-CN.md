@@ -61,7 +61,7 @@ Agent 会从主题或来源标题概括简短项目名，默认在 `./outputs/<p
 
 - `skills/research-ppt/`：独立技能包，含核心指令、阶段参考、模板和准备/校验脚本。
 - `third_party/ppt-master`：真实 Git 子模块，跟踪上游，不复制其实现。
-- `scripts/`：更新子模块、检查仓库文件的维护脚本。
+- `scripts/`：更新子模块、同步版本和检查仓库文件的维护脚本。
 - `tests/`、`examples/synthetic/`：纯合成回归测试，不包含私人论文和模板。
 - `.github/`：CI、Dependabot 更新配置、问题反馈模板。
 
@@ -73,6 +73,10 @@ Agent 会从主题或来源标题概括简短项目名，默认在 `./outputs/<p
 本项目原创指令与代码使用 **MIT**，与 ppt-master 当前根许可证一致。第三方论文、
 图像、字体、模板、软件依赖仍保留各自协议，不因这个仓库 MIT 而自动变为 MIT。
 公开仓库不携带个人资料、论文原图、校徽、旧汇报、字体或凭证。
+
+Skill 采用[语义版本控制](https://semver.org/lang/zh-CN/)。维护者可用
+[`bump_version.py`](scripts/bump_version.py) 同步版本、README 徽章和
+[更新记录](CHANGELOG.md)，命令及预览方式见[版本维护说明](CONTRIBUTING.md#versioning)。
 
 Dependabot 配置用于在工作日检查子模块更新并提出 PR；它不是已启动的后台服务，
 也不会自动合并。当前版本的实际兼容性需要新任务中的代表页验证。

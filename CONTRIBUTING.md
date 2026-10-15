@@ -32,15 +32,30 @@ notes; compatible fixes increment PATCH. Use `1.0.0` when the public interface i
 Python and ppt-master versions are separate from the skill version.
 
 Collect routine changes under `Unreleased` without changing the version on every commit.
-When preparing a version:
+When preparing a version, preview the change and then apply it:
 
-1. Set `metadata.version` in `skills/research-ppt/SKILL.md`, the canonical skill version.
-2. Update the README Skill badge's label and image URL to the same version.
-3. Move the completed `Unreleased` entries into a dated version section in
-   `CHANGELOG.md`, newest first. Preserve older version entries.
-4. Run the required checks above. `check_repo.py` validates SemVer and agreement
+```bash
+python scripts/bump_version.py minor --dry-run
+python scripts/bump_version.py minor
+```
+
+Choose `patch`, `minor`, `major`, or an exact version such as `1.0.0-rc.1`.
+Named increments increase the selected core number, reset lower numbers and remove
+prerelease/build suffixes. An exact version must have greater SemVer precedence than
+the current version; changing build metadata alone does not increase precedence.
+Use `--date YYYY-MM-DD` to override today's changelog date, or `--root PATH` to target
+another checkout. `--dry-run` shows a unified diff without writing files.
+
+The script updates `metadata.version` in `skills/research-ppt/SKILL.md` (the canonical
+version) and existing README Skill badge labels and URLs. It moves `Unreleased`
+entries into a dated version section, preserves older entries and leaves a fresh
+`Unreleased` section. It does not commit, tag or push.
+
+After updating the version:
+
+1. Run the required checks above. `check_repo.py` validates SemVer and agreement
    between the skill metadata, README badge and latest numbered changelog section.
-5. Commit the versioned state before creating a matching `vX.Y.Z` Git tag when a
+2. Commit the versioned state before creating a matching `vX.Y.Z` Git tag when a
    release is requested. A changelog entry alone does not create a tag or GitHub Release.
 
 Once a tagged version is released, record further changes in a new version rather

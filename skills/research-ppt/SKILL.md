@@ -9,7 +9,7 @@ description: >
   delegate actual slide authoring and export to the current ppt-master backend.
 license: MIT
 metadata:
-  version: "0.3.0"
+  version: "0.4.0"
 ---
 
 # Research PPT
