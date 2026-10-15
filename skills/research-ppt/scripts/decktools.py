@@ -292,14 +292,22 @@ def audit_pptx(pptx: Path, plan: Path | None = None) -> dict:
                         if not target: continue
                         part = posixpath.normpath(posixpath.join(base,target)).lstrip('/')
                         if part not in files: errors.append(f'Unresolved relationship {name} -> {target}')
+    def shape_tree(shapes, nested=False):
+        for shape in shapes:
+            yield shape,nested
+            if shape.shape_type == MSO_SHAPE_TYPE.GROUP:
+                yield from shape_tree(shape.shapes,True)
+
     prs = Presentation(pptx); records = []; text_count = 0
     for i, sl in enumerate(prs.slides, 1):
         if not sl.has_notes_slide or not sl.notes_slide.notes_text_frame.text.strip():
             errors.append(f'Slide {i}: missing speaker notes')
         texts = []; images = 0
-        for sh in sl.shapes:
+        for sh,nested in shape_tree(sl.shapes):
             if sh.width < 0 or sh.height < 0: errors.append(f'Slide {i}: negative shape extent')
-            if min(sh.left,sh.top) < -19050 or sh.left+sh.width > prs.slide_width+19050 or sh.top+sh.height > prs.slide_height+19050:
+            # Children use group-local coordinates. Count them, but do not mistake
+            # those coordinates for slide-space bounds without applying transforms.
+            if not nested and (min(sh.left,sh.top) < -19050 or sh.left+sh.width > prs.slide_width+19050 or sh.top+sh.height > prs.slide_height+19050):
                 warnings.append(f'Slide {i}: out-of-canvas box {sh.name}; inspect content/intentional bleed')
             if sh.shape_type == MSO_SHAPE_TYPE.GROUP:
                 warnings.append(f'Slide {i}: group-child transformations require visual check')

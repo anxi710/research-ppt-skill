@@ -36,6 +36,20 @@ class MaterialTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as t:
             path=Path(t)/'no_notes.pptx';prs=Presentation();prs.slides.add_slide(prs.slide_layouts[6]);prs.save(path)
             self.assertEqual(d.audit_pptx(path)['machine_status'],'fail')
+    def test_native_text_inside_nested_groups_is_counted(self):
+        from pptx import Presentation
+        from pptx.util import Inches
+        with tempfile.TemporaryDirectory() as t:
+            path=Path(t)/'grouped.pptx';prs=Presentation();slide=prs.slides.add_slide(prs.slide_layouts[6])
+            group=slide.shapes.add_group_shape();nested=group.shapes.add_group_shape()
+            nested.shapes.add_textbox(Inches(1),Inches(1),Inches(4),Inches(1)).text='合成分组文字'
+            group.shapes.add_textbox(Inches(1),Inches(2),Inches(4),Inches(1)).text='Synthetic grouped annotation'
+            slide.notes_slide.notes_text_frame.text='Synthetic group audit notes.';prs.save(path)
+            result=d.audit_pptx(path)
+            self.assertEqual(result['machine_status'],'pass')
+            self.assertEqual(result['nonempty_native_text_objects'],2)
+            self.assertEqual(result['records'][0]['native_text_objects'],2)
+            self.assertTrue(any('group-child transformations' in warning for warning in result['warnings']))
 
 @unittest.skipUnless(os.environ.get('RUN_RENDER_TESTS')=='1' and (shutil.which('soffice') or shutil.which('libreoffice')),'Set RUN_RENDER_TESTS=1 with LibreOffice for a real synthetic rendering test')
 class RenderTests(unittest.TestCase):
