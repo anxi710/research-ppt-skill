@@ -51,6 +51,7 @@ evidence, with rich notes and backups within the agreed time—not a fixed slide
 | Audience, structure, style and figures | `references/story-and-style.md` |
 | Backend discovery and production delegation | `references/production-handoff.md` |
 | Final render, inspection, revisions and delivery | `references/review-and-revision.md` |
+| Compare a generated deck with the user's edited final | `references/reference-calibration.md` |
 
 Resolve this skill's absolute directory before using bundled scripts. Runtime
 scripts and references live inside this folder. Repository maintenance helpers
@@ -153,6 +154,14 @@ Extract visual rules from a reference deck—not its old names, dates, claims or
 without permission. Record palette, fonts, aspect ratio, source footer, visual density
 and layout variations in a style profile. Never use decorative filler to eliminate
 whitespace. Enlarge/recompose the core visual first; preserve useful margins.
+
+For new workspaces, record a communication contract in the style profile and explicit
+`display_title`/`on_slide_text` in the page plan. Keep planning metadata out of display
+copy unless deliberately selected. Match a supplied final reference's terminology,
+citation placement and opening/closing/backup choices; inspect representative rendered
+pages before expanding. Full locators remain in notes even when bibliography is off-slide.
+The reference-calibration procedure distinguishes repeated preferences from content fixes
+and editor artifacts. It does not make one user's deck a universal template.
 
 Prepare high-resolution original figures. Preserve axes, legends, ticks, units,
 panel labels and uncertainty information. Split panels only when the relevant legend

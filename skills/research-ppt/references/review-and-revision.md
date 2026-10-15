@@ -23,8 +23,17 @@ is a separate delivery; all-slides QA must include every backup.
 
 Inspect all full-size slides and necessary detail crops, not just the montage. Confirm
 figure axes/legends/panels, image aspect ratio, readable fonts, title/figure agreement,
-source footer, annotation placement, whitespace and excessive density. Read the notes.
+citation placement, annotation placement, whitespace and excessive density. Read the notes.
 Check that critical definitions precede results and that teaching examples are labelled.
+
+For communication-contract workspaces, `audience_copy` and `reference_match` are separate
+pending checks on every page. Compare final titles/body with the display plan, read the
+titles as one outline and check terminology and direct wording. Compare page composition,
+font roles, figure size, annotations and citation placement with the recorded reference
+pages or style basis. Character counts cannot approve density. Inspect equations and
+time indices, and title fit after a font/editor change. Review comments must describe
+concrete observations, not merely repeat the check names. Legacy reviews remain valid
+under their original contract; do not copy approvals into a changed contract.
 
 ## Scientific review
 
@@ -77,3 +86,8 @@ A skill release must not include the private talk's PDFs, original images, insti
 unpublished data, personal identities or secrets. Generalize lessons into rules and synthetic
 fixtures. Permission to create a public skill repository does not imply permission to publish
 all inputs used by that skill.
+
+When the user supplies a manually edited final version, follow
+`references/reference-calibration.md` to align the pair and turn repeated edits into
+project-local rules. Preserve the main-deck choices without imitating accidental lost
+notes, clipping or changes in evidence strength. Public improvements use synthetic data.

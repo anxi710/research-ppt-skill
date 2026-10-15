@@ -12,6 +12,9 @@
     {
       "id": "P01",
       "section": "Method",
+      "display_title": "State update mechanism",
+      "page_role": "method_explanation",
+      "citation_placement": "compact_footer",
       "question": "What does this page explain?",
       "topic": "One precise topic",
       "evidence_ids": [
@@ -30,8 +33,8 @@
         "State the scoped observation"
       ],
       "on_slide_text": [
-        "One short headline",
-        "Two reading hints at most when appropriate"
+        "Final audience-facing explanation or reading hints; keep the title in display_title",
+        "Use as much explanation as this page and the accepted reference require"
       ],
       "takeaway": "A scoped conclusion",
       "speaker_notes": "Detailed reading path, interpretation, scope, source and transition.",

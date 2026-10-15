@@ -48,6 +48,15 @@ deck or a string of disconnected paper summaries during layout. Keep explanatory
 source distinctions, key comparisons and planned hidden backups; propose scope/time
 changes rather than deleting necessary explanation to fit a template.
 
+Carry the style profile's communication contract and concrete reference observations into
+the backend brief. `display_title` and `on_slide_text` are the intended visible copy;
+`question`, `topic`, `takeaway`, reading order and notes are planning/speaking fields unless
+explicitly included in display copy. Apply the recorded terminology, citation placement,
+opening/closing and backup choices. Do not restore a long bibliographic footer because an
+optional generic profile uses one; retain full source locators in notes and necessary
+experimental conditions on the slide. Use the backend's supported math route and verify
+subscripts, superscripts and time indices after export.
+
 Carry `brief.json`'s `project_name` and `output_files` into production. The default
 workspace is `<request-working-directory>/outputs/<project-name>/`, with delivery
 files `exports/<project-name>.pptx`, `exports/<project-name>.pdf` and
@@ -65,7 +74,9 @@ commands actually run, backend identity, exported paths, source hashes and known
 Do not convert entire slides into background screenshots and call the result editable.
 
 Inspect representative pages before expanding the deck, within the backend's allowed
-workflow. A page-count/claim/figure change is a contract change, not a silent design tweak.
+workflow. Line breaks, grouping, font fit and mathematically equivalent typesetting can
+change presentation without rewriting the approved copy. A wording/page-count/claim/figure
+change is a contract change, not a silent design tweak.
 Send it back to the orchestrator, update the plan, then take a fresh handoff snapshot.
 
 ## Revision requests

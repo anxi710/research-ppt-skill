@@ -10,5 +10,21 @@
   "density": "large core figure with short annotations",
   "logo_policy": "No identity inherited without permission",
   "source_footer": true,
-  "layouts": []
+  "layouts": [],
+  "communication_contract": {
+    "version": 1,
+    "citation_placement": "compact_footer",
+    "rules": [
+      "Match the accepted reference's title hierarchy, figure size and annotation density; record observed slide numbers and measurements below",
+      "Keep required conditions, metric definitions and uncertainty visible; put full bibliographic locators in speaker notes",
+      "Use only supplied presenter metadata and an agreed opening, closing and backup policy"
+    ]
+  },
+  "reference_observations": [],
+  "terminology": [],
+  "deck_structure": {
+    "opening": "Resolve from the brief or reference; do not invent presenter details",
+    "closing": "Resolve from the brief or reference",
+    "backups": "Resolve whether required, hidden in this file, separate, or omitted"
+  }
 }

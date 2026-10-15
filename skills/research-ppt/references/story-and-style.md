@@ -58,6 +58,20 @@ Write display text for viewers and notes for the speaker. Notes include evidence
 reading order, the useful interpretation, limitations, transition and planned seconds.
 If text cannot fit legibly, shorten or split the page before reducing font size.
 
+Specify the final `display_title` separately from `on_slide_text` (final body copy).
+`question`, `topic`, `takeaway` and `reading_order` are planning metadata, not four more
+things to print. Choose titles by page function: a topic for foundations, a numbered
+question when it helps the argument, a supported finding for results. Read all display
+titles together to check the talk's outline, then read each page aloud. Replace awkward
+translations, metaphors and repeated disclaimers with direct explanations. Define a
+technical term once and use a consistent Chinese/English form; keep established English
+terms where the audience/reference uses them. Do not strengthen a finding while polishing.
+
+Prefer affirmative metric definitions (what the axis measures) to repeated statements of
+what it does not measure. Preserve consequential distinctions and experimental conditions.
+Put full provenance and secondary caution in notes; the main reasoning must still be
+understandable from the visible page. Do not shorten every page to the same number of labels.
+
 ## Style decisions
 
 Inspect a template's rendered pages and explicit formatting. Theme/master-inherited
@@ -70,6 +84,29 @@ layout patterns. Make academic visual density purposeful: enlarge the core visua
 arrange comparison panels, add only necessary annotations. Avoid big empty title-only
 section dividers unless they serve the timing and narrative. Avoid copy-paste card grids.
 The optional academic-blue profile is an example, not a school identity or global default.
+
+When a user supplies their edited final deck, treat it as stronger style evidence than a
+generic profile. Read `references/reference-calibration.md` for pairwise analysis. Record
+observations in `style_profile.json`: reference slide numbers, title/body/caption sizes,
+figure footprint, whitespace, alignment, terminology, citation placement and opening/
+closing/backup choices. Distinguish observed rules, explicit requirements and assumptions.
+Keep identities and source material in the private project, not in a public skill profile.
+
+New plans use `communication_contract` v1 in the style profile (see its template): final
+display titles, citation placement and a small set of concrete acceptance rules. The helper
+requires separate audience-copy/reference-match reviews for this contract; it cannot judge
+the prose or reference match itself. Legacy workspaces without it remain supported.
+`citation_placement` is `compact_footer`, `notes`, or `per_slide`. For `per_slide`, every page
+records its own `citation_placement` as `compact_footer` or `notes`. `on_slide_text` is an
+explicit list of nonempty strings; use `[]` for a page with no body copy. Respect a user's
+clean-body reference: bibliography can live in
+notes, while necessary figure labels, conditions and disclosures remain visible. A legacy
+`source_footer` flag does not override the explicit communication contract.
+
+Prototype the opening, a foundation/mechanism page and a dense results page in the backend's
+allowed workflow. Evaluate figure legibility and natural wording at presentation size before
+expanding. Reuse the accepted page patterns; do not infer that larger fonts or fewer words
+are improvements when the user's reference already keeps the body composition intact.
 
 ## Figure handling
 

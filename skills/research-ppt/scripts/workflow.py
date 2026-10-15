@@ -21,6 +21,8 @@ from decktools import sha256, load, write, under, audit_pptx
 PREP = ['brief.json', 'analysis/evidence.json', 'analysis/figure_manifest.json',
         'design/style_profile.json', 'design/slide_plan.json']
 CHECKS = ['visual', 'facts', 'sources', 'notes', 'crop_completeness']
+COMMUNICATION_CHECKS = ['audience_copy', 'reference_match']
+CITATION_PLACEMENTS = {'compact_footer', 'notes', 'per_slide'}
 KINDS = {'source_claim','author_interpretation','presenter_analysis','illustration'}
 INTAKE_FIELDS = ['audience','target_minutes','qa_time_included','qa_minutes','language','purpose',
                  'sections','style_intent','deliverables']
@@ -40,6 +42,30 @@ def nonempty(value: Any) -> bool:
 
 def positive(value: Any) -> bool:
     return type(value) in (int,float) and math.isfinite(value) and value > 0
+
+
+def communication_contract_errors(style: dict) -> list[str]:
+    """Version the optional communication rules without invalidating legacy styles."""
+    if 'communication_contract' not in style:return []
+    contract=style['communication_contract']
+    if not isinstance(contract,dict):return ['Style: communication_contract must be an object']
+    errors=[]
+    if type(contract.get('version')) is not int or contract.get('version')!=1:
+        errors.append('Style: communication_contract version must be 1')
+    placement=contract.get('citation_placement')
+    if not isinstance(placement,str) or placement not in CITATION_PLACEMENTS:
+        errors.append('Style: communication_contract citation_placement must be compact_footer, notes or per_slide')
+    rules=contract.get('rules')
+    if not isinstance(rules,list) or not rules or any(not nonempty(rule) for rule in rules):
+        errors.append('Style: communication_contract rules must be a nonempty list of nonempty strings')
+    return errors
+
+
+def review_checks(style: dict) -> list[str]:
+    contract=style.get('communication_contract')
+    versioned=(isinstance(contract,dict) and type(contract.get('version')) is int
+               and contract['version']==1)
+    return CHECKS+COMMUNICATION_CHECKS if versioned else list(CHECKS)
 
 
 def intake_requirements(brief: dict) -> dict:
@@ -163,7 +189,16 @@ def init(args: argparse.Namespace) -> int:
     write(root/'brief.json',brief)
     write(root/'analysis/evidence.json',{'claims':[]})
     write(root/'analysis/figure_manifest.json',{'figures':[]})
-    write(root/'design/style_profile.json',{'name':'project-style','review_status':'pending','basis':''})
+    write(root/'design/style_profile.json',{
+        'name':'project-style','review_status':'pending','basis':'',
+        'communication_contract':{
+            'version':1,'citation_placement':'compact_footer',
+            'rules':[
+                'Use display_title and on_slide_text as the exact audience-facing copy; planning fields are not automatically visible.',
+                'Write concise titles and explanations that the intended audience can understand; keep presentation instructions in speaker notes.',
+                'Match the reviewed reference style and its communication choices when a reference is supplied; otherwise follow the recorded style basis.',
+                'Keep scientific conditions, uncertainty and meaningful qualifiers visible where needed to understand the claim; citation placement does not remove them.'
+            ]}})
     write(root/'design/slide_plan.json',{'slides':[]})
     write(root/'state.json',{'stage':'intake','created_at':now(),'accepted_artifacts':[],
                               'open_issues':[],'review_status':'not_started'})
@@ -222,7 +257,10 @@ def preflight_report(root: Path) -> dict:
     style=data['design/style_profile.json']
     if style.get('review_status')!='verified' or not nonempty(style.get('basis')):
         errors.append('Style not reviewed or decision basis missing')
-    slides=data['design/slide_plan.json'].get('slides',[]);slide_ids=set();seconds=0
+    errors.extend(communication_contract_errors(style))
+    has_communication_contract='communication_contract' in style
+    communication_contract=style.get('communication_contract')
+    slides=data['design/slide_plan.json'].get('slides',[]);slide_ids=set();seconds=0;display_text_metrics=[]
     if not slides:errors.append('Slide plan is empty')
     for slide in slides:
         sid=slide.get('id')
@@ -230,6 +268,16 @@ def preflight_report(root: Path) -> dict:
         slide_ids.add(sid)
         for key in ['topic','question','takeaway','speaker_notes']:
             if not nonempty(slide.get(key)):errors.append(f'{sid}: {key} missing')
+        if has_communication_contract and not nonempty(slide.get('display_title')):
+            errors.append(f'{sid}: display_title missing (planning fields are not display copy)')
+        if has_communication_contract:
+            display_copy=slide.get('on_slide_text')
+            if not isinstance(display_copy,list) or any(not nonempty(block) for block in display_copy):
+                errors.append(f'{sid}: on_slide_text must be an explicit list of nonempty strings (empty list allowed for visual-only slides)')
+            if isinstance(communication_contract,dict) and communication_contract.get('citation_placement')=='per_slide':
+                placement=slide.get('citation_placement')
+                if not isinstance(placement,str) or placement not in {'compact_footer','notes'}:
+                    errors.append(f'{sid}: per_slide citation policy requires citation_placement compact_footer or notes')
         if type(slide.get('hidden')) is not bool:errors.append(f'{sid}: hidden must be boolean')
         if not positive(slide.get('seconds')):errors.append(f'{sid}: positive duration required')
         elif not slide.get('hidden'):seconds+=slide['seconds']
@@ -244,14 +292,21 @@ def preflight_report(root: Path) -> dict:
         for fid in visual.get('asset_ids',[]):
             if fid not in asset_ids:errors.append(f'{sid}: unknown visual {fid}')
         if not slide.get('reading_order'):errors.append(f'{sid}: reading order missing')
-        if len(slide.get('on_slide_text',[]))>4:warnings.append(f'{sid}: check display-text density')
+        title=slide.get('display_title','')
+        title_characters=len(title) if isinstance(title,str) else 0
+        blocks=slide.get('on_slide_text',[])
+        if not isinstance(blocks,list):blocks=[]
+        display_text_metrics.append({'slide_id':sid,'title_characters':title_characters,
+                                     'total_characters':title_characters+sum(len(block) for block in blocks if isinstance(block,str)),
+                                     'text_block_count':len(blocks)})
     speaking_minutes=brief.get('target_minutes')
     if positive(speaking_minutes) and brief.get('qa_time_included') is True and positive(brief.get('qa_minutes')):
         speaking_minutes-=brief['qa_minutes']
     if positive(speaking_minutes) and abs(seconds-60*speaking_minutes)>max(60,speaking_minutes*6):
         errors.append('Visible-slide timing differs materially from the speaking budget (excluding reserved Q&A); revise plan or brief')
     return {'status':'fail' if errors else 'pass','errors':errors,'warnings':warnings,
-            'planned_seconds':seconds,'slides':len(slides),'meaning':'Metadata and provenance preflight; agent still judges evidence and design.'}
+            'planned_seconds':seconds,'slides':len(slides),'display_text_metrics':display_text_metrics,
+            'meaning':'Metadata and provenance preflight; display text metrics are informational, not density approval. Agent still judges evidence and design.'}
 
 
 def preflight(args: argparse.Namespace) -> int:
@@ -279,6 +334,22 @@ def handoff(args: argparse.Namespace) -> int:
     write(dest/'manifest.json',manifest)
     text=f'''# Research production handoff\n\nPrivate workspace: `{root}`\nContract manifest: `{dest/'manifest.json'}`\n\nRead all five preparation snapshots in this directory. Use the referenced original\nsource/asset files in the private workspace, preserving their hashes and figure identity.\nThey are local references, not permission to upload/publish them.\n\nUse the current, real ppt-master checkout and its current documented route. Map this\nbrief into its current runtime; do not invent CLI flags or forge confirmation gates.\nDo not change claims, durations, page roster or figure meaning silently. Raise needed\ncontract changes to preparation before production. Work under `{root/'production'}`.\n\nReturn a real PPTX and a completed build receipt listing actual backend revision,\ncommands, outputs and limitations. Native text/annotations remain editable; original\npaper charts remain source images. Include notes, citations and true hidden flags.\nThe final PPTX will be independently rendered and checked against this contract.\n'''
     brief=load(root/'brief.json')
+    text+='\n## Audience-facing copy\n\n'
+    text+=('Use each slide\'s `display_title` and `on_slide_text` as the exact display copy when supplied. '
+           'Layout, line breaks and mathematically equivalent typesetting may be adjusted. '
+           'Changed wording requires updated preparation and a fresh handoff. '
+           'The `topic`, `question`, `takeaway`, `reading_order` and `speaker_notes` fields guide planning '
+           'or speaking; they are not automatically visible text. Do not turn planning instructions '
+           'into audience-facing labels. Legacy plans without `display_title` retain their accepted design.\n\n'
+           'Preserve meaningful scientific qualifiers, conditions and uncertainty on the slide wherever '
+           'they are necessary to interpret its claim, even when bibliographic citations are placed in notes.\n')
+    style=load(root/'design/style_profile.json')
+    if 'communication_contract' in style:
+        text+='\n## Communication contract\n\n'
+        text+='```json\n'+json.dumps(style['communication_contract'],ensure_ascii=False,indent=2)+'\n```\n\n'
+        text+=('Apply every communication rule and the citation placement policy above. Independent review '
+               'must check `audience_copy` against the planned display copy and `reference_match` against '
+               'the supplied reference or recorded style basis; neither is approved by metadata or text counts.\n')
     presentation={key:brief[key] for key in PRESENTATION_CHOICES if key in brief}
     if presentation:
         text+='\n## Presentation scope\n\n```json\n'
@@ -333,6 +404,7 @@ def review_init(args: argparse.Namespace) -> int:
     errors=contract_errors(root,handoff_dir)
     if errors:raise ValueError('; '.join(errors))
     plan=load(root/'design/slide_plan.json')['slides']
+    checks=review_checks(load(root/'design/style_profile.json'))
     _,renders=render_entries(args.pptx,args.render_report,len(plan))
     if args.out.exists():raise ValueError('Refuse to overwrite a review; use a new review filename')
     rows=[]
@@ -340,7 +412,7 @@ def review_init(args: argparse.Namespace) -> int:
         image=(args.render_report.parent/'pages'/render['file']).resolve()
         import os
         rows.append({'slide':n,'slide_id':slide['id'],'render_path':os.path.relpath(image,args.out.parent.resolve()),
-                     'render_sha256':render['sha256'],**{key:'pending' for key in CHECKS},'comments':''})
+                     'render_sha256':render['sha256'],**{key:'pending' for key in checks},'comments':''})
     write(args.out,{'pptx_sha256':sha256(args.pptx),
                     'handoff_manifest_sha256':sha256(handoff_dir/'manifest.json'),
                     'render_report_sha256':sha256(args.render_report),
@@ -353,6 +425,7 @@ def gate(args: argparse.Namespace) -> int:
     root=args.project.resolve();errors=contract_errors(root,args.handoff.resolve())
     prep=preflight_report(root)
     errors+=prep['errors']
+    checks=review_checks(load(root/'design/style_profile.json'))
     plan=root/'design/slide_plan.json';rows=load(plan)['slides'];digest=sha256(args.pptx)
     machine=load(args.audit);review=load(args.review);receipt=load(args.receipt)
     # Recompute inexpensive package checks instead of trusting an arbitrary "pass" flag.
@@ -375,7 +448,7 @@ def gate(args: argparse.Namespace) -> int:
         n=item.get('slide',0)
         if type(n) is not int or not 1<=n<=len(rows):errors.append('Invalid review slide');continue
         if item.get('slide_id')!=rows[n-1]['id']:errors.append(f'Slide {n}: plan ID mismatch')
-        for key in CHECKS:
+        for key in checks:
             if item.get(key)!='pass':errors.append(f'Slide {n}: {key} not passed')
         if not nonempty(item.get('comments')):errors.append(f'Slide {n}: review observations missing')
         path=(args.review.parent/item.get('render_path','')).resolve()
