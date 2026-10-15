@@ -1,6 +1,8 @@
 # Migration from the private ResearchDeck prototype
 
-This release changes the ownership boundary, rather than just renaming the old package.
+The move from the private ResearchDeck prototype changed the ownership boundary as well
+as the package name. This page records that history; use the [README](../README.md#usage)
+for current setup instructions.
 
 | Previous prototype | General skill |
 |---|---|

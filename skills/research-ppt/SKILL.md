@@ -1,10 +1,10 @@
 ---
 name: research-ppt
 description: >
-  Prepare evidence-grounded research presentations and review or revise their final
-  PPTX artifacts. Use for paper talks, journal clubs, literature reviews, research
-  progress reports, scientific method tutorials, or slide-deck requests based on
-  research sources. Own source preparation, audience prerequisites, narrative,
+  Prepare detailed research-report PPTs from supplied papers, notes, reports and
+  experimental results, and review or revise their final artifacts. Use for integrated
+  topic reports, paper talks, journal clubs, literature reviews, research progress
+  reports and scientific method tutorials. Own evidence, audience prerequisites, narrative,
   style, original figures, production handoff and independent post-production QA;
   delegate actual slide authoring and export to the current ppt-master backend.
 license: MIT
@@ -33,10 +33,20 @@ them as proposed assumptions for intake confirmation. Do not ask again for infor
 already supplied. Repository development and project-structure questions do not start
 a presentation intake.
 
+For a research report based on supplied materials, organize the presentation around
+the research question or project, integrating relevant sources rather than following
+one paper's table of contents or making unrelated paper summaries. A single supplied
+file may also support a report; do not require multiple papers. Explicit paper-talk,
+review, progress-report and tutorial requests keep their intended scope. Propose
+`presentation_type: research_report` and `detail_level: detailed` for new unspecified
+briefs, then resolve them through intake. Detail means sufficient explanation and
+evidence, with rich notes and backups within the agreed time—not a fixed slide count.
+
 ## Load only what the stage needs
 
 | Stage | Reference |
 |---|---|
+| Requested environment setup | `references/environment-setup.md` |
 | Intake, source reading and evidence | `references/preparation.md` |
 | Audience, structure, style and figures | `references/story-and-style.md` |
 | Backend discovery and production delegation | `references/production-handoff.md` |
@@ -49,7 +59,15 @@ user supplies its path. Do not search unrelated home directories for credentials
 
 ## Durable state and stage gates
 
-Keep each talk in its own **private workspace**, normally outside this repository:
+Keep each talk in its own **private workspace**. Unless the user specifies a name or
+destination, summarize a short project name from the supplied topic/source title and
+use `<request-working-directory>/outputs/<project-name>/`. Resolve that working
+directory before changing to the skill/backend installation. Pass the name via
+`init --name`; the helper makes it a safe filename, preserves Chinese and adds `-02`,
+`-03`, etc. for new talks with the same name. Capture the actual path printed by init;
+resume an existing talk at its original path. Explicit user names/paths take priority.
+
+Within that workspace:
 
 ```text
 brief.json                    # requirements, source fingerprints, intake confirmation
@@ -68,13 +86,22 @@ state.json                    # stage, accepted artifacts, unresolved issues
 Restore from these files before resuming. Never infer completion from a previous
 assistant message or a successful export alone. Do not overwrite accepted inputs,
 previous snapshots, earlier QA or final versions.
+Default delivery filenames are `exports/<project-name>.pptx`,
+`exports/<project-name>.pdf` and `exports/<project-name>-notes.md`, for requested
+formats only. Persist them as workspace-relative `output_files` in `brief.json` and
+pass them through the handoff. Keep prior revision files and review the exact delivered
+PPTX. `outputs/` is private job data, ignored in this repository and never published.
 
 ### 0. Agree on the presentation brief
 
 Read the Intake procedure in `references/preparation.md` before evidence preparation.
+The helper's `init --name <project-name>` creates the default workspace's `brief.json`;
+`--project <private-workspace>` overrides its destination.
+`templates/brief.example.json` shows a complete synthetic brief before confirmation.
 Extract known requirements and check source availability, then ask only missing or
 contradictory essentials in small batches: audience/expertise and purpose, duration
-and Q&A, language, style/reference intent, structure/focus and requested deliverables.
+and Q&A, presentation type/depth, language, style/reference intent, structure/focus
+and requested deliverables.
 Offer concrete choices and explicit delegation where useful. Present a readable brief
 that distinguishes supplied requirements, proposed defaults and delegated decisions.
 
@@ -87,11 +114,14 @@ brief and confirm only material changes. Parent intake does not waive backend ga
 
 ### 1. Prepare the evidence
 
-Read supplied sources in their exact versions. Reports and summaries are navigation,
-not replacements for the source. For multiple papers, record which paper supports
-which claim; separate paper claims, author interpretations, presenter analysis and
-explicitly synthetic teaching examples. Add outside research only when requested
-or needed to resolve a declared source gap, with separate attribution.
+Inventory relevant supplied papers, reports, notes, result files, figures and existing
+slides; expand a supplied folder into explicit file paths for the helper. Read the
+selected sources in their exact versions. Notes summarizing another work are navigation,
+not verified substitutes for that original; a project report or result log can itself
+be a primary source for the user's work. Distinguish published evidence, user results,
+author interpretations, presenter analysis and synthetic teaching examples. Map each
+claim to its actual sources. Add outside research only when requested or within an
+agreed source-gap resolution; keep its attribution separate.
 
 Inspect original figure/table images, not just parsed text. Record definitions,
 units, axes, denominators, confidence intervals, intervention/control, sample size,
@@ -108,6 +138,12 @@ from the audience's missing prerequisites. Teach only what is necessary to under
 the key method and evidence. An empirical diagnostic paper need not pretend to have
 a new algorithm; a theory paper may center on an equation or counterexample rather
 than a chart. Literature reviews require synthesis, not a paper-by-paper dump.
+
+For a detailed integrated report, connect background, the research problem, necessary
+foundations, methods, results, comparisons, limitations and implications as supported
+by the materials. Include the user's progress/next steps only when supplied or clearly
+labelled as proposals. Follow `references/story-and-style.md` to record coverage and
+place supporting details in notes or true backups without omitting the main argument.
 
 Each page has one question, one topic, one core visual or coherent panel group,
 source IDs, reading order, minimal display text, a scoped takeaway, speaker notes,
@@ -135,8 +171,8 @@ it midway through construction/review. Refreshing a backend is not a reason to r
 the paper version or its historical results.
 
 Read the backend's current `AGENTS.md` and skill entry, follow its current documented
-route and required gates. Do not assume historical script names, CLI flags, SVG format,
-or template contract. Do not forge its confirmations because our preparation exists.
+route and required gates. Resolve script names, CLI flags, SVG format and template
+contract from those instructions. Do not forge its confirmations because our preparation exists.
 Pass our brief as source material and constraints, not as its internal design lock.
 Do not disable attribution, integrity, licensing or safety checks.
 

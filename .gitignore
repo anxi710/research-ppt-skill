@@ -1,4 +1,4 @@
-# Private presentation work belongs outside the skill repository.
+# Private presentation work stays untracked, including the default outputs/ tree.
 workspaces/
 local/
 inputs/

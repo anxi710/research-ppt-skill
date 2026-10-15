@@ -1,0 +1,50 @@
+{
+  "presentation_type": "research_report",
+  "detail_level": "detailed",
+  "project_name": "合成教学汇报",
+  "output_files": {
+    "pptx": "exports/合成教学汇报.pptx",
+    "pdf": "exports/合成教学汇报.pdf",
+    "speaker_notes": "exports/合成教学汇报-notes.md"
+  },
+  "language": "zh-CN",
+  "audience": "有基本机器学习知识、不了解本次教学主题的研究生（合成示例）",
+  "target_minutes": 25,
+  "qa_time_included": true,
+  "qa_minutes": 5,
+  "purpose": "用合成教学材料演示汇报需求配置，不表达真实论文结论。",
+  "sections": [
+    "背景",
+    "问题",
+    "教学示例",
+    "分析",
+    "总结"
+  ],
+  "style_intent": "简洁学术风，浅色背景，大幅核心视觉，正文少字；不使用机构标识。",
+  "deliverables": [
+    "pptx",
+    "pdf",
+    "speaker_notes"
+  ],
+  "intake_confirmation": {
+    "status": "pending",
+    "user_response": "",
+    "requirements": {}
+  },
+  "sources": [
+    {
+      "id": "S1",
+      "path": "inputs/source_01.md",
+      "original_name": "synthetic_source.md",
+      "sha256": "21597b8f94bd11f0c9d0bbc0a506a645e522ca04e8baa1ff71a5f20699423891",
+      "version": "synthetic fixture v1",
+      "role": "research_source"
+    }
+  ],
+  "assumptions": [
+    "所有需求值均为待确认的合成示例；不能作为真实用户的授权记录。"
+  ],
+  "research_connection": null,
+  "confidentiality": "private_workspace",
+  "backend_preference": "ppt-master"
+}

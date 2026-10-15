@@ -2,6 +2,11 @@
 
 ## Adapt the narrative to the research type
 
+Integrated research report: research question → necessary background → organizing
+framework/methods → evidence across materials → comparisons and analysis → limitations
+and supported implications. Connect the user's progress and proposed next steps when
+the request and materials support them. Select relevant sections, not a mandatory
+chapter template; do not invent original contributions or experiments to fill a section.
 Empirical paper: phenomenon → hypotheses → controlled setup → evidence → scope.
 Method paper: limitation → design idea → mechanism → comparisons/ablations → analysis.
 Theory paper: definitions → motivating example → assumptions → result → intuition → limits.
@@ -11,6 +16,36 @@ Progress report: objective → work done → evidence → failure diagnosis → 
 Use the user's requested structure when explicit. Add only the foundations needed by this
 audience, usually a concrete task example, an interaction/model diagram and the evaluation
 unit. Do not spend five slides explaining AI to AI researchers.
+
+## Synthesize materials and control depth
+
+Organize a report by questions, mechanisms, evidence or project decisions, not by the
+order files arrived. Use a common set of comparison dimensions where defensible.
+Cross-source agreement, disagreement and missing evidence each have a place; preserve
+which observations are published, the user's own results or presenter analysis. Multiple
+sources need not appear on every page, but their roles should form one coherent story.
+Explicit single-paper talks remain valid and do not require outside sources.
+
+`detail_level` specifies explanation depth, not text density. `overview` emphasizes the
+central question and strongest evidence; `standard` adds enough method and evaluation
+detail to follow the argument; `detailed` explains needed definitions/assumptions, the
+method's mechanism, experimental setup, key results, comparisons, uncertainty and
+limitations when supported. Include transitions and sufficient speaker notes to teach
+the material, rather than converting headings or an abstract into a finished report.
+
+For detailed or multi-material reports, keep a compact `coverage` list alongside `slides`
+in `design/slide_plan.json`. For each required topic, record supporting source IDs,
+slide IDs or the relevant notes, and whether it is in the main deck, backups, notes,
+deliberately excluded or blocked by a source gap. Give reasons for exclusions/gaps.
+This is an editorial review aid carried in the immutable handoff, not an automatic
+certificate of completeness. An irrelevant supplied file can be excluded with a reason;
+do not add slides merely to cite every file.
+
+Budget main slides against agreed speaking time after reserved Q&A. Keep the reasoning
+needed to understand a conclusion in the main deck; place detailed derivations, additional
+ablations/data tables and optional examples in notes or genuinely hidden backups.
+If must-cover content still exceeds the budget, negotiate scope or duration. Do not
+silently omit it, shrink fonts or promise a detailed talk in an implausible time.
 
 ## One core visual, one page job
 
@@ -54,3 +89,6 @@ editable source data. An accessibility description belongs in the asset inventor
 Every visible page has a question, core visual, source links, notes and duration. Main
 conclusions receive more time than routine setup; detailed proof/ablation/Q&A material
 can become real hidden backup slides. Summed durations are planning estimates only.
+Compare the deck and notes with the accepted scope and coverage list. Are the important
+questions explained, not merely named? Do the sources form a connected argument? Are
+omissions and evidence gaps visible? Detailed coverage is a judgment, not a slide count.

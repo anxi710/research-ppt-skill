@@ -9,10 +9,13 @@ Repository maintenance and questions about the skill itself do not run this flow
 ### Establish what is already known
 
 Read the request, relevant prior instructions and existing workspace records. Check
-which papers, supplements, user-owned results, reading notes and template files are
-available. Record source versions and fingerprints; source PDFs remain the authority
-for the specified version. A newer public revision does not silently replace an
-uploaded version. Report unavailable required material before promising a workflow.
+which papers, supplements, project reports, user-owned results/data/figures, reading
+notes and template files are available. For a supplied folder, inventory relevant files,
+identify their purpose and select explicit files; `init --source` accepts files, not
+directories. Record selected source versions and fingerprints; each supplied original
+is authoritative for its own recorded claims. A newer public revision does not silently
+replace an uploaded version. Report unavailable/unreadable required material before
+promising a workflow.
 
 Before confirmation, file-presence checks, source identification and a small template
 preview are allowed to formulate useful options. Defer substantive evidence reading,
@@ -20,16 +23,55 @@ claim selection, story design and slide production until the intake gate is sati
 
 ### Resolve essential decisions interactively
 
+Summarize a short, descriptive project name from the request's topic or source title;
+this needs only source identification, not substantive evidence reading. Prefer a
+readable name in the talk's language and avoid claiming a result just to name the file.
+Use `scripts/workflow.py init --name <project-name> ...` from the request's working
+directory, or pass an absolute `--project` derived from that directory after changing
+directories. The default is `outputs/<project-name>/`; the helper preserves Chinese,
+cleans path separators/punctuation and adds `-02`, `-03`, etc. when a name already
+exists. If no name is supplied, it falls back to the first source filename stem;
+semantic summarization belongs to the agent. Explicit user names and paths override
+these defaults. Reuse the original workspace when resuming rather than initializing.
+
+Initialization creates `brief.json` at `<private-workspace>/brief.json`; it is not
+a file to find at the skill repository root. Record the actual path printed by init.
+The agent normally maintains it from the conversation. See the complete synthetic,
+pending [brief example](../templates/brief.example.json). Preserve real source paths
+and hashes from initialization when adapting its requirements.
+
+`project_name` and workspace-relative `output_files` describe the delivery defaults:
+`exports/<project-name>.pptx`, `exports/<project-name>.pdf` and
+`exports/<project-name>-notes.md`. Use requested formats only, preserve explicit user
+filenames, and retain old versions for revisions. Include the selected project path
+in the readable brief; naming defaults do not establish consent for research work.
+
 Collect these decisions in `brief.json`, reusing every answer already supplied:
 
 | Decision | What to establish |
 |---|---|
+| Presentation type and depth | An integrated `research_report`, a `paper_talk`, `literature_review`, `progress_report` or `method_tutorial`; depth is `overview`, `standard` or `detailed`. New initialization proposes `research_report` / `detailed`; explicit user intent wins. |
 | Audience and purpose | Audience role and prior knowledge; what they should understand, discuss or decide after the talk. |
 | Time | Target minutes and whether Q&A is included; when included, agree on reserved `qa_minutes`. For example, 25 minutes including 5 minutes of Q&A leaves 20 minutes for visible slides. |
 | Language | Slide and delivery language, including any bilingual requirement. |
 | Style and references | Desired tone/density; supplied template or reference deck and whether to follow its layout or only its visual style. Record the agreed intent as `style_intent`. |
 | Scope and structure | Main focus, required sections, exclusions and any required connection to the user's research. Record the chosen structure in `sections`. |
 | Deliverables | Requested artifacts, such as editable PPTX, PDF or speaker notes. Record a nonempty `deliverables` list. |
+
+Reuse a clearly requested report type/depth rather than asking redundant questions.
+For a detailed research report, establish the central topic, must-cover questions and
+exclusions in `purpose` and `sections`, including any requested connection to the user's
+work. When the requested coverage cannot fit the speaking budget, propose a coherent
+main deck plus detailed notes/backups; obtain agreement for material omissions or a
+longer talk. Do not quietly turn a comprehensive report into a short abstract.
+
+Initialization accepts repeated `--source` for mixed file types; actual reading depends
+on available tools. Assign each source an appropriate `role` before accepting intake,
+for example `research_source`, `reading_note`, `user_result`, `background_reference`
+or `style_reference`. Keep the originals and hashes. A note's interpretation is not
+automatically a finding of the paper it describes, and a private result is not a
+published benchmark. Record a style-only reference as such rather than citing it for
+research claims.
 
 Ask about missing or contradictory essentials in small batches, normally 1–3 short
 questions. Use concrete choices suited to the request and offer “you decide” when the
@@ -68,7 +110,9 @@ Record `intake_confirmation` in `brief.json` with:
 - `requirements`: a snapshot of `audience`, `target_minutes`, `qa_time_included`,
   `qa_minutes`, `language`, `purpose`, `sections`, `style_intent`, `deliverables`, and `sources`.
   Each source entry contains only `id`, `sha256` and `role`; assumptions are kept
-  separately. The snapshot must match the current brief.
+  separately. Include `presentation_type` and `detail_level` when present. The snapshot
+  must match the current brief. Older accepted briefs without these two fields remain
+  valid; do not inject defaults or reopen acceptance merely because the skill changed.
 
 From the resolved skill folder, prepare the pending requirement snapshot with
 `python scripts/workflow.py intake --project <private-workspace>`. Record an accepted
@@ -92,6 +136,12 @@ Use `templates/evidence.example.json`. For each important claim keep:
 - Conditions, limitations, numbers with units/denominators and unresolved issues.
 - A review status reflecting actual reading, never optimistic auto-approval.
 
+For cross-source synthesis, list every supporting `source_id` and qualify its locator
+by source, such as `S1: Table 2; S3: results.csv, row 4, accuracy column`. Preserve
+dataset, protocol, units, sample size and uncertainty differences. Separate comparable
+observations, unresolved disagreements and presenter interpretations; do not average
+incompatible benchmarks or present a possible explanation as an established cause.
+
 Do not inflate a hypothesis into a proven mechanism, a nonsignificant comparison into
 an established effect, or a benchmark observation into a universal limitation. Keep
 original terminology; explain it rather than replacing it with a convenient synonym.
@@ -104,6 +154,13 @@ Read the problem and contributions, then task/formalization, method, metric defi
 main evidence and limitations. Read appendices supporting selected claims and examples.
 Select figures only after interpreting their axes, legend, experimental scope and caption.
 For raw-result data supplied by the user, retain file/column/row locators and processing steps.
+
+Read mixed materials according to their role: project reports for objectives and progress,
+logs/data for observed results and conditions, notes for leads and interpretation, papers
+for cited methods and published evidence. Reconcile terminology across sources without
+erasing real differences. If a cited original is absent, identify the claim as supported
+only by the supplied secondary material; flag the gap rather than inventing an original
+locator or fetching unrelated literature to fill the deck.
 
 Prioritize text extraction and native page rendering. OCR is a last resort for genuinely
 image-only content; manually confirm numerals, signs, subscripts and axis text. An image

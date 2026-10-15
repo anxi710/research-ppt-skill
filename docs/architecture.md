@@ -30,12 +30,20 @@ The public product is a skill and workflow, not a new model, backend, rendering 
 or monolithic automatic PDF-to-PPT script. A single tool-capable agent can hold each role
 sequentially; an independent reviewer can be substituted without changing the handoff.
 
+The presentation can integrate papers, project reports, reading notes and user results
+around one research question. The brief records type/depth, evidence retains source
+roles and locators, and the slide plan records coverage and the timed main/backup split.
+Detailed explanation is distributed across readable slides and speaker notes. A
+single-paper talk is an explicit supported mode rather than the only input model.
+
 ## Stable interface, evolving implementation
 
 The stable boundary consists of source/evidence/asset/style/page requirements on input,
-and PPTX/build provenance/repair information on output. It intentionally does not specify
-a permanent upstream CLI, private Python import, SVG dialect or old route. Resolve those
-from the installed backend for the current run. Do not maintain a parallel implementation.
+and PPTX/build provenance/repair information on output. The `ppt-master` submodule tracks
+upstream `main`. Before each new production job, check for updates, resolve its real local
+path and read the current entry instructions. Follow that checkout's production route and
+record the actual revision used; keep it unchanged during the job. The backend owns its
+production and export implementation.
 
 The first successful private case inspired figure-first pages, necessary foundations,
 short slide text, rich notes and all-slide rendering. Those are configurable practices,

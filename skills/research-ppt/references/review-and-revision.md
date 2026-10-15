@@ -28,6 +28,13 @@ Check that critical definitions precede results and that teaching examples are l
 
 ## Scientific review
 
+Compare the final deck and notes with the agreed presentation type, depth and coverage
+record. For an integrated report, verify that material from different sources answers
+the central questions coherently, and that published evidence, user results and analysis
+remain distinct. Check explanations of prerequisites, mechanisms, setup and limitations
+where needed; missing required topics or a merely abstract-level deck are scope defects,
+even if every existing slide is visually correct. Retain exclusions and evidence gaps.
+
 Recheck each load-bearing numeric result, denominator, threshold, evaluation unit, budget,
 model condition, comparison and uncertainty. Author explanations and presenter inferences
 must not become unqualified slide facts. Different experimental protocols cannot be combined
@@ -60,6 +67,10 @@ unvalidated draft and describe what still needs inspection, never fabricate QA.
 
 Deliver only existing artifacts. Normally: final PPTX, visible-only PDF, notes Markdown and
 an authorized source package with provenance, actual backend revision and build receipt.
+Use the brief's `output_files`: normally `exports/<project-name>.pptx`,
+`exports/<project-name>.pdf` and `exports/<project-name>-notes.md` inside the private
+`outputs/<project-name>/` workspace. Honor user overrides. New revisions use new
+filenames; inspect and hash the exact delivery copies and keep previous versions.
 Record editable/raster elements and font requirements; never redistribute font binaries.
 
 A skill release must not include the private talk's PDFs, original images, institution logos,

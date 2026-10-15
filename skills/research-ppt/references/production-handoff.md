@@ -4,8 +4,8 @@
 
 Research PPT Skill owns evidence and communication decisions, prepared assets, acceptance
 criteria and independent review. ppt-master owns its internal routing, specifications,
-layout implementation, native object generation and export. Reuse its full current
-capabilities; do not copy a historic exporter or maintain a competing PPT builder.
+layout implementation, native object generation and export. Use its full current
+capabilities through its documented route; keep production implementation in the backend.
 
 ppt-master may also contain planning/verification capabilities. Our preparation is an
 input brief, not a substitute for its mandatory runtime gates. Reconcile overlapping
@@ -41,6 +41,21 @@ Run preparation preflight. Create `handoff/run-*/` containing snapshots of:
 The agent must provide this handoff to the backend. The files are not automatically sent
 to an API; the helper performs no model calls. Source/asset paths remain local, and work
 happens under `production/`, not inside the upstream submodule.
+
+Preserve the brief's presentation type and depth, the accepted report-wide narrative and
+the slide plan's coverage record. A detailed research report must not become an abstract
+deck or a string of disconnected paper summaries during layout. Keep explanatory notes,
+source distinctions, key comparisons and planned hidden backups; propose scope/time
+changes rather than deleting necessary explanation to fit a template.
+
+Carry `brief.json`'s `project_name` and `output_files` into production. The default
+workspace is `<request-working-directory>/outputs/<project-name>/`, with delivery
+files `exports/<project-name>.pptx`, `exports/<project-name>.pdf` and
+`exports/<project-name>-notes.md` for requested formats. Explicit user names/paths
+win. Backend build filenames may follow its current route; stage delivery candidates
+at the declared paths before final hashing, rendering and review. Preserve previous
+versions and record the actual paths in the receipt; never rename or replace a file
+after review without verifying the delivered bytes and updating the artifact record.
 
 ## Requested output
 

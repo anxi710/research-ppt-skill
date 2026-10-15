@@ -1,16 +1,18 @@
 # Creating the public GitHub repository
 
-The offline delivery is a prepared local repository, not a claim of remote publication.
-Only run publication in an authenticated environment that supports GitHub writes.
+Use `git clone --recurse-submodules <repository-url>` to obtain the repository.
+This guide covers creating a new public GitHub repository and maintaining it.
+Run publication in an authenticated environment that supports GitHub writes;
+local files and configuration alone do not establish remote publication.
 
-## From the offline package
+## Create a new public repository
 
-Extract the package into a standalone directory outside another Git repository.
-It contains a Git bundle with the parent repository's tracked files and a real
-mode-160000 submodule gitlink; upstream source bytes are fetched separately.
+The initial publisher requires a clean local Git repository with no configured remote
+and a new repository name. A clone normally already has an `origin` remote; use the
+normal review and push workflow for that repository. The initial publisher is for a
+separate, reviewed local repository intended for first publication.
 
 ```bash
-python scripts/restore_git.py
 python -m pip install -r requirements.txt
 gh auth login
 python scripts/publish_github.py --repo research-ppt-skill --publish
@@ -50,6 +52,13 @@ permit it. Adding the files locally does not start an automation or prove a CI p
 The public repository should contain only original generic skill files and licensed
 submodule metadata. GitHub's root license detection is not a license audit of every
 runtime dependency, paper, figure, template or font used in a private talk.
+
+## Optional Git metadata recovery
+
+If a standalone local copy has no Git metadata but includes `research-ppt-skill.bundle`,
+`python scripts/restore_git.py` can restore its parent history and submodule gitlink.
+Existing working files are preserved, and upstream source is fetched separately.
+This recovery tool is not part of setup for a normal Git clone.
 
 Official command references:
 [GitHub CLI repo create](https://cli.github.com/manual/gh_repo_create),

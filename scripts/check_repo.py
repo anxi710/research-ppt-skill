@@ -9,7 +9,7 @@ import sys
 
 ROOT=Path(__file__).resolve().parents[1]
 DENIED={'.pdf','.pptx','.ppt','.docx','.zip','.ttf','.otf','.ttc','.woff','.woff2','.pem','.p12','.pfx'}
-BANNED_DIRS={'workspaces','inputs','exports','renders','private','accepted_case'}
+BANNED_DIRS={'workspaces','inputs','outputs','exports','renders','private','accepted_case'}
 
 def check(root: Path=ROOT) -> list[str]:
     result=subprocess.run(['git','ls-files','--stage','-z'],cwd=root,capture_output=True,text=True,check=True)

@@ -1,58 +1,57 @@
 # Research PPT Skill：通用科研汇报制作技能
 
-[English](README.md) · [技能入口](skills/research-ppt/SKILL.md) · [运行手册](docs/runbook.md)
+[English](README.md) · [技能入口](skills/research-ppt/SKILL.md) · [使用指南](docs/usage.zh-CN.md)
 
 **本技能管“讲什么、如何讲、是否讲对”；ppt-master 管“把它做成 PPT”。**
 
-适用于论文组会、文献综述、方法教学、研究进展和学术汇报。它是一套供具有
-文件读取、代码执行和图片查看能力的 Agent 使用的技能，不是已部署的在线服务。
+面向基于所给材料的详细研究报告 PPT：Agent 可整合多篇论文、阅读笔记、你的实验结果、数据、图表和报告，围绕研究主题或问题组织内容，区分已发表结论、个人结果和汇报者分析。也支持明确指定的单篇论文组会、文献综述、进展汇报和方法教学。它是一套供具有文件读取、代码执行和图片查看能力的 Agent 使用的技能，不是已部署的在线服务。
 
 ## 分层，而不是复制一个 PPT 生成器
 
 | 本技能负责 | 交给 ppt-master |
 |---|---|
-| 核对论文版本、读懂方法与实验、建立证据记录 | 按当前版本选择制作路径 |
+| 核对材料版本、读懂方法与实验、建立证据记录 | 按当前版本选择制作路径 |
 | 分析受众、补充必要基础、安排叙事和时间 | 页面设计与原生对象制作 |
 | 提取参考模板风格，准备和核查原图 | PPTX、备注等实际导出 |
 | 给每页定义一个问题、一幅核心视觉和结论边界 | 按修改单局部修复与重新导出 |
 | 对最终 PPTX 做事实、视觉、结构校验 | 后端自己的技术检查 |
 
-不再携带旧版 ppt-master 适配器，不绑定历史命令。子模块跟踪上游 `main`，
-每次新制作任务开始前检查更新并读取当前说明。单次任务记录实际提交，制作中途不
-悄悄升级。**Git 子模块必然记录一次提交；跟踪最新是更新策略，不是永远没有提交号。**
+子模块 `ppt-master` 跟踪上游 `main`，每次新制作任务开始前检查更新并读取当前说明。单次任务记录实际提交，制作中途不悄悄升级。**Git 子模块必然记录一次提交；跟踪最新是更新策略，不是永远没有提交号。**
 
 ## 使用
 
-正式发布后，使用 `git clone --recurse-submodules <仓库地址>` 获取。
-下载离线发布包时，先在包根目录运行 `python scripts/restore_git.py` 恢复 Git 历史。
+### 第一次使用
+
+先获取仓库，再让 Agent 按[环境配置指引](skills/research-ppt/references/environment-setup.md)检查和安装依赖：
 
 ```bash
-python -m pip install -r requirements.txt
-python scripts/upstream.py update
-python scripts/upstream.py status
+git clone --recurse-submodules <仓库地址> research-ppt-skill
+cd research-ppt-skill
 ```
 
-让工具型 Agent 读取 `skills/research-ppt/SKILL.md`，并提供源论文、受众、时长、
-语言和可选模板。默认不假定学校、学科、颜色、语言、页数或汇报人。
-`profiles/academic-blue.json` 是可选的通用蓝白风格，不包含任何机构标识。
+可直接把下面的话交给 Agent，替换为实际绝对路径：
 
-父技能先复用已提供的信息，只分批追问缺失或矛盾的关键要求，再汇总目的、受众与
-基础、时长及 Q&A、语言、风格、结构重点和交付物。用户确认后才开始实质性的证据
-准备和叙事设计；用户也可以明确授权“按这些要求开始”或委托 Agent 决定指定事项，
-无需重复确认。普通的“帮我做 PPT”不视为委托。父技能确认不代替后端自己的必经关卡。
+> 请读取 `/绝对路径/research-ppt-skill/skills/research-ppt/references/environment-setup.md`，按说明配置本项目环境，并报告依赖、后端和真实 PPTX 渲染的检查结果。
 
-初始化私有工作区、补齐 `brief.json` 后，运行
-`python skills/research-ppt/scripts/workflow.py intake --project <工作区路径>`
-生成待确认的需求快照。脚本不会代替用户确认；Agent 只能根据真实回复记录确认或
-委托及对应原话/可追溯引用。准备校验和交接会阻止未确认或已经过期的需求快照。
+如需复用已有环境，可追加“请使用已有的 conda `docs` 环境”；环境名称由你选择。
 
-可以直接这样发任务：
+环境准备好后，让 Agent 读取[技能入口](skills/research-ppt/SKILL.md)，并提供材料、受众、时长、语言与可选模板。例如：
 
-> 请使用 Research PPT Skill 制作本次上传论文的组会 PPT。时长 25–30 分钟，
-> 面向 AI 研究人员但不是论文子方向。按背景、问题、方法、实验、结论与分析组织。
-> 先准备证据、必要基础知识、原图、风格和逐页方案，再交给当前版本的 ppt-master
-> 制作。每页围绕一个主题与核心视觉，正文少字，讲稿充分。制作后真实渲染全部页面，
-> 包括隐藏备答，检查并修复图例裁切、错位、数字和结论等问题，再交付。
+> 请读取 `/绝对路径/research-ppt-skill/skills/research-ppt/SKILL.md`，根据 `/materials/project/` 中的论文、笔记和我的实验结果，围绕研究问题制作详细的中文研究报告 PPT。面向有机器学习基础的研究生，总计 25 分钟，含 5 分钟问答。区分文献结论、我的结果和分析，标出证据缺口。先汇总需求让我确认，再准备证据、制作并逐页检查，交付 PPTX、PDF 和详细讲稿。
+
+可以直接提供资料文件夹。Agent 会清点相关材料，围绕研究问题组织完整汇报；正文适配约定时长，支撑细节放入详细讲稿和隐藏备答页，缺失证据明确说明。也可以明确要求单篇论文汇报等其他类型。
+
+Agent 会从主题或来源标题概括简短项目名，默认在 `<本次请求的工作目录>/outputs/<项目名>/` 保存私有工作区；所需成品在其中的 `exports/` 下命名为 `<项目名>.pptx`、`<项目名>.pdf` 和 `<项目名>-notes.md`。你指定的文件名和目录优先。仓库内的 `outputs/` 已忽略，不应提交或公开。
+
+由你确认需求或明确委托后继续；完整配置见[合成示例](skills/research-ppt/templates/brief.example.json)。制作后仍须真实渲染和审查最终 PPTX。
+
+安装、需求确认、制作与验收的逐步说明见[首次使用指南](docs/usage.zh-CN.md#第一次使用)，每一步均保留作用、操作和完成标志。
+
+### 后续使用与维护
+
+- **新汇报或续作：** 新汇报用新工作区；已有汇报恢复原工作区，只确认变更。见[后续使用与维护](docs/usage.zh-CN.md#后续使用与维护)。
+- **更新与检查：** 在制作任务之间更新版本，并验证共享改动。详见[维护步骤](docs/usage.zh-CN.md#后续使用与维护)和[上游策略](docs/upstream.md)。
+- **查看具体命令：** [Agent 运行手册](docs/runbook.md)包含材料处理、渲染、审查和最终验收命令。
 
 ## 仓库内容
 
@@ -62,21 +61,8 @@ python scripts/upstream.py status
 - `tests/`、`examples/synthetic/`：纯合成回归测试，不包含私人论文和模板。
 - `.github/`：CI、Dependabot 更新配置、问题反馈模板。
 
-证据与素材处理、叙事设计、视觉判断仍然是 Agent 工作。程序检查通过不代表论文结论
+证据与素材处理、叙事设计、视觉判断仍然是 Agent 工作。程序检查通过不代表研究结论
 或视觉呈现自动正确；没有实际渲染与逐页核查时，只能交付标明未验证的草稿。
-
-## 公开发布
-
-在已登录 GitHub CLI、可访问 GitHub 的环境中：
-
-```bash
-gh auth login
-python scripts/publish_github.py --repo research-ppt-skill --publish
-```
-
-脚本会确认当前账号，检查公开文件，更新子模块，运行本地测试，然后创建公开仓库并
-推送。不覆盖同名仓库，不强推、不删除远端，不从聊天中索取 token。
-默认不带 `--publish` 只打印计划，不执行网络写操作。详见 [发布说明](docs/publication.md)。
 
 ## 协议与更新
 

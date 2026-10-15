@@ -20,9 +20,9 @@ The helper does not commit or push. Maintainers commit an accepted updated gitli
 - Reproduction: use the recorded backend revision from that job.
 - Upgrade: create a new run and review, rather than modifying the past record.
 
-No fixed historical revision, compatibility patch or vintage exporter is embedded in the
-skill's runtime. A detached HEAD in a submodule is normal; it does not itself imply pinning
-as a product policy. A network failure means latest is unknown, not verified.
+The submodule tracks upstream `main`, while every job records the actual commit it uses.
+A detached HEAD in a submodule is normal: Git records a commit even when updates follow a
+branch. A network failure means the latest revision is unknown, not verified.
 
 ## License and capabilities
 

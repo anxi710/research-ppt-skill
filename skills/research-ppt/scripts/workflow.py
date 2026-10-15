@@ -12,6 +12,7 @@ import math
 import re
 import shutil
 import sys
+import unicodedata
 from pathlib import Path
 from typing import Any
 
@@ -23,6 +24,10 @@ CHECKS = ['visual', 'facts', 'sources', 'notes', 'crop_completeness']
 KINDS = {'source_claim','author_interpretation','presenter_analysis','illustration'}
 INTAKE_FIELDS = ['audience','target_minutes','qa_time_included','qa_minutes','language','purpose',
                  'sections','style_intent','deliverables']
+PRESENTATION_CHOICES = {
+    'presentation_type': {'research_report','paper_talk','literature_review','progress_report','method_tutorial'},
+    'detail_level': {'overview','standard','detailed'},
+}
 
 
 def now() -> str:
@@ -40,6 +45,8 @@ def positive(value: Any) -> bool:
 def intake_requirements(brief: dict) -> dict:
     """Snapshot user-facing choices, excluding later evidence/design review details."""
     result={key:brief.get(key) for key in INTAKE_FIELDS}
+    # Preserve accepted legacy briefs that predate these choices without rewriting them.
+    result.update({key:brief[key] for key in PRESENTATION_CHOICES if key in brief})
     result['sources']=[{key:src.get(key) for key in ['id','sha256','role']}
                        for src in brief.get('sources',[])]
     return copy.deepcopy(result)
@@ -47,6 +54,9 @@ def intake_requirements(brief: dict) -> dict:
 
 def intake_errors(brief: dict, *, require_confirmation: bool=True) -> list[str]:
     errors=[]
+    for key,choices in PRESENTATION_CHOICES.items():
+        if key in brief and (not isinstance(brief[key],str) or brief[key] not in choices):
+            errors.append(f'Intake: invalid {key}; choose from {", ".join(sorted(choices))}')
     for key in ['audience','language','purpose','style_intent']:
         if not nonempty(brief.get(key)):errors.append(f'Intake: {key} missing')
     if not positive(brief.get('target_minutes')):errors.append('Intake: time budget missing/invalid')
@@ -94,14 +104,40 @@ def intake(args: argparse.Namespace) -> int:
     return 0
 
 
+def project_basename(value: str) -> str:
+    """Keep a readable Unicode name within one portable path component."""
+    name=re.sub(r'[\W_]+','-',unicodedata.normalize('NFKC',value),flags=re.UNICODE)
+    name=name.strip('-').lower()[:64].rstrip('-') or 'research-talk'
+    if re.fullmatch(r'con|prn|aux|nul|com[0-9]|lpt[0-9]',name):name='talk-'+name
+    return name
+
+
 def init(args: argparse.Namespace) -> int:
-    root=args.project.resolve()
-    if root.exists() and (not root.is_dir() or any(root.iterdir())):
-        raise ValueError('Initialize into a new/empty private workspace.')
     if not positive(args.minutes): raise ValueError('minutes must be positive and finite')
+    presentation={'presentation_type':getattr(args,'presentation_type','research_report'),
+                  'detail_level':getattr(args,'detail_level','detailed')}
+    for key,value in presentation.items():
+        if not isinstance(value,str) or value not in PRESENTATION_CHOICES[key]:
+            raise ValueError(f'Invalid {key}')
     paths=[p.resolve() for p in args.source]
     if any(not p.is_file() for p in paths): raise ValueError('Every source must exist')
     if args.template and not args.template.is_file(): raise ValueError('Template not found')
+    name=project_basename(getattr(args,'name',None) or paths[0].stem)
+    project=getattr(args,'project',None)
+    if project is not None:
+        root=project.resolve()
+        if root.exists() and (not root.is_dir() or any(root.iterdir())):
+            raise ValueError('Initialize into a new/empty private workspace.')
+    else:
+        # Reserve a new directory atomically; even an empty existing talk is kept.
+        output_root=(Path.cwd()/'outputs').resolve();base=name;number=1
+        while True:
+            root=output_root/name
+            try:
+                root.mkdir(parents=True)
+                break
+            except FileExistsError:
+                number+=1;name=f'{base}-{number:02d}'
     for d in ['inputs','analysis','assets/paper','design','notes','handoff','production','qa','exports']:
         (root/d).mkdir(parents=True,exist_ok=True)
     sources=[]
@@ -115,7 +151,10 @@ def init(args: argparse.Namespace) -> int:
         dest=root/'inputs'/('template'+args.template.suffix.lower());shutil.copy2(args.template,dest)
         sources.append({'id':'STYLE','path':str(dest.relative_to(root)),
                         'original_name':args.template.name,'sha256':sha256(dest),'role':'style_reference'})
-    brief={'language':args.language,'audience':args.audience,'target_minutes':args.minutes,
+    brief={**presentation,'project_name':name,
+           'output_files':{'pptx':f'exports/{name}.pptx','pdf':f'exports/{name}.pdf',
+                           'speaker_notes':f'exports/{name}-notes.md'},
+           'language':args.language,'audience':args.audience,'target_minutes':args.minutes,
            'qa_time_included':None,'qa_minutes':0,'purpose':'research_talk','sections':[],
            'style_intent':'','deliverables':['pptx','pdf','speaker_notes'],
            'intake_confirmation':{'status':'pending','user_response':'','requirements':{}},
@@ -239,6 +278,22 @@ def handoff(args: argparse.Namespace) -> int:
               'preparation':fingerprints,'resources':resources}
     write(dest/'manifest.json',manifest)
     text=f'''# Research production handoff\n\nPrivate workspace: `{root}`\nContract manifest: `{dest/'manifest.json'}`\n\nRead all five preparation snapshots in this directory. Use the referenced original\nsource/asset files in the private workspace, preserving their hashes and figure identity.\nThey are local references, not permission to upload/publish them.\n\nUse the current, real ppt-master checkout and its current documented route. Map this\nbrief into its current runtime; do not invent CLI flags or forge confirmation gates.\nDo not change claims, durations, page roster or figure meaning silently. Raise needed\ncontract changes to preparation before production. Work under `{root/'production'}`.\n\nReturn a real PPTX and a completed build receipt listing actual backend revision,\ncommands, outputs and limitations. Native text/annotations remain editable; original\npaper charts remain source images. Include notes, citations and true hidden flags.\nThe final PPTX will be independently rendered and checked against this contract.\n'''
+    brief=load(root/'brief.json')
+    presentation={key:brief[key] for key in PRESENTATION_CHOICES if key in brief}
+    if presentation:
+        text+='\n## Presentation scope\n\n```json\n'
+        text+=json.dumps(presentation,ensure_ascii=False,indent=2)+'\n```\n\n'
+        text+=('Preserve the accepted report narrative, explanatory depth, source distinctions '
+               'and any coverage record in the slide plan. Keep detailed speaker notes and '
+               'planned hidden backups within the agreed speaking budget.\n')
+    outputs={key:path for key,path in brief.get('output_files',{}).items()
+             if key in brief.get('deliverables',[])}
+    if outputs:
+        text+='\n## Delivery paths\n\nRequested paths relative to the private workspace:\n\n'
+        text+='```json\n'+json.dumps(outputs,ensure_ascii=False,indent=2)+'\n```\n\n'
+        text+=('Keep backend build files under production/. Place delivery candidates at these paths '
+               'before final hashing, rendering and review. Preserve existing versions; use a new '
+               'version filename for revisions and record the actual paths in the build receipt.\n')
     (dest/'handoff.md').write_text(text,encoding='utf-8')
     receipt=load(Path(__file__).resolve().parents[1]/'templates/build_receipt.example.json')
     receipt['handoff_manifest_sha256']=sha256(dest/'manifest.json')
@@ -344,7 +399,9 @@ def gate(args: argparse.Namespace) -> int:
 
 def parser() -> argparse.ArgumentParser:
     p=argparse.ArgumentParser(description=__doc__);subs=p.add_subparsers(dest='command',required=True)
-    s=subs.add_parser('init');s.add_argument('--project',type=Path,required=True);s.add_argument('--source',type=Path,action='append',required=True);s.add_argument('--template',type=Path);s.add_argument('--minutes',type=float,required=True);s.add_argument('--language',required=True);s.add_argument('--audience',required=True);s.set_defaults(func=init)
+    s=subs.add_parser('init');s.add_argument('--project',type=Path,help='Explicit workspace; default: outputs/<name> under the current working directory');s.add_argument('--name',help='Short topic name summarized by the agent; falls back to the first source filename');s.add_argument('--source',type=Path,action='append',required=True);s.add_argument('--template',type=Path);s.add_argument('--minutes',type=float,required=True);s.add_argument('--language',required=True);s.add_argument('--audience',required=True);s.set_defaults(func=init)
+    s.add_argument('--presentation-type',choices=sorted(PRESENTATION_CHOICES['presentation_type']),default='research_report',help='Proposed presentation type for intake; default: research_report')
+    s.add_argument('--detail-level',choices=sorted(PRESENTATION_CHOICES['detail_level']),default='detailed',help='Proposed depth for intake; default: detailed')
     s=subs.add_parser('intake',help='Prepare a pending requirements summary; does not confirm it');s.add_argument('--project',type=Path,required=True);s.set_defaults(func=intake)
     s=subs.add_parser('preflight');s.add_argument('--project',type=Path,required=True);s.add_argument('--out',type=Path,required=True);s.set_defaults(func=preflight)
     s=subs.add_parser('handoff');s.add_argument('--project',type=Path,required=True);s.add_argument('--run-id');s.set_defaults(func=handoff)

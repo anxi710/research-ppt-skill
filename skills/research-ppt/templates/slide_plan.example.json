@@ -1,4 +1,13 @@
 {
+  "coverage": [
+    {
+      "topic": "Mechanism needed to answer the report's central question",
+      "source_ids": ["S1"],
+      "slide_ids": ["P01"],
+      "disposition": "main",
+      "rationale": "Adapt to the accepted scope; also record backups, notes, exclusions and gaps."
+    }
+  ],
   "slides": [
     {
       "id": "P01",

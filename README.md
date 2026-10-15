@@ -4,9 +4,7 @@
 
 **Understand the evidence. Design the talk. Delegate production. Review the actual deck.**
 
-A reusable agent skill for paper presentations, journal clubs, research progress
-reports, method tutorials, and literature reviews. It works with a tool-capable
-agent; it is not a hosted service or a one-command autonomous paper-reading model.
+A reusable agent skill for detailed research-report presentations built from supplied papers, reading notes, experimental results, data, figures and reports. The agent organizes them around a research topic or question, distinguishing published claims, your own results and presenter analysis. Single-paper talks, journal clubs, literature reviews, progress reports and method tutorials are also supported. It works with an agent that can read files, execute code and view images; it is not a hosted service.
 
 ## Responsibility boundary
 
@@ -18,45 +16,59 @@ agent; it is not a hosted service or a one-command autonomous paper-reading mode
 | Page-level production brief | Its own native technical checks |
 | Independent factual, visual and artifact review | Requested local repairs and re-export |
 
-We do not freeze, vendor, or reimplement a historic ppt-master exporter. The backend
-is a submodule tracking upstream `main`; new production jobs update it, inspect
-its current instructions, and record the actual revision used. Git necessarily
-records a commit in each repository snapshot—this is provenance, **not a permanent
-compatibility pin**. No silent upgrade occurs midway through an accepted job.
+The `ppt-master` submodule tracks upstream `main`. Before each new production job, check for updates and read the current instructions. Record the actual revision used, and do not silently upgrade midway through a job. **Git submodules necessarily record a commit; tracking the latest version is an update policy, not the absence of a commit ID.**
 
-## Setup
+## Usage
 
-After publication, clone this repository with `--recurse-submodules`.
-The downloadable pre-publication package also supports `python scripts/restore_git.py`.
+### First-time use
 
-```bash
-python -m pip install -r requirements.txt
-python scripts/upstream.py update
-python scripts/upstream.py status
-python -m unittest discover -s tests -v
-```
+1. **Obtain the skill and backend** so the agent can read their local instructions:
 
-Backend installation and generation follow the checked-out ppt-master's own
-instructions. This skill does not assume a stable `generate` command.
+   ```bash
+   git clone --recurse-submodules <repository-url> research-ppt-skill
+   cd research-ppt-skill
+   ```
 
-Give your agent the absolute path to `skills/research-ppt/SKILL.md`, the source
-papers, an optional style reference, your audience, talk duration and output language.
-The parent skill first resolves missing requirements and presents a brief covering
-purpose, audience, time/Q&A, language, style, structure and deliverables. It waits for
-acceptance before evidence preparation; you may explicitly delegate choices or authorize
-the supplied requirements without another round. Existing answers are reused.
-Copy/symlink the complete `research-ppt` skill folder into your host's skill discovery
-location when desired; supply the backend path explicitly if installed separately.
-Do not copy only SKILL.md: the references, scripts and templates are part of the skill.
+2. **Ask the agent to configure and check the environment.** The
+   [environment setup guide](skills/research-ppt/references/environment-setup.md)
+   covers Python, helper/backend dependencies, a real PPTX renderer and checks:
 
-Example request:
+   > Read `/absolute/path/research-ppt-skill/skills/research-ppt/references/environment-setup.md`
+   > and configure this project's environment. Use my existing conda docs environment.
 
-> Use Research PPT Skill to make a 27-minute paper presentation for AI researchers
-> outside this subfield. Follow background, problem, method, experiments, conclusions
-> and analysis. Use original paper figures; keep slide text short and put detailed
-> reading guidance in speaker notes. Prepare evidence and a style brief first,
-> delegate production to the current ppt-master, then render, inspect and repair
-> every slide including hidden backup slides before delivery.
+   `docs` is an optional example environment name; choose your own environment as needed.
+
+3. **Describe the talk and confirm the brief.** Give an agent that can read files,
+   run code and inspect images the absolute skill path, sources, audience, time,
+   language, style and outputs:
+
+   > Read `/absolute/path/research-ppt-skill/skills/research-ppt/SKILL.md` and make a
+   > detailed research-report PPT from `/materials/project/`, including its papers,
+   > notes and my experiment results. Organize it around our research question for
+   > AI researchers new to the topic. Use Chinese and a clean academic style; allow
+   > 25 minutes including 5 minutes of Q&A. Distinguish published findings, my results
+   > and analysis; flag missing evidence. Deliver PPTX, PDF and detailed speaker notes.
+   > Summarize the requirements for my confirmation first.
+
+   You can supply a folder of materials. The agent selects relevant files and builds
+   one coherent report; detailed notes and hidden backups support a main deck fitted
+   to the agreed time. Missing evidence is flagged. Explicit single-paper and other
+   focused requests keep their scope.
+
+4. **Find the talk under `outputs/`.** The agent summarizes a short project name from
+   your topic or source title and creates `<request-working-directory>/outputs/<project-name>/`.
+   Requested exports default to `<project-name>.pptx`, `<project-name>.pdf` and
+   `<project-name>-notes.md` in its `exports/` folder. Your explicit names and
+   directory take priority. See the [brief example](skills/research-ppt/templates/brief.example.json). After your
+   confirmation or explicit scoped delegation, the agent prepares the evidence,
+   delegates production to ppt-master, then renders and reviews every final PPTX slide.
+   See the [full seven-step guide](docs/usage.md#first-time-use) for purposes and completion criteria.
+
+### Ongoing use and maintenance
+
+Use a new workspace for each new talk; resume an existing talk from its saved records.
+Update the skill/backend between jobs and validate reusable changes. Follow the
+[maintenance scenarios](docs/usage.md#ongoing-use-and-maintenance) for the relevant steps.
 
 ## Workflow and files
 
@@ -70,36 +82,14 @@ Confirm brief → evidence → audience/story → style/assets → production ha
                                revision request → repair → rerender
 ```
 
-Initialize a **private** workspace outside this repository:
-
-```bash
-python skills/research-ppt/scripts/workflow.py init \
-  --project ../my-research-talk --source /path/paper.pdf \
-  --minutes 27 --language zh-CN --audience "AI researchers outside this subfield"
-```
-
-Fill the remaining brief fields, then run
-`python skills/research-ppt/scripts/workflow.py intake --project ../my-research-talk`
-to create a pending requirement snapshot, not consent.
-Record only the user's actual acceptance or delegation in
-`brief.json`. Preparation checks and handoff reject pending or stale confirmation.
+The private workspace keeps `brief.json` beside `inputs/`, `analysis/`, `assets/`,
+`design/`, `notes/`, `handoff/`, `production/`, `qa/`, and `exports/`. Repository-local
+`outputs/` is ignored; keep these private job artifacts out of commits and publication.
 
 Sources, evidence, figure inventory, style profile and slide plan become an
 immutable, checksummed production handoff. The tools validate metadata and artifact
 consistency; the agent must still read the sources, choose crops, judge claims,
 inspect rendered slides, and perform repairs. [Runbook](docs/runbook.md).
-
-## Updates and iteration
-
-`python scripts/upstream.py update` advances to upstream `main` without discarding
-local changes. Dependabot is configured to propose submodule updates on workdays;
-maintainers review those PRs. It does not silently merge upstream code. An upstream
-update requires rereading backend instructions and representative-slide validation.
-The local helper records the revision and license/entry-file observations, but does
-not certify complete backend compatibility. [Upstream policy](docs/upstream.md).
-
-Submit content/layout failure reports using the issue templates. Add a minimal,
-synthetic regression fixture before changing shared rules. [Contributing](CONTRIBUTING.md).
 
 ## Scope and licensing
 

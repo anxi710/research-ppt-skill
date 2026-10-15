@@ -1,43 +1,142 @@
 # Runbook
 
-The commands below are deterministic helpers for an agent. They do not read the paper
-semantically, choose a narrative, judge visual correctness, or produce the talk autonomously.
-Use Python 3.10+ and a current tool-capable host. Run from this repository's root or use
-absolute script paths when the skill is installed separately.
+For first-time use and later maintenance, start with the [usage guide](usage.md)
+([中文](usage.zh-CN.md)). To ask an agent to configure the software environment,
+use the [environment setup instructions](../skills/research-ppt/references/environment-setup.md).
+This runbook supplies the detailed material-processing and acceptance commands.
+
+The commands below are deterministic helpers for an agent. They do not read research
+materials semantically, choose a narrative, judge visual correctness, or produce the
+presentation autonomously. The agent integrates supplied papers, notes, experimental
+results, data, figures and reports around the research topic/question; explicit
+single-paper talks remain supported.
+
+Use Python 3.10+ and a current tool-capable host. Before changing directories, capture
+the absolute working directory of the user's request. Default outputs belong under
+that directory, rather than the skill's install location. Run `init` in the request
+directory with an absolute script path, or use an absolute `--project` beneath the
+captured request directory after changing directories. The examples below treat this
+repository's root as the request directory and use its ignored `outputs/`.
+
+Obtain the repository with its backend submodule, then run the commands below from
+the checkout root:
+
+```bash
+git clone --recurse-submodules <repository-url> research-ppt-skill
+cd research-ppt-skill
+```
 
 ## 1. Confirm requirements and initialize a workspace
 
 Start a new presentation with the parent's intake procedure in
 `skills/research-ppt/references/preparation.md`. Reuse requirements already supplied;
-ask short batches only for missing or contradictory essentials: audience and prior
-knowledge, purpose, duration and whether it includes Q&A, language, style/template,
-structure/focus and deliverables. Source availability checks and template previews may
-support this conversation; substantive evidence preparation and story design wait for
+ask short batches only for missing or contradictory essentials: research topic/question,
+audience and prior knowledge, purpose, presentation type and depth, duration and whether
+it includes Q&A, language, style/template, structure/focus and deliverables. Source
+availability checks and template previews may support this conversation; substantive evidence preparation and story design wait for
 acceptance. Repository development and project-structure questions do not start intake.
 
-Initialize a private workspace once the core command values are available:
+Once the core command values are available, summarize a short descriptive project
+name from the topic or supplied source title. This naming step does not require
+substantive evidence reading and must not introduce unsupported research claims.
+Use a safe single path component and preserve Chinese when present. Initialize:
 
 ```bash
 python -m pip install -r requirements.txt
-python scripts/upstream.py update --out ../backend-observation.local.json
+python scripts/upstream.py update --out outputs/backend-observation.local.json
 python skills/research-ppt/scripts/workflow.py init \
-  --project ../paper-talk \
-  --source /path/paper.pdf \
+  --name synthetic-research-report \
+  --source /materials/project/paper-a.pdf \
+  --source /materials/project/paper-b.pdf \
+  --source /materials/project/reading-notes.md \
+  --source /materials/project/experiment-results.csv \
   --template /path/optional-reference.pptx \
+  --presentation-type research_report --detail-level detailed \
   --minutes 27 --language zh-CN \
-  --audience "AI researchers outside this paper subfield"
+  --audience "AI researchers outside this subfield"
 ```
 
-Omit `--template` without a reference. Repeat `--source` for multiple source files.
-Inputs are copied into the private workspace and fingerprinted. Update the exact source
-version, purpose, sections, Q&A policy/reserved minutes, style intent, deliverables and
-explicit assumptions in `brief.json`. Set `qa_minutes` to the included Q&A reservation,
-or zero when Q&A is outside the budget. Visible-slide time is `target_minutes` minus
+Omit `--template` without a reference. A user may supply a material folder, but
+`init --source` requires individual existing files, not a directory. The agent
+inventories the folder, selects relevant readable files and repeats `--source` for
+each one, using the appropriate readers for its format. Initialization copies and
+fingerprints inputs; it does not classify content, synthesize findings or process
+folder structure semantically.
+
+Without `--project`, the command creates `outputs/<safe-project-name>/brief.json`
+relative to its working directory and prints the actual workspace path. For example,
+running from `/work/research-ppt-skill` creates
+`/work/research-ppt-skill/outputs/synthetic-research-report/brief.json`. Later commands
+must use the actual path printed by `init`; replace the example paths below when
+needed. For a new same-name project, the helper adds `-02`, `-03`, and so on; it
+never overwrites or implicitly resumes an existing talk. To resume, explicitly
+identify the original workspace and reuse its records without running `init`.
+
+Explicit `--project` overrides the directory and must point to a new, empty
+workspace; relative paths resolve from the invocation directory. Explicit filenames
+also take priority. The agent supplies `--name`; if omitted, the helper falls back
+to the source filename stem without semantically summarizing it. The agent normally
+maintains `brief.json` from the conversation; the user need not write JSON first.
+
+Working artifacts stay in the workspace. Accepted exports default to
+`exports/synthetic-research-report.pptx`, `exports/synthetic-research-report.pdf` and
+`exports/synthetic-research-report-notes.md`, for requested formats only. Keep all task
+materials private and out of commits/publication, including the ignored `outputs/`.
+
+See the complete, pending [brief example](../skills/research-ppt/templates/brief.example.json).
+It uses a synthetic teaching source and reserves 5 minutes of a 25-minute session for
+Q&A, leaving 20 minutes for visible slides. Its fingerprint belongs to the synthetic
+fixture generated by `examples/synthetic/prepare.py`. For a real talk, keep the source
+inventory and hashes generated by `init` for the supplied files; use the example to
+understand the fields rather than replacing that inventory.
+
+| Brief field | What to enter |
+|---|---|
+| `project_name` | Optional short descriptive name for output defaults; use a safe single path component, preserving Chinese. It does not grant intake consent. |
+| `output_files` | Optional workspace-relative paths under `exports/`, keyed by requested `pptx`, `pdf`, and/or `speaker_notes`; for example, `{"pptx": "exports/synthetic-research-report.pptx"}`. User filenames take priority. These are output defaults, not intake consent. |
+| `presentation_type` | New `init` proposal: `research_report`; alternatives: `paper_talk`, `literature_review`, `progress_report`, `method_tutorial`. Set with `--presentation-type` or edit the brief before intake. |
+| `detail_level` | New `init` proposal: `detailed`; alternatives: `standard`, `overview`. Set with `--detail-level` or edit the brief before intake. |
+| `audience`, `purpose` | Prior knowledge and what the audience should learn, discuss or decide. |
+| `target_minutes` | The agreed time budget; interpret it together with `qa_time_included`. |
+| `qa_time_included`, `qa_minutes` | Whether Q&A uses that budget; reserve a positive amount smaller than the total when included, otherwise use zero. |
+| `language` | The requested language; describe separate slide/delivery languages when needed. |
+| `style_intent` | Agreed tone, density and template-use intent; detailed visual decisions go in `design/style_profile.json`. |
+| `sections` | Required sections in order; an empty list allows the agent to propose a structure from the sources. |
+| `deliverables` | Requested outputs, such as `pptx`, `pdf`, `speaker_notes`. |
+| `sources` | Local copies and fingerprints created by `init`; record exact versions and appropriate roles for each supplied file. |
+| `assumptions`, `research_connection` | Explicit assumptions and any requested connection to the user's research. |
+| `intake_confirmation` | Pending by default; `intake` fills the snapshot, and the agent records only an actual acceptance or delegation. |
+
+Inputs are copied into the private workspace and fingerprinted. Ordinary inputs
+initially have `role: research_source`; `--template` creates a `style_reference`.
+After initialization, the agent sets each source's metadata role as appropriate:
+
+| Source role | Use |
+|---|---|
+| `research_source` | Papers and other research sources supporting attributed claims. |
+| `reading_note` | Supplied notes or summaries; navigation and interpretation with their own provenance. |
+| `user_result` | The user's experimental results, data, figures or progress records. |
+| `background_reference` | Supplied background or prerequisite material. |
+| `style_reference` | Layout/style guidance, not scientific evidence. |
+
+Retain generated source IDs, copied paths and SHA-256 hashes; changing a role does
+not change the file's fingerprint. The script does not infer these roles from content.
+Do not treat a reading note as the missing original paper or a style reference as
+research evidence. Preserve the original file inventory rather than inserting example
+source records.
+
+Update the exact source version, purpose, sections, Q&A policy/reserved minutes, style
+intent, deliverables and explicit assumptions in `brief.json`. New report type/depth
+values are proposals to confirm, not accepted requirements. When present,
+`presentation_type` and `detail_level` are included in intake snapshots; legacy briefs
+without them remain valid and must not be silently rewritten on resume.
+
+Set `qa_minutes` to the included Q&A reservation, or zero when Q&A is outside the budget. Visible-slide time is `target_minutes` minus
 that reservation. Initialization leaves Q&A unspecified and intake pending; its defaults
 are proposals, not user approval. Then prepare the requirement snapshot:
 
 ```bash
-python skills/research-ppt/scripts/workflow.py intake --project ../paper-talk
+python skills/research-ppt/scripts/workflow.py intake --project outputs/synthetic-research-report
 ```
 
 `intake` validates the brief and writes a **pending** `intake_confirmation` snapshot
@@ -68,34 +167,47 @@ Record its output, then read the current backend entry instructions before produ
 
 ```bash
 python skills/research-ppt/scripts/decktools.py extract-pdf \
-  --pdf ../paper-talk/inputs/source_01.pdf --out ../paper-talk/analysis/paper.md
+  --pdf outputs/synthetic-research-report/inputs/source_01.pdf --out outputs/synthetic-research-report/analysis/paper.md
 python skills/research-ppt/scripts/decktools.py render-pdf \
-  --pdf ../paper-talk/inputs/source_01.pdf --pages 1-5 \
-  --out ../paper-talk/qa/source-pages --dpi 160
+  --pdf outputs/synthetic-research-report/inputs/source_01.pdf --pages 1-5 \
+  --out outputs/synthetic-research-report/qa/source-pages --dpi 160
 python skills/research-ppt/scripts/decktools.py inspect-template \
-  --pptx ../paper-talk/inputs/template.pptx --out ../paper-talk/analysis/template
+  --pptx outputs/synthetic-research-report/inputs/template.pptx --out outputs/synthetic-research-report/analysis/template
 ```
 
-Read exact definitions, main results and necessary supplements. Open page images for
-figures/tables. Render the reference PPTX when present; statistics alone miss theme
-inheritance and image content. The helper avoids OCR and uses PDFium for PDF rendering.
-Keep any separately generated background outside the paper-derived evidence ledger or
-label it as external background with its own source.
+Read exact definitions, main results and necessary supplements. For supplied notes,
+reports, data and figures, use appropriate readers and retain their conditions,
+versions and provenance. Open page images for figures/tables. Render the reference
+PPTX when present; statistics alone miss theme inheritance and image content. The
+PDF helper avoids OCR and uses PDFium for rendering.
+
+Organize the evidence around the research question, not file order. Distinguish
+published findings, the user's results, interpretations and presenter analysis;
+trace comparisons to their contributing sources and check whether conditions permit
+them. Label missing evidence, conflicting findings and preliminary results. Follow
+the supplied materials: do not invent results or expand research automatically.
+Separately attributed external background belongs only within an explicitly agreed
+scope; a source gap is not permission to start a new literature search.
 
 ## 3. Prepare original figures
 
-Populate `analysis/figure_manifest.json` from actual inspected PDF regions. Coordinates
+For supplied image files, register their copied originals, source IDs, hashes and
+verified assets directly; they do not need a PDF crop. For new plots calculated
+from supplied data, retain the dataset, computation, conditions and exclusions,
+and label the plot as analysis rather than as an original published figure.
+
+For PDF figures, populate `analysis/figure_manifest.json` from actual inspected regions. Coordinates
 are top-left-origin PDF points on an unrotated page; do not paste screenshot pixels.
 The crop helper accepts one PDF at a time; for multiple sources, pass a source-filtered
 crop manifest and merge the verified records into the workspace's figure inventory.
 
 ```bash
 python skills/research-ppt/scripts/decktools.py crop \
-  --pdf ../paper-talk/inputs/source_01.pdf \
-  --manifest ../paper-talk/analysis/figure_manifest.json \
-  --out ../paper-talk/assets/paper --dpi 360
+  --pdf outputs/synthetic-research-report/inputs/source_01.pdf \
+  --manifest outputs/synthetic-research-report/analysis/figure_manifest.json \
+  --out outputs/synthetic-research-report/assets/paper --dpi 360
 python skills/research-ppt/scripts/decktools.py montage \
-  --images ../paper-talk/assets/paper --out ../paper-talk/qa/figure-montage.png
+  --images outputs/synthetic-research-report/assets/paper --out outputs/synthetic-research-report/qa/figure-montage.png
 ```
 
 The crop report records dimensions, hashes and **pending** review. Inspect each figure,
@@ -107,25 +219,35 @@ new provenance. Verify a known geometry region before bulk cropping such documen
 ## 4. Plan, preflight and handoff
 
 The agent fills evidence, style and slide plans using the templates as examples.
-An illustration can use a native teaching example without a paper image; label it explicitly.
-Every slide still needs a reading order, takeaway, source/illustration link and useful notes.
+A detailed research report covers necessary background, the problem, mechanism/methods,
+evidence, comparisons/synthesis and limitations, plus the user's progress and next
+steps where the materials support them. An explicit single-paper talk centers on
+that paper; the report default does not override the accepted presentation type.
+
+Keep main slides within the agreed speaking time. Put supporting derivations,
+secondary comparisons and additional conditions in useful speaker notes and genuinely
+hidden backup slides. There is no fixed page count; dense slide text is not a
+substitute for explaining the research. An illustration can use a native teaching
+example without a paper image; label it explicitly. Every slide still needs a
+reading order, takeaway, source/illustration link and useful notes.
 
 ```bash
 python skills/research-ppt/scripts/workflow.py preflight \
-  --project ../paper-talk --out ../paper-talk/qa/preflight.json
+  --project outputs/synthetic-research-report --out outputs/synthetic-research-report/qa/preflight.json
 python skills/research-ppt/scripts/workflow.py handoff \
-  --project ../paper-talk --run-id run-01
+  --project outputs/synthetic-research-report --run-id run-01
 ```
 
-Give `../paper-talk/handoff/run-01/handoff.md` to the agent role executing ppt-master.
+Give `outputs/synthetic-research-report/handoff/run-01/handoff.md` to the agent role executing ppt-master.
 The bundle contains immutable preparation snapshots with references to local private
 source/asset files; it is not automatically uploaded. Read the backend's current skill,
 choose the route its current documentation requires, and map the prepared material into it.
-Do not reuse historic CLI flags or manufacture an upstream spec/confirmation.
+Use commands documented for that checkout; do not manufacture an upstream
+specification or confirmation.
 
 ## 5. Produce with ppt-master
 
-Production stays in `../paper-talk/production/` and follows the current upstream runtime.
+Production stays in `outputs/synthetic-research-report/production/` and follows the current upstream runtime.
 Do not modify the upstream submodule to hold talk outputs. The backend may refine layout
 within the communication contract. A change in claims/page roster/time allocation goes
 back to preparation and needs a new handoff. Obtain a real PPTX and `build_receipt.json`.
@@ -137,22 +259,23 @@ cannot certify that a backend command or document-reading claim actually occurre
 
 ## 6. Audit and render the actual final artifact
 
-Use the produced path in place of `exports/talk.pptx` below.
+Use the actual produced path if it differs from `exports/synthetic-research-report.pptx`
+below. Keep earlier accepted versions when making revisions.
 
 ```bash
 python skills/research-ppt/scripts/decktools.py audit \
-  --pptx ../paper-talk/exports/talk.pptx \
-  --plan ../paper-talk/design/slide_plan.json --out ../paper-talk/qa/machine-v1.json
+  --pptx outputs/synthetic-research-report/exports/synthetic-research-report.pptx \
+  --plan outputs/synthetic-research-report/design/slide_plan.json --out outputs/synthetic-research-report/qa/machine-v1.json
 python skills/research-ppt/scripts/decktools.py render-pptx \
-  --pptx ../paper-talk/exports/talk.pptx --include-hidden \
-  --out ../paper-talk/qa/render-v1
+  --pptx outputs/synthetic-research-report/exports/synthetic-research-report.pptx --include-hidden \
+  --out outputs/synthetic-research-report/qa/render-v1
 python skills/research-ppt/scripts/decktools.py montage \
-  --images ../paper-talk/qa/render-v1/pages --out ../paper-talk/qa/montage-v1.png
+  --images outputs/synthetic-research-report/qa/render-v1/pages --out outputs/synthetic-research-report/qa/montage-v1.png
 python skills/research-ppt/scripts/workflow.py review-init \
-  --project ../paper-talk --pptx ../paper-talk/exports/talk.pptx \
-  --handoff ../paper-talk/handoff/run-01 \
-  --render-report ../paper-talk/qa/render-v1/render_report.json \
-  --out ../paper-talk/qa/review-v1.json
+  --project outputs/synthetic-research-report --pptx outputs/synthetic-research-report/exports/synthetic-research-report.pptx \
+  --handoff outputs/synthetic-research-report/handoff/run-01 \
+  --render-report outputs/synthetic-research-report/qa/render-v1/render_report.json \
+  --out outputs/synthetic-research-report/qa/review-v1.json
 ```
 
 `render-pptx` uses LibreOffice/soffice; another actual PPTX renderer may be used if it
@@ -170,22 +293,24 @@ new PPTX, new render and new review, with a new handoff for preparation changes.
 
 ```bash
 python skills/research-ppt/scripts/workflow.py gate \
-  --project ../paper-talk --pptx ../paper-talk/exports/talk.pptx \
-  --handoff ../paper-talk/handoff/run-01 \
-  --render-report ../paper-talk/qa/render-v1/render_report.json \
-  --audit ../paper-talk/qa/machine-v1.json \
-  --review ../paper-talk/qa/review-v1.json \
-  --receipt ../paper-talk/production/build_receipt.json \
-  --out ../paper-talk/qa/final-gate-v1.json
+  --project outputs/synthetic-research-report --pptx outputs/synthetic-research-report/exports/synthetic-research-report.pptx \
+  --handoff outputs/synthetic-research-report/handoff/run-01 \
+  --render-report outputs/synthetic-research-report/qa/render-v1/render_report.json \
+  --audit outputs/synthetic-research-report/qa/machine-v1.json \
+  --review outputs/synthetic-research-report/qa/review-v1.json \
+  --receipt outputs/synthetic-research-report/production/build_receipt.json \
+  --out outputs/synthetic-research-report/qa/final-gate-v1.json
 ```
 
 The gate checks metadata, provenance and artifact consistency; it does not infer that a
-reviewer genuinely understood the paper. Keep review evidence, not just a boolean pass.
+reviewer understood the research materials or synthesis. Keep review evidence, not just a boolean pass.
 
 ## 8. Deliver and improve
 
 Render once without `--include-hidden` into a new directory for the visible-only PDF.
 Export speaker notes to Markdown through the actual backend or a documented extraction.
+Use the agreed `output_files` paths, defaulting here to
+`exports/synthetic-research-report.pdf` and `exports/synthetic-research-report-notes.md`.
 Provide real paths, page/backup counts, planned time, actual backend revision, editable/raster
 scope and known limitations. Without rendering, label the output an unvalidated draft.
 
