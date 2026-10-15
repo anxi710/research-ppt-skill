@@ -2,8 +2,12 @@
   "coverage": [
     {
       "topic": "Mechanism needed to answer the report's central question",
-      "source_ids": ["S1"],
-      "slide_ids": ["P01"],
+      "source_ids": [
+        "S1"
+      ],
+      "slide_ids": [
+        "P03"
+      ],
       "disposition": "main",
       "rationale": "Adapt to the accepted scope; also record backups, notes, exclusions and gaps."
     }
@@ -11,6 +15,66 @@
   "slides": [
     {
       "id": "P01",
+      "section": "Opening",
+      "display_title": "Replace with the supplied research title",
+      "page_role": "information_cover",
+      "citation_placement": "notes",
+      "question": "Which research presentation is this?",
+      "topic": "Research title and supplied metadata",
+      "evidence_ids": [
+        "C1"
+      ],
+      "primary_visual": {
+        "type": "native_title",
+        "asset_ids": [],
+        "description": "Title and verified source or presentation metadata only"
+      },
+      "reading_order": [
+        "Read title",
+        "Read supplied metadata"
+      ],
+      "on_slide_text": [
+        "Supplied paper authors, presenter or date; omit unavailable fields"
+      ],
+      "takeaway": "The audience can identify the presentation; background starts on a separate page.",
+      "speaker_notes": "Introduce the presentation without printing research background, methods or results on this cover. Replace all example copy before production.",
+      "seconds": 20,
+      "hidden": false
+    },
+    {
+      "id": "P02",
+      "section": "Background",
+      "section_id": "background",
+      "display_title": "Necessary background for the research question",
+      "page_role": "background_explanation",
+      "citation_placement": "compact_footer",
+      "question": "What context does this audience need?",
+      "topic": "Relevant background grounded in supplied materials and clearly attributed context sources",
+      "evidence_ids": [
+        "C1"
+      ],
+      "primary_visual": {
+        "type": "context_illustration",
+        "asset_ids": [
+          "CTX1"
+        ],
+        "description": "Sourced benchmark task example beside consistently sized explanatory blocks with clear gaps; register the exact context source before production."
+      },
+      "reading_order": [
+        "Read necessary context",
+        "Read the scoped difficulty"
+      ],
+      "on_slide_text": [
+        "Replace with concise, sourced background for this audience",
+        "Separate the practical difficulty into its own labelled or numbered group"
+      ],
+      "takeaway": "The background prepares the audience to understand the research question.",
+      "speaker_notes": "Explain prerequisite context here, separate from the information-only cover. Cite the context image's exact source and version; it illustrates the setting and is not evidence for the report's results. If the user limits sources, honor that limit and choose an available explanatory visual. Replace all example copy before production.",
+      "seconds": 60,
+      "hidden": false
+    },
+    {
+      "id": "P03",
       "section": "Method",
       "display_title": "State update mechanism",
       "page_role": "method_explanation",
@@ -39,7 +103,8 @@
       "takeaway": "A scoped conclusion",
       "speaker_notes": "Detailed reading path, interpretation, scope, source and transition.",
       "seconds": 90,
-      "hidden": false
+      "hidden": false,
+      "section_id": "method"
     }
   ]
 }

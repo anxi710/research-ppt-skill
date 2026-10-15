@@ -1,12 +1,46 @@
 {
-  "name": "project-style",
+  "name": "academic-navigator",
   "review_status": "pending",
   "basis": "User brief / rendered template / declared assumption",
   "canvas": "16:9",
   "typography": {
-    "font_family": "Choose installed suitable font"
+    "font_family": "Microsoft YaHei",
+    "latin_font_family": "Arial",
+    "roles": {
+      "cover": {
+        "font_family": "Microsoft YaHei",
+        "font_size_px": 56
+      },
+      "title": {
+        "font_family": "Microsoft YaHei",
+        "font_size_px": 40
+      },
+      "body": {
+        "font_family": "Microsoft YaHei",
+        "font_size_px": 32
+      },
+      "annotation": {
+        "font_family": "Microsoft YaHei",
+        "font_size_px": 24
+      },
+      "footer": {
+        "font_family": "Microsoft YaHei",
+        "font_size_px": 16
+      },
+      "navigation": {
+        "font_family": "Microsoft YaHei",
+        "font_size_px": 18
+      }
+    }
   },
-  "palette": {},
+  "palette": {
+    "background": "#FFFFFF",
+    "text": "#1E293B",
+    "accent": "#2F5597",
+    "secondary": "#526275",
+    "surface": "#EDF3FA",
+    "divider": "#D6E0EA"
+  },
   "density": "large core figure with short annotations",
   "logo_policy": "No identity inherited without permission",
   "source_footer": true,
@@ -26,5 +60,81 @@
     "opening": "Resolve from the brief or reference; do not invent presenter details",
     "closing": "Resolve from the brief or reference",
     "backups": "Resolve whether required, hidden in this file, separate, or omitted"
+  },
+  "figure_policy": {
+    "display_region": "body_only",
+    "caption_policy": "notes_only"
+  },
+  "section_navigation": {
+    "enabled": true,
+    "sections": [
+      {
+        "id": "background",
+        "label": "Background"
+      },
+      {
+        "id": "problem",
+        "label": "Problem"
+      },
+      {
+        "id": "method",
+        "label": "Method"
+      },
+      {
+        "id": "evidence",
+        "label": "Evidence"
+      },
+      {
+        "id": "conclusion",
+        "label": "Conclusion"
+      }
+    ],
+    "exempt_slide_ids": [
+      "P01"
+    ],
+    "active_indicator": "fill_only"
+  },
+  "palette_policy": {
+    "accent_colors": [
+      "#2F5597"
+    ],
+    "max_accent_colors": 1
+  },
+  "page_chrome": {
+    "cover": {
+      "slide_ids": [
+        "P01"
+      ],
+      "title_information_only": true
+    },
+    "page_number": {
+      "format": "current",
+      "position": "bottom_right",
+      "background": true
+    },
+    "title_separator": {
+      "enabled": true
+    }
+  },
+  "content_grouping": {
+    "enabled": true,
+    "treatments": [
+      "cards",
+      "numbered_blocks"
+    ],
+    "same_role_consistency": true,
+    "spacing": {
+      "min_gap_px": 24,
+      "padding_px": 20
+    }
+  },
+  "external_visuals": {
+    "enabled": true,
+    "purposes": [
+      "background",
+      "benchmark_context"
+    ],
+    "claim_boundary": "context_only",
+    "source_scope_precedence": true
   }
 }

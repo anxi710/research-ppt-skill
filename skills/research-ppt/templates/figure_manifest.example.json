@@ -18,7 +18,40 @@
         "C1"
       ],
       "review_status": "pending",
-      "review_notes": "Check axes, ticks, legend, labels and caption context."
+      "review_notes": "Check body-only framing against separate full context: omit the paper caption, preserve axes, ticks, scientific legend, units and panel labels; verify caption and necessary conditions in notes.",
+      "display_region": "body_only",
+      "caption_policy": "notes_only",
+      "context": {
+        "path": "assets/paper/F1-context.png",
+        "sha256": "",
+        "pdf_page": 1,
+        "bbox_pt": [
+          0,
+          0,
+          300,
+          200
+        ]
+      },
+      "caption_provenance": {
+        "text": "Figure 1. Synthetic state-update example; not a research result.",
+        "locator": "S1, PDF page 1, Figure 1 caption"
+      }
+    },
+    {
+      "id": "CTX1",
+      "kind": "context_illustration",
+      "source_ids": [
+        "S2"
+      ],
+      "source_locator": "Synthetic benchmark documentation v1, task-example panel; register the exact local source as S2 before use.",
+      "purpose": "benchmark_context",
+      "usage": "context_only",
+      "path": "assets/context/CTX1.png",
+      "sha256": "",
+      "caption": "Synthetic task-interface example for context, not a measured result of S1.",
+      "evidence_ids": [],
+      "review_status": "pending",
+      "review_notes": "Verify the original primary source, exact source version and asset identity. Add a compact source credit or full locator in notes. Keep this teaching image separate from the supplied work's results."
     }
   ]
 }

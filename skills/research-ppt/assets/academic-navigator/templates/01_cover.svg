@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" font-family="Arial, Microsoft YaHei" data-pptx-master="academic-navigator" data-pptx-master-name="Academic Navigator" data-pptx-layout="information-cover" data-pptx-layout-name="Information cover">
+<rect id="master-background" x="0" y="0" width="1280" height="720" fill="#FFFFFF" data-pptx-layer="master" data-pptx-editable="false"/>
+<g id="page-number-panel" data-pptx-authoring="preset" data-pptx-object="shape" data-pptx-prst="snip1Rect" data-pptx-frame="1164 674 68 36" data-pptx-av-adj="val 23000" fill="#2F5597" stroke="none" data-pptx-layer="master" data-pptx-editable="false"><path d="M 1164 674 L 1223.72 674 L 1232 682.28 L 1232 710 L 1164 710 Z"/></g>
+<rect id="cover-rail" x="48" y="202" width="6" height="220" fill="#2F5597" data-pptx-layer="layout" data-pptx-editable="false"/>
+<rect id="metadata-field" x="96" y="502" width="1088" height="140" rx="8" fill="#EDF3FA" data-pptx-layer="layout" data-pptx-editable="false"/>
+<g id="cover-title" data-pptx-placeholder="title" data-pptx-bounds="96 202 1088 82"><text data-pptx-carrier="true" x="96" y="255" font-size="56" fill="#2F5597" font-weight="bold">{{TITLE}}</text></g>
+<g id="cover-subtitle" data-pptx-placeholder="subtitle" data-pptx-bounds="96 314 1088 108"><text data-pptx-carrier="true" x="96" y="345" font-size="32" fill="#1E293B">{{SUBTITLE}}</text></g>
+<g id="cover-author" data-pptx-placeholder="body" data-pptx-idx="2" data-pptx-bounds="116 530 790 44"><text data-pptx-carrier="true" x="116" y="555" font-size="24" fill="#526275">{{AUTHOR}}</text></g>
+<g id="cover-date" data-pptx-placeholder="date" data-pptx-idx="3" data-pptx-bounds="116 586 790 36"><text data-pptx-carrier="true" x="116" y="610" font-size="24" fill="#526275">{{DATE}}</text></g>
+<g id="slide-number" data-pptx-placeholder="slide-number" data-pptx-idx="99" data-pptx-bounds="1172 680 52 26"><text data-pptx-carrier="true" x="1198" y="700" text-anchor="middle" font-size="18" fill="#FFFFFF" font-weight="bold">1</text></g>
+</svg>

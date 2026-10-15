@@ -61,11 +61,206 @@ def communication_contract_errors(style: dict) -> list[str]:
     return errors
 
 
-def review_checks(style: dict) -> list[str]:
+def review_checks(style: dict, assets: list[dict] | None = None) -> list[str]:
     contract=style.get('communication_contract')
     versioned=(isinstance(contract,dict) and type(contract.get('version')) is int
                and contract['version']==1)
-    return CHECKS+COMMUNICATION_CHECKS if versioned else list(CHECKS)
+    checks=CHECKS+COMMUNICATION_CHECKS if versioned else list(CHECKS)
+    if 'figure_policy' in style or any('display_region' in item or 'caption_policy' in item for item in assets or []):
+        checks.append('figure_framing')
+    if isinstance(style.get('section_navigation'),dict) and style['section_navigation'].get('enabled') is True:
+        checks.append('section_navigation')
+    if isinstance(style.get('typography'),dict) and 'roles' in style['typography']:
+        checks.append('typography_consistency')
+    if 'palette_policy' in style:checks.append('palette_consistency')
+    if 'page_chrome' in style:checks.append('page_chrome')
+    if isinstance(style.get('content_grouping'),dict) and style['content_grouping'].get('enabled') is True:
+        checks.append('content_grouping')
+    if any(item.get('kind')=='context_illustration' for item in assets or []):
+        checks.append('external_visual_provenance')
+    return checks
+
+
+def visual_style_errors(style: dict, slides: list[dict]) -> list[str]:
+    """Validate optional design instructions, not their visual execution in a deck."""
+    errors=[]
+    policy=style.get('figure_policy')
+    if 'figure_policy' in style:
+        if not isinstance(policy,dict) or policy.get('display_region')!='body_only' or policy.get('caption_policy')!='notes_only':
+            errors.append('Style: figure_policy requires display_region body_only and caption_policy notes_only')
+    navigation=style.get('section_navigation')
+    if 'section_navigation' in style:
+        if not isinstance(navigation,dict) or type(navigation.get('enabled')) is not bool:
+            errors.append('Style: section_navigation requires boolean enabled')
+        elif (not isinstance(navigation.get('active_indicator','fill_only'),str)
+              or navigation.get('active_indicator','fill_only') not in {'fill_only','reference_defined'}):
+            errors.append('Style: section_navigation active_indicator must be fill_only or reference_defined')
+        elif navigation['enabled']:
+            sections=navigation.get('sections');section_ids=set()
+            if not isinstance(sections,list) or not sections:
+                errors.append('Style: section_navigation sections must be a nonempty ordered list')
+            else:
+                for section in sections:
+                    if not isinstance(section,dict) or not nonempty(section.get('id')) or not nonempty(section.get('label')):
+                        errors.append('Style: section_navigation sections require nonempty id and label');continue
+                    if section['id'] in section_ids:errors.append('Style: duplicate section_navigation section ID')
+                    section_ids.add(section['id'])
+            exempt=navigation.get('exempt_slide_ids',[])
+            if not isinstance(exempt,list) or any(not nonempty(sid) for sid in exempt):
+                errors.append('Style: section_navigation exempt_slide_ids must be a list of slide IDs');exempt=[]
+            elif len(set(exempt))!=len(exempt) or any(sid not in {s.get('id') for s in slides} for sid in exempt):
+                errors.append('Style: section_navigation has duplicate/unknown exempt slide IDs')
+            for slide in slides:
+                required=not slide.get('hidden') and slide.get('id') not in exempt
+                if (required or 'section_id' in slide) and (not nonempty(slide.get('section_id')) or slide['section_id'] not in section_ids):
+                    errors.append(f'{slide.get("id")}: section_id must reference section_navigation sections')
+    typography=style.get('typography')
+    if isinstance(typography,dict) and 'roles' in typography:
+        roles=typography['roles']
+        required=['title','body','annotation','footer']
+        if isinstance(navigation,dict) and navigation.get('enabled') is True:required.append('navigation')
+        if not isinstance(roles,dict):errors.append('Style: typography roles must be an object')
+        else:
+            for name in required:
+                role=roles.get(name)
+                if not isinstance(role,dict) or not nonempty(role.get('font_family')) or not positive(role.get('font_size_px')):
+                    errors.append(f'Style: typography role {name} requires font_family and positive font_size_px')
+    palette=style.get('palette_policy')
+    if 'palette_policy' in style:
+        if not isinstance(palette,dict):errors.append('Style: palette_policy must be an object')
+        else:
+            colors=palette.get('accent_colors');limit=palette.get('max_accent_colors')
+            valid_colors=(isinstance(colors,list) and all(isinstance(c,str) and re.fullmatch(r'#[0-9A-Fa-f]{6}',c) for c in colors))
+            if not valid_colors:errors.append('Style: palette_policy accent_colors must be a list of #RRGGBB colors')
+            elif len({c.lower() for c in colors})!=len(colors):errors.append('Style: palette_policy accent colors must be unique')
+            if type(limit) is not int or limit<0:errors.append('Style: palette_policy max_accent_colors must be a nonnegative integer')
+            elif valid_colors and len(colors)>limit:errors.append('Style: palette_policy accent colors exceed the declared limit')
+    chrome=style.get('page_chrome')
+    if 'page_chrome' in style:
+        if not isinstance(chrome,dict) or not any(key in chrome for key in ['cover','page_number','title_separator']):
+            errors.append('Style: page_chrome requires cover, page_number or title_separator instructions')
+        else:
+            if 'cover' in chrome:
+                cover=chrome['cover']
+                if not isinstance(cover,dict) or cover.get('title_information_only') is not True:
+                    errors.append('Style: page_chrome cover requires title_information_only true')
+                else:
+                    ids=cover.get('slide_ids');visible_ids={s.get('id') for s in slides if not s.get('hidden')}
+                    if not isinstance(ids,list) or not ids or any(not nonempty(sid) for sid in ids):
+                        errors.append('Style: page_chrome cover slide_ids must be a nonempty list of slide IDs')
+                    elif len(set(ids))!=len(ids) or any(sid not in visible_ids for sid in ids):
+                        errors.append('Style: page_chrome cover slide_ids must be unique visible slide IDs')
+            if 'page_number' in chrome:
+                number=chrome['page_number']
+                if (not isinstance(number,dict) or number.get('format')!='current'
+                        or number.get('position')!='bottom_right' or type(number.get('background')) is not bool):
+                    errors.append('Style: page_chrome page_number requires format current, position bottom_right and boolean background')
+            if 'title_separator' in chrome:
+                separator=chrome['title_separator']
+                if not isinstance(separator,dict) or type(separator.get('enabled')) is not bool:
+                    errors.append('Style: page_chrome title_separator requires boolean enabled')
+    grouping=style.get('content_grouping')
+    if 'content_grouping' in style:
+        if not isinstance(grouping,dict) or type(grouping.get('enabled')) is not bool:
+            errors.append('Style: content_grouping requires boolean enabled')
+        elif grouping['enabled']:
+            treatments=grouping.get('treatments')
+            if (not isinstance(treatments,list) or not treatments
+                    or any(not isinstance(item,str) or item not in {'cards','numbered_blocks'} for item in treatments)
+                    or len(set(treatments))!=len(treatments)):
+                errors.append('Style: content_grouping treatments must be a nonempty unique list of cards or numbered_blocks')
+        if isinstance(grouping,dict):
+            if 'same_role_consistency' in grouping and type(grouping['same_role_consistency']) is not bool:
+                errors.append('Style: content_grouping same_role_consistency must be boolean')
+            if 'spacing' in grouping:
+                spacing=grouping['spacing']
+                if (not isinstance(spacing,dict)
+                        or any(not positive(spacing.get(key)) for key in ['min_gap_px','padding_px'])):
+                    errors.append('Style: content_grouping spacing requires positive min_gap_px and padding_px')
+    external=style.get('external_visuals')
+    if 'external_visuals' in style:
+        if not isinstance(external,dict) or type(external.get('enabled')) is not bool:
+            errors.append('Style: external_visuals requires boolean enabled')
+        elif external['enabled']:
+            purposes=external.get('purposes')
+            if (not isinstance(purposes,list) or not purposes
+                    or any(not isinstance(p,str) or p not in {'background','benchmark_context'} for p in purposes)
+                    or len(set(purposes))!=len(purposes)):
+                errors.append('Style: external_visuals purposes must be a unique list of background or benchmark_context')
+            if external.get('claim_boundary')!='context_only' or external.get('source_scope_precedence') is not True:
+                errors.append('Style: external_visuals requires claim_boundary context_only and source_scope_precedence true')
+    return errors
+
+
+def external_visual_errors(assets: list[dict], sources: list[dict], style: dict) -> list[str]:
+    """Keep sourced teaching images separate from the report's empirical evidence."""
+    errors=[];policy=style.get('external_visuals');source_map={src.get('id'):src for src in sources}
+    for asset in assets:
+        if asset.get('kind')!='context_illustration':continue
+        fid=asset.get('id');refs=asset.get('source_ids')
+        if (not isinstance(refs,list) or not refs or any(not nonempty(sid) for sid in refs)
+                or len(set(refs))!=len(refs) or any(sid not in source_map for sid in refs)):
+            errors.append(f'{fid}: context_illustration requires known unique source_ids')
+        elif any(source_map[sid].get('role')=='style_reference' for sid in refs):
+            errors.append(f'{fid}: context_illustration needs content sources, not style-only references')
+        if not nonempty(asset.get('source_locator')):
+            errors.append(f'{fid}: context_illustration requires source_locator')
+        if asset.get('usage')!='context_only':
+            errors.append(f'{fid}: context_illustration usage must be context_only')
+        purpose=asset.get('purpose')
+        if not isinstance(purpose,str) or purpose not in {'background','benchmark_context'}:
+            errors.append(f'{fid}: context_illustration purpose must be background or benchmark_context')
+        if isinstance(policy,dict):
+            if policy.get('enabled') is False:
+                errors.append(f'{fid}: external visuals are disabled by the accepted style')
+            elif isinstance(policy.get('purposes'),list) and purpose not in policy['purposes']:
+                errors.append(f'{fid}: context_illustration purpose is outside external_visuals policy')
+    return errors
+
+
+def valid_bbox(box: Any) -> bool:
+    return (isinstance(box,list) and len(box)==4
+            and all(type(v) in (int,float) and math.isfinite(v) for v in box)
+            and 0<=box[0]<box[2] and 0<=box[1]<box[3])
+
+
+def figure_framing_errors(root: Path, assets: list[dict], style: dict) -> list[str]:
+    """Check body/context provenance; captions and scientific legends need visual review."""
+    errors=[];policy=style.get('figure_policy')
+    policy=policy if isinstance(policy,dict) else {}
+    for asset in assets:
+        if asset.get('kind') not in {'original_figure','source_table'}:continue
+        fid=asset.get('id');region=asset.get('display_region',policy.get('display_region'))
+        caption=asset.get('caption_policy',policy.get('caption_policy'))
+        if region is None and caption is None:continue  # Existing manifests remain valid.
+        if region!='body_only' or caption!='notes_only':
+            errors.append(f'{fid}: body-only framing requires display_region body_only and caption_policy notes_only')
+        provenance=asset.get('caption_provenance')
+        if not isinstance(provenance,dict) or not all(nonempty(provenance.get(key)) for key in ['text','locator']):
+            errors.append(f'{fid}: caption_provenance requires original caption text and locator')
+        context=asset.get('context')
+        if not isinstance(context,dict):errors.append(f'{fid}: body-only asset requires independent context');continue
+        # Standalone image sources have no PDF page or point-coordinate system.
+        # Once either side declares PDF provenance, require the complete pair.
+        pdf_located=any(key in record for record in [asset,context] for key in ['pdf_page','bbox_pt'])
+        if pdf_located:
+            for field in ['bbox_pt','pdf_page']:
+                value=asset.get(field)
+                if field=='bbox_pt' and not valid_bbox(value):errors.append(f'{fid}: body-only asset requires valid bbox_pt')
+                if field=='pdf_page' and (type(value) is not int or value<1):errors.append(f'{fid}: body-only asset requires positive pdf_page')
+            if type(context.get('pdf_page')) is not int or context.get('pdf_page')!=asset.get('pdf_page'):
+                errors.append(f'{fid}: context must reference the display asset PDF page')
+            outer=context.get('bbox_pt');inner=asset.get('bbox_pt')
+            if not valid_bbox(outer):errors.append(f'{fid}: context requires valid bbox_pt')
+            elif valid_bbox(inner) and not (outer[0]<=inner[0] and outer[1]<=inner[1] and outer[2]>=inner[2] and outer[3]>=inner[3]):
+                errors.append(f'{fid}: display bbox lies outside its context bbox')
+        try:
+            path=under(root,context.get('path',''))
+            if not path.is_file() or sha256(path)!=context.get('sha256'):
+                errors.append(f'{fid}: missing/changed context asset')
+            if path==under(root,asset.get('path','')):errors.append(f'{fid}: context must be separate from the display asset')
+        except (ValueError,OSError,TypeError):errors.append(f'{fid}: invalid context asset path')
+    return errors
 
 
 def intake_requirements(brief: dict) -> dict:
@@ -189,8 +384,22 @@ def init(args: argparse.Namespace) -> int:
     write(root/'brief.json',brief)
     write(root/'analysis/evidence.json',{'claims':[]})
     write(root/'analysis/figure_manifest.json',{'figures':[]})
+    # New workspaces start from the skill's presentation baseline. Navigation
+    # awaits the actual section plan; examples must not invent that plan.
+    example=load(Path(__file__).resolve().parents[1]/'templates/style_profile.example.json')
+    defaults={key:example[key] for key in ['canvas','typography','palette','figure_policy',
+                                         'palette_policy','page_chrome','content_grouping','external_visuals']}
+    defaults['section_navigation']={'enabled':False,
+                                   'active_indicator':example['section_navigation']['active_indicator']}
+    if not args.template:
+        defaults['template_reference']={
+            'kind':'deck',
+            'root':str((Path(__file__).resolve().parents[1]/'assets/academic-navigator').resolve()),
+            'spec':'templates/design_spec.deck.academic-navigator.md',
+            'status':'pending_default','applied':False}
     write(root/'design/style_profile.json',{
-        'name':'project-style','review_status':'pending','basis':'',
+        **defaults,'name':'academic-navigator','review_status':'pending',
+        'basis':'Built-in academic-navigator baseline; adapt to source content and any supplied reference.',
         'communication_contract':{
             'version':1,'citation_placement':'compact_footer',
             'rules':[
@@ -261,6 +470,9 @@ def preflight_report(root: Path) -> dict:
     has_communication_contract='communication_contract' in style
     communication_contract=style.get('communication_contract')
     slides=data['design/slide_plan.json'].get('slides',[]);slide_ids=set();seconds=0;display_text_metrics=[]
+    errors.extend(visual_style_errors(style,slides))
+    errors.extend(figure_framing_errors(root,assets,style))
+    errors.extend(external_visual_errors(assets,sources,style))
     if not slides:errors.append('Slide plan is empty')
     for slide in slides:
         sid=slide.get('id')
@@ -287,7 +499,7 @@ def preflight_report(root: Path) -> dict:
         visual=slide.get('primary_visual',{})
         if not nonempty(visual.get('type')) or not nonempty(visual.get('description')):
             errors.append(f'{sid}: core visual not specified')
-        if visual.get('type') in {'original_figure','source_table'} and not visual.get('asset_ids'):
+        if visual.get('type') in {'original_figure','source_table','context_illustration'} and not visual.get('asset_ids'):
             errors.append(f'{sid}: evidence visual missing its asset')
         for fid in visual.get('asset_ids',[]):
             if fid not in asset_ids:errors.append(f'{sid}: unknown visual {fid}')
@@ -329,6 +541,8 @@ def handoff(args: argparse.Namespace) -> int:
     resources={}
     for item in load(root/'brief.json')['sources']+load(root/'analysis/figure_manifest.json')['figures']:
         resources[item['path']]=sha256(under(root,item['path']))
+        if isinstance(item.get('context'),dict) and nonempty(item['context'].get('path')):
+            context=item['context'];resources[context['path']]=sha256(under(root,context['path']))
     manifest={'schema_version':'1','created_at':now(),'workspace':str(root),
               'preparation':fingerprints,'resources':resources}
     write(dest/'manifest.json',manifest)
@@ -350,6 +564,25 @@ def handoff(args: argparse.Namespace) -> int:
         text+=('Apply every communication rule and the citation placement policy above. Independent review '
                'must check `audience_copy` against the planned display copy and `reference_match` against '
                'the supplied reference or recorded style basis; neither is approved by metadata or text counts.\n')
+    visual_policy={key:style[key] for key in ['figure_policy','section_navigation','typography','palette_policy','page_chrome','content_grouping','external_visuals'] if key in style}
+    if visual_policy:
+        text+='\n## Visual execution contract\n\n```json\n'+json.dumps(visual_policy,ensure_ascii=False,indent=2)+'\n```\n\n'
+        text+=('For body_only/notes_only figures, use the display asset path on the slide. '
+               'Keep its separate context image and caption_provenance for evidence review and speaker notes; '
+               'do not place the long paper caption on the slide. Preserve scientific legends, axes, units and panel identifiers. '
+               'When section navigation is enabled, preserve the ordered sections and derive the active tab from each slide section_id, '
+               'respecting explicit exempt_slide_ids. For active_indicator fill_only, use the filled active tab without an extra navigation underline; '
+               'this does not remove the separate title separator. Apply the same typography role sizes across slides and the declared accent color limit. '
+               'When page_chrome is supplied, keep the identified covers to title and accepted metadata, move background explanation to content pages, '
+               'apply its current-page-only number, bottom-right placement, background box and title-separator instructions. '
+               'When content_grouping is enabled, organize multi-part prose with the accepted cards or numbered blocks instead of an undifferentiated text pile. '
+               'Keep peer boxes consistent in dimensions and padding; distinct content roles may use a recorded different layout. '
+               'Apply declared spacing at the canvas scale; retain clear gaps rather than stretching the last box to fill spare space. '
+               'When external_visuals is enabled and the user has not limited sources, seek useful primary-source background or benchmark imagery. '
+               'Register context_illustration assets with source_ids, exact source versions, source_locator and usage context_only. '
+               'Attribute them on the slide or in its notes; never present their external results as evidence for the supplied work. '
+               'Respect any explicit source-only restriction. Actual external assets require independent external_visual_provenance review. '
+               'These are production instructions; metadata checks do not approve actual framing, typography, navigation, colors, cover content, grouping or provenance judgment.\n')
     presentation={key:brief[key] for key in PRESENTATION_CHOICES if key in brief}
     if presentation:
         text+='\n## Presentation scope\n\n```json\n'
@@ -404,7 +637,7 @@ def review_init(args: argparse.Namespace) -> int:
     errors=contract_errors(root,handoff_dir)
     if errors:raise ValueError('; '.join(errors))
     plan=load(root/'design/slide_plan.json')['slides']
-    checks=review_checks(load(root/'design/style_profile.json'))
+    checks=review_checks(load(root/'design/style_profile.json'),load(root/'analysis/figure_manifest.json')['figures'])
     _,renders=render_entries(args.pptx,args.render_report,len(plan))
     if args.out.exists():raise ValueError('Refuse to overwrite a review; use a new review filename')
     rows=[]
@@ -425,7 +658,7 @@ def gate(args: argparse.Namespace) -> int:
     root=args.project.resolve();errors=contract_errors(root,args.handoff.resolve())
     prep=preflight_report(root)
     errors+=prep['errors']
-    checks=review_checks(load(root/'design/style_profile.json'))
+    checks=review_checks(load(root/'design/style_profile.json'),load(root/'analysis/figure_manifest.json')['figures'])
     plan=root/'design/slide_plan.json';rows=load(plan)['slides'];digest=sha256(args.pptx)
     machine=load(args.audit);review=load(args.review);receipt=load(args.receipt)
     # Recompute inexpensive package checks instead of trusting an arbitrary "pass" flag.
