@@ -1,29 +1,45 @@
 # Changelog
 
+Skill versions follow [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html).
+The current version is recorded in [SKILL.md](skills/research-ppt/SKILL.md)'s
+`metadata.version`; release preparation is described in [Contributing](CONTRIBUTING.md#versioning).
+
 ## Unreleased
 
-- Standardized the documented interpreter on Python 3.11, matching CI.
-- Removed one-time GitHub repository publication and offline Git-history restoration
-  helpers, their guide and tests. Routine repository checks and backend updates remain.
-- Repository-root prompts use relative skill/material paths; the agent resolves them
-  before changing directories. New PDF deliveries default to `<project-name>-preview.pdf`
-  while existing workspace filenames and user overrides are preserved.
-- Detailed, topic-centered research reports integrate supplied papers, notes and user
-  results; type/depth choices survive intake and handoff while legacy briefs remain valid.
-- Report planning and review cover explanatory depth, source synthesis, omissions and
-  the split between timed main slides, detailed notes and hidden backups.
-- Explicit parent intake before evidence preparation: resolve audience, purpose, time/Q&A,
-  language, style, structure and deliverables, then capture actual acceptance or delegation.
-- Pending intake snapshots and preflight/handoff checks prevent missing or stale brief
-  confirmation; resumed work reuses accepted requirements and reconfirms material changes.
-- Documentation uses direct recursive cloning as the standard setup and the current
-  backend policy.
-- Concise bilingual READMEs link to detailed first-use/maintenance guides, preserving
-  each step's purpose, action and completion condition, and an agent environment setup reference.
-- A pending synthetic `brief.json` example explains workspace locations, requirement
-  fields and the confirmation lifecycle.
-- Agents summarize default project names; initialization defaults to `outputs/<name>/`
-  with collision suffixes, named delivery files and explicit destination overrides.
+Changes after 0.3.0 will be collected here.
+
+## 0.3.0 - 2026-10-15
+
+### Added
+
+- Detailed research reports integrate supplied papers, notes and user results around
+  a research question. Type/depth choices and mixed-source provenance survive intake
+  and handoff; legacy briefs remain valid.
+- Parent intake resolves audience, purpose, time/Q&A, language, style, structure and
+  deliverables. Pending or stale confirmation blocks preparation and production handoff.
+- Report planning and review cover explanatory depth, synthesis, gaps, timed main
+  slides, detailed notes and hidden backups.
+- Calibration against user-edited decks records reusable communication requirements,
+  including display titles, slide text, citation placement and per-slide review.
+- Agents summarize project names; initialization creates private `outputs/<name>/`
+  workspaces with collision suffixes and explicit destination overrides.
+- Bilingual first-use/maintenance guides, an agent environment guide and a pending
+  `brief.json` example explain each step and its completion criteria.
+- README badges show the skill version, Python version, CI status and license.
+  Repository checks enforce version consistency with the skill metadata and changelog.
+
+### Changed
+
+- Documentation specifies Python 3.11 and direct recursive cloning. Repository-root
+  prompts accept relative skill/material paths, resolved before directory changes.
+- New PDF deliveries default to `<project-name>-preview.pdf`; existing workspace
+  filenames and explicit overrides are preserved.
+- CI uses `actions/checkout@v7` and `actions/setup-python@v7`.
+
+### Removed
+
+- One-time GitHub publication and offline Git-history restoration helpers, their
+  guide and tests. Routine repository checks and backend updates remain available.
 
 ## 0.2.0
 

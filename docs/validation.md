@@ -6,7 +6,7 @@ separate from backend production, hosted CI and a real presentation's acceptance
 ## Current helper checks
 
 Using the selected conda `docs` environment,
-`python -m unittest discover -s tests -v` completed **54 tests**: **53 passed** and
+`python -m unittest discover -s tests -v` completed **60 tests**: **59 passed** and
 the opt-in real-renderer test was skipped. `python scripts/check_repo.py` and the
 skill frontmatter validator also passed.
 
@@ -17,7 +17,8 @@ preservation, explicit path overrides, named delivery handoffs, invalid inputs l
 no default workspace, pending or stale intake records, explicit delegation, Q&A reservations,
 source/contract mutation invalidation, missing evidence/style/assets, immutable handoffs,
 pending reviews, missing backup-slide review coverage, stale backend receipts, unrelated
-reviewed images, source crop geometry, and notes/hidden flags.
+reviewed images, source crop geometry, and notes/hidden flags. Version checks reject
+invalid SemVer and mismatched skill metadata, badge text/image URLs or changelog entries.
 
 Fictional intake records in synthetic tests/examples illustrate the contract; fabricated
 final-deck review records exist only inside unit tests. Neither represents actual user

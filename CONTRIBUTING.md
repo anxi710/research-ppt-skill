@@ -14,3 +14,34 @@ Do not commit user workspaces, source papers, paper images, logos, confidential 
 API credentials or font binaries. Preserve MIT notices and all separate dependency/asset
 licenses. Submodule updates should be their own reviewable change, with observed
 compatibility/limitation notes. Do not patch upstream integrity checks.
+
+## Versioning
+
+Use [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html): `MAJOR.MINOR.PATCH`.
+The skill's public interface includes its documented workflows, helper CLI options,
+workspace formats and compatibility with saved briefs and review records.
+
+| Increment | Use for |
+|---|---|
+| PATCH | Compatible fixes and documentation corrections that preserve the interface. |
+| MINOR | New compatible workflows, capabilities or optional record fields. |
+| MAJOR | Incompatible changes to the public interface after 1.0.0. |
+
+During `0.y.z` development, incompatible changes increment MINOR and include migration
+notes; compatible fixes increment PATCH. Use `1.0.0` when the public interface is stable.
+Python and ppt-master versions are separate from the skill version.
+
+Collect routine changes under `Unreleased` without changing the version on every commit.
+When preparing a version:
+
+1. Set `metadata.version` in `skills/research-ppt/SKILL.md`, the canonical skill version.
+2. Update the README Skill badge's label and image URL to the same version.
+3. Move the completed `Unreleased` entries into a dated version section in
+   `CHANGELOG.md`, newest first. Preserve older version entries.
+4. Run the required checks above. `check_repo.py` validates SemVer and agreement
+   between the skill metadata, README badge and latest numbered changelog section.
+5. Commit the versioned state before creating a matching `vX.Y.Z` Git tag when a
+   release is requested. A changelog entry alone does not create a tag or GitHub Release.
+
+Once a tagged version is released, record further changes in a new version rather
+than moving the existing tag.
