@@ -16,8 +16,9 @@ user confirmation or manufacture a backend lock. Report genuine conflicts to the
 
 The repository helper `scripts/upstream.py update` updates the configured branch for a
 new job. It is maintenance, not a production command. A standalone installation may
-instead be supplied as an explicit absolute path. Do not infer a usable local directory
-from a public URL or from a previous session.
+instead be supplied as an explicit local path; resolve it against the request's working
+directory if relative, then record its real absolute location. Do not infer a usable
+local directory from a public URL or from a previous session.
 
 Read the actual current backend entry instructions and the route they select. Execute
 only documented commands for that revision. Record path, revision, dirty state, remote,
@@ -58,13 +59,15 @@ experimental conditions on the slide. Use the backend's supported math route and
 subscripts, superscripts and time indices after export.
 
 Carry `brief.json`'s `project_name` and `output_files` into production. The default
-workspace is `<request-working-directory>/outputs/<project-name>/`, with delivery
-files `exports/<project-name>.pptx`, `exports/<project-name>.pdf` and
+workspace is `./outputs/<project-name>/` relative to the request's working directory,
+with delivery files `exports/<project-name>.pptx`, `exports/<project-name>-preview.pdf` and
 `exports/<project-name>-notes.md` for requested formats. Explicit user names/paths
 win. Backend build filenames may follow its current route; stage delivery candidates
 at the declared paths before final hashing, rendering and review. Preserve previous
 versions and record the actual paths in the receipt; never rename or replace a file
 after review without verifying the delivered bytes and updating the artifact record.
+The preview PDF contains visible slides rendered from the final PPTX. Keep separate
+all-slide QA renders with hidden backups; preserve saved names on resumed workspaces.
 
 ## Requested output
 

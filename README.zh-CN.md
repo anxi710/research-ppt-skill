@@ -29,19 +29,21 @@ git clone --recurse-submodules <仓库地址> research-ppt-skill
 cd research-ppt-skill
 ```
 
-可直接把下面的话交给 Agent，替换为实际绝对路径：
+可直接把下面的话交给 Agent；以下相对路径以仓库根目录为基准：
 
-> 请读取 `/绝对路径/research-ppt-skill/skills/research-ppt/references/environment-setup.md`，按说明配置本项目环境，并报告依赖、后端和真实 PPTX 渲染的检查结果。
+> 请读取 `./skills/research-ppt/references/environment-setup.md`，按说明配置本项目环境，并报告依赖、后端和真实 PPTX 渲染的检查结果。
 
 如需复用已有环境，可追加“请使用已有的 conda `docs` 环境”；环境名称由你选择。
 
 环境准备好后，让 Agent 读取[技能入口](skills/research-ppt/SKILL.md)，并提供材料、受众、时长、语言与可选模板。例如：
 
-> 请读取 `/绝对路径/research-ppt-skill/skills/research-ppt/SKILL.md`，根据 `/materials/project/` 中的论文、笔记和我的实验结果，围绕研究问题制作详细的中文研究报告 PPT。面向有机器学习基础的研究生，总计 25 分钟，含 5 分钟问答。区分文献结论、我的结果和分析，标出证据缺口。先汇总需求让我确认，再准备证据、制作并逐页检查，交付 PPTX、PDF 和详细讲稿。
+> 请读取 `./skills/research-ppt/SKILL.md`，根据 `<path-to-material>` 中的论文、笔记和我的实验结果，围绕研究问题制作详细的中文研究报告 PPT。面向有机器学习基础的研究生，总计 25 分钟，含 5 分钟问答。区分文献结论、我的结果和分析，标出证据缺口。先汇总需求让我确认，再准备证据、制作并逐页检查，交付 PPTX、PDF 和详细讲稿。
+
+将 `<path-to-material>` 替换为实际资料路径，可以使用相对路径或绝对路径。
 
 可以直接提供资料文件夹。Agent 会清点相关材料，围绕研究问题组织完整汇报；正文适配约定时长，支撑细节放入详细讲稿和隐藏备答页，缺失证据明确说明。也可以明确要求单篇论文汇报等其他类型。
 
-Agent 会从主题或来源标题概括简短项目名，默认在 `<本次请求的工作目录>/outputs/<项目名>/` 保存私有工作区；所需成品在其中的 `exports/` 下命名为 `<项目名>.pptx`、`<项目名>.pdf` 和 `<项目名>-notes.md`。你指定的文件名和目录优先。仓库内的 `outputs/` 已忽略，不应提交或公开。
+Agent 会从主题或来源标题概括简短项目名，默认在 `./outputs/<project-name>/` 保存私有工作区；所需成品在其中的 `exports/` 下命名为 `<project-name>.pptx`、`<project-name>-preview.pdf` 和 `<project-name>-notes.md`。你指定的文件名和目录优先。仓库内的 `outputs/` 已忽略，不应提交或公开。
 
 由你确认需求或明确委托后继续；完整配置见[合成示例](skills/research-ppt/templates/brief.example.json)。制作后仍须真实渲染和审查最终 PPTX。
 
@@ -57,7 +59,7 @@ Agent 会从主题或来源标题概括简短项目名，默认在 `<本次请�
 
 - `skills/research-ppt/`：独立技能包，含核心指令、阶段参考、模板和准备/校验脚本。
 - `third_party/ppt-master`：真实 Git 子模块，跟踪上游，不复制其实现。
-- `scripts/`：更新子模块、检查公开文件、恢复 Git 历史和发布仓库的辅助脚本。
+- `scripts/`：更新子模块、检查仓库文件的维护脚本。
 - `tests/`、`examples/synthetic/`：纯合成回归测试，不包含私人论文和模板。
 - `.github/`：CI、Dependabot 更新配置、问题反馈模板。
 

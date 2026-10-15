@@ -8,8 +8,11 @@ Repository maintenance and questions about the skill itself do not run this flow
 
 ### Establish what is already known
 
-Read the request, relevant prior instructions and existing workspace records. Check
-which papers, supplements, project reports, user-owned results/data/figures, reading
+Read the request, relevant prior instructions and existing workspace records. Resolve
+relative entry and material paths against the request's working directory before any
+`cd`; absolute paths remain valid. In a repository-root session, the entry is
+`./skills/research-ppt/SKILL.md` and `<path-to-material>` denotes the supplied material
+path. Check which papers, supplements, project reports, user-owned results/data/figures, reading
 notes and template files are available. For a supplied folder, inventory relevant files,
 identify their purpose and select explicit files; `init --source` accepts files, not
 directories. Record selected source versions and fingerprints; each supplied original
@@ -28,7 +31,7 @@ this needs only source identification, not substantive evidence reading. Prefer 
 readable name in the talk's language and avoid claiming a result just to name the file.
 Use `scripts/workflow.py init --name <project-name> ...` from the request's working
 directory, or pass an absolute `--project` derived from that directory after changing
-directories. The default is `outputs/<project-name>/`; the helper preserves Chinese,
+directories. The default is `./outputs/<project-name>/`; the helper preserves Chinese,
 cleans path separators/punctuation and adds `-02`, `-03`, etc. when a name already
 exists. If no name is supplied, it falls back to the first source filename stem;
 semantic summarization belongs to the agent. Explicit user names and paths override
@@ -41,10 +44,12 @@ pending [brief example](../templates/brief.example.json). Preserve real source p
 and hashes from initialization when adapting its requirements.
 
 `project_name` and workspace-relative `output_files` describe the delivery defaults:
-`exports/<project-name>.pptx`, `exports/<project-name>.pdf` and
+`exports/<project-name>.pptx`, `exports/<project-name>-preview.pdf` and
 `exports/<project-name>-notes.md`. Use requested formats only, preserve explicit user
 filenames, and retain old versions for revisions. Include the selected project path
 in the readable brief; naming defaults do not establish consent for research work.
+The PDF is a visible-slide preview of the final PPTX. Preserve saved filenames in
+existing workspaces rather than applying new defaults during a resume.
 
 Collect these decisions in `brief.json`, reusing every answer already supplied:
 

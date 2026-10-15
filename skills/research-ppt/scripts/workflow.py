@@ -178,7 +178,7 @@ def init(args: argparse.Namespace) -> int:
         sources.append({'id':'STYLE','path':str(dest.relative_to(root)),
                         'original_name':args.template.name,'sha256':sha256(dest),'role':'style_reference'})
     brief={**presentation,'project_name':name,
-           'output_files':{'pptx':f'exports/{name}.pptx','pdf':f'exports/{name}.pdf',
+           'output_files':{'pptx':f'exports/{name}.pptx','pdf':f'exports/{name}-preview.pdf',
                            'speaker_notes':f'exports/{name}-notes.md'},
            'language':args.language,'audience':args.audience,'target_minutes':args.minutes,
            'qa_time_included':None,'qa_minutes':0,'purpose':'research_talk','sections':[],

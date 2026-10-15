@@ -22,6 +22,11 @@ The `ppt-master` submodule tracks upstream `main`. Before each new production jo
 
 ### First-time use
 
+The examples below run from the checkout root after `cd research-ppt-skill`.
+Replace `<path-to-material>` with your material folder's absolute or relative path;
+relative paths resolve from the request's working directory. Absolute skill paths
+also work when you run elsewhere.
+
 1. **Obtain the skill and backend** so the agent can read their local instructions:
 
    ```bash
@@ -33,19 +38,21 @@ The `ppt-master` submodule tracks upstream `main`. Before each new production jo
    [environment setup guide](skills/research-ppt/references/environment-setup.md)
    covers Python, helper/backend dependencies, a real PPTX renderer and checks:
 
-   > Read `/absolute/path/research-ppt-skill/skills/research-ppt/references/environment-setup.md`
-   > and configure this project's environment. Use my existing conda docs environment.
+   > Read `./skills/research-ppt/references/environment-setup.md`, configure this
+   > project's environment, and report the dependency, backend and real PPTX-rendering
+   > check results.
 
-   `docs` is an optional example environment name; choose your own environment as needed.
+   To reuse an environment, add "Use my existing conda docs environment."
+   `docs` is an optional example name; choose your own environment as needed.
 
 3. **Describe the talk and confirm the brief.** Give an agent that can read files,
-   run code and inspect images the absolute skill path, sources, audience, time,
+   run code and inspect images the skill path, sources, audience, time,
    language, style and outputs:
 
-   > Read `/absolute/path/research-ppt-skill/skills/research-ppt/SKILL.md` and make a
-   > detailed research-report PPT from `/materials/project/`, including its papers,
-   > notes and my experiment results. Organize it around our research question for
-   > AI researchers new to the topic. Use Chinese and a clean academic style; allow
+   > Read `./skills/research-ppt/SKILL.md` and make a detailed research-report PPT
+   > from `<path-to-material>`, including its papers, notes and my experiment results.
+   > Organize it around our research question for graduate students with a basic
+   > understanding of machine learning. Use Chinese and a clean academic style; allow
    > 25 minutes including 5 minutes of Q&A. Distinguish published findings, my results
    > and analysis; flag missing evidence. Deliver PPTX, PDF and detailed speaker notes.
    > Summarize the requirements for my confirmation first.
@@ -55,9 +62,10 @@ The `ppt-master` submodule tracks upstream `main`. Before each new production jo
    to the agreed time. Missing evidence is flagged. Explicit single-paper and other
    focused requests keep their scope.
 
-4. **Find the talk under `outputs/`.** The agent summarizes a short project name from
-   your topic or source title and creates `<request-working-directory>/outputs/<project-name>/`.
-   Requested exports default to `<project-name>.pptx`, `<project-name>.pdf` and
+4. **Find the talk under `./outputs/`.** The agent summarizes a short project name from
+   your topic or source title and creates `./outputs/<project-name>/` under the
+   request's working directory. Requested exports default to
+   `<project-name>.pptx`, `<project-name>-preview.pdf` and
    `<project-name>-notes.md` in its `exports/` folder. Your explicit names and
    directory take priority. See the [brief example](skills/research-ppt/templates/brief.example.json). After your
    confirmation or explicit scoped delegation, the agent prepares the evidence,
@@ -104,6 +112,6 @@ Third-party materials/dependencies keep their own licenses. See
 ## Validation status
 
 The included helpers are locally testable without network calls or model usage.
-Backend generation, GitHub publication, and remote Dependabot/Actions execution
+Backend generation and remote Dependabot/Actions execution
 must be tested in an authenticated, network-enabled environment; offline unit tests
 are not evidence that those remote operations succeeded.

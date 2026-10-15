@@ -9,13 +9,19 @@ and record formats for preparation, production and review.
 
 ## First-time use
 
-Follow these steps for the first talk using Python 3.10+. Before changing
-directories, the agent records the absolute working directory of the user's request;
-that is the default output root, even when the skill is installed elsewhere. Setup
-commands run from the repository root. The task examples below also use that root
-as their example request directory, so their private `outputs/` is ignored by Git.
-For other request directories, run `init` there with an absolute script path, or
-pass the captured absolute workspace path with `--project`.
+Follow these steps for the first talk using Python 3.11. The examples below run
+from the checkout root after `cd research-ppt-skill`. Replace `<path-to-material>`
+with the actual material folder; it may be an absolute or relative path.
+
+Before changing directories, the agent records the absolute working directory of
+the user's request and resolves relative skill-entry and material paths against
+it. That directory is the default output root, even when the skill is installed
+elsewhere. The agent locates the actual skill and scripts and uses their resolved
+absolute paths internally. Absolute entry and material paths remain valid when
+running elsewhere. Run `init` in the request directory with the resolved script
+path, or pass the captured absolute workspace path with `--project` after changing
+directories; also use resolved material paths. These examples use the checkout
+root as the request directory, so their private `./outputs/` is ignored by Git.
 
 The user provides sources and requirements; the agent normally maintains the private
 workspace and JSON records. The default proposal is a detailed research report that
@@ -45,7 +51,7 @@ for this step and step 2. Name your preferred Python environment, for example:
 repository requirement; the agent should report the interpreter actually selected.
 
 **Done when:** `skills/research-ppt/` and `third_party/ppt-master/` are available,
-a Python 3.10+ interpreter is selected and helper dependency installation succeeds.
+a Python 3.11 interpreter is selected and helper dependency installation succeeds.
 Backend installation is a separate step below.
 
 ### Step 2. Prepare the backend and rendering environment
@@ -91,13 +97,13 @@ checks rather than treating partial setup as ready.
 ask only for missing information.
 
 **Action (user):** Use an agent that can read files, execute code and inspect images.
-Give it the **absolute path** to `skills/research-ppt/SKILL.md`, the material paths
+Give it the skill entry path, such as `./skills/research-ppt/SKILL.md`, the material paths
 (files or a folder), research topic/question, audience and prior knowledge, purpose,
 duration and Q&A allocation, language, style/reference, focus and deliverables.
 For example:
 
-> Read `/absolute/path/research-ppt-skill/skills/research-ppt/SKILL.md` and prepare a
-> detailed research-report PPT from `/materials/project/`. Inventory its papers,
+> Read `./skills/research-ppt/SKILL.md` and prepare a detailed research-report PPT
+> from `<path-to-material>`. Inventory its papers,
 > reading notes and my experimental results, then organize them around the project
 > research question. The audience is AI researchers who understand basic machine
 > learning but are new to this subfield. Cover the necessary background, problem,
@@ -137,21 +143,22 @@ with source fingerprints that identify the material actually used.
 **Action (normally the agent):** Summarize a short, descriptive project name from
 the supplied topic or source title, then initialize a new private workspace. Naming
 does not require substantive evidence reading; avoid adding unsupported research
-claims. Use a safe single path component, preserving Chinese when present:
+claims. Use a safe single path component, preserving Chinese when present. Replace
+the quoted material placeholders below with real paths before running:
 
 ```bash
-python skills/research-ppt/scripts/workflow.py init \
+python ./skills/research-ppt/scripts/workflow.py init \
   --name synthetic-research-report \
-  --source /materials/project/paper-a.pdf \
-  --source /materials/project/paper-b.pdf \
-  --source /materials/project/reading-notes.md \
-  --source /materials/project/experiment-results.csv \
+  --source "<path-to-material>/paper-a.pdf" \
+  --source "<path-to-material>/paper-b.pdf" \
+  --source "<path-to-material>/reading-notes.md" \
+  --source "<path-to-material>/experiment-results.csv" \
   --presentation-type research_report --detail-level detailed \
   --minutes 25 --language zh-CN \
   --audience "AI researchers familiar with basic ML but new to this subfield"
 ```
 
-Without `--project`, `init` creates `outputs/<safe-project-name>/` relative to its
+Without `--project`, `init` creates `./outputs/<safe-project-name>/` relative to its
 working directory and prints the actual path. This example, run from
 `/workspace/research-ppt-skill`, creates
 `/workspace/research-ppt-skill/outputs/synthetic-research-report/brief.json`. Use that
@@ -176,7 +183,7 @@ hashes. Keep the actual inventory rather than replacing it with example records.
 Source roles are part of the requirements accepted in step 5.
 
 Keep working artifacts in this workspace. Requested accepted exports default to
-`exports/synthetic-research-report.pptx`, `exports/synthetic-research-report.pdf` and
+`exports/synthetic-research-report.pptx`, `exports/synthetic-research-report-preview.pdf` and
 `exports/synthetic-research-report-notes.md`; create only the requested formats. The
 optional `project_name` and `output_files` brief fields record naming defaults and
 explicit overrides, not requirement acceptance. These private files must not be
@@ -227,7 +234,7 @@ these fields remain valid and must not be silently rewritten. After completing
 these choices, the agent creates the requirement snapshot:
 
 ```bash
-python skills/research-ppt/scripts/workflow.py intake --project outputs/synthetic-research-report
+python ./skills/research-ppt/scripts/workflow.py intake --project outputs/synthetic-research-report
 ```
 
 The command writes a **pending** snapshot in `brief.json.intake_confirmation`.
@@ -267,9 +274,9 @@ slides. There is no fixed page count and detail does not mean dense slide text.
 When those records and assets are ready, run:
 
 ```bash
-python skills/research-ppt/scripts/workflow.py preflight \
+python ./skills/research-ppt/scripts/workflow.py preflight \
   --project outputs/synthetic-research-report --out outputs/synthetic-research-report/qa/preflight.json
-python skills/research-ppt/scripts/workflow.py handoff \
+python ./skills/research-ppt/scripts/workflow.py handoff \
   --project outputs/synthetic-research-report --run-id run-01
 ```
 
@@ -294,7 +301,9 @@ figure crops against the preparation contract. Backend checks and SVG previews d
 not replace this review. Repair defects and create fresh render/review records
 for changed artifacts; preparation changes also require a new handoff.
 
-Run the final acceptance gate with records bound to the final PPTX. Deliver the
+Run the final acceptance gate with records bound to the final PPTX. The delivered
+`-preview.pdf` is an actual rendering of the visible slides. Independently render
+and review all slides, including hidden backups. Deliver the
 requested PPTX, PDF, speaker notes and provenance files from the private workspace,
 with existing paths and any remaining limitations. The [runbook](runbook.md)
 details rendering, review and gate commands. Without actual PPTX rendering, label
@@ -329,6 +338,8 @@ reviewed against the requirements and sources that actually produced it.
 **Action (agent):** Use the explicitly identified original workspace and reopen its
 brief, sources, preparation, handoffs and QA records; do not run `init` again. Reuse the accepted brief and
 confirm material changes to requirements or source identities/content/roles.
+Preserve existing workspace and `output_files` paths; new naming defaults alone
+are not a reason to rewrite them.
 Keep the recorded backend revision during the active job. If evidence, assets or
 the slide plan change, create a new handoff with a new run ID; for production-only
 repairs, reuse the applicable handoff. Produce the revised artifact, then audit,

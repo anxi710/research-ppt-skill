@@ -1,12 +1,12 @@
 # Validation status
 
 The generic helper layer is tested locally with synthetic inputs. These checks are
-separate from backend production, remote publication and a real presentation's acceptance.
+separate from backend production, hosted CI and a real presentation's acceptance.
 
 ## Current helper checks
 
 Using the selected conda `docs` environment,
-`python -m unittest discover -s tests -v` completed **44 tests**: **43 passed** and
+`python -m unittest discover -s tests -v` completed **54 tests**: **53 passed** and
 the opt-in real-renderer test was skipped. `python scripts/check_repo.py` and the
 skill frontmatter validator also passed.
 
@@ -17,8 +17,7 @@ preservation, explicit path overrides, named delivery handoffs, invalid inputs l
 no default workspace, pending or stale intake records, explicit delegation, Q&A reservations,
 source/contract mutation invalidation, missing evidence/style/assets, immutable handoffs,
 pending reviews, missing backup-slide review coverage, stale backend receipts, unrelated
-reviewed images, source crop geometry, notes/hidden flags, and Git-bundle recovery without
-overwriting working files. Recovery coverage does not make it a normal clone setup step.
+reviewed images, source crop geometry, and notes/hidden flags.
 
 Fictional intake records in synthetic tests/examples illustrate the contract; fabricated
 final-deck review records exist only inside unit tests. Neither represents actual user
@@ -31,6 +30,18 @@ supported a 900-second main plan against a requested 1500-second speaking budget
 preflight failed on timing and production remained blocked. The trial did not fill the
 gap with invented findings, shorten the accepted budget or claim a finished deck.
 This is evidence about that preparation scenario, not end-to-end PPTX generation.
+
+## Hosted CI evidence
+
+The [main push run](https://github.com/anxi710/research-ppt-skill/actions/runs/38711659610)
+for commit `9700b8e91afa81c953fb276401d11445fb8eb63f` passed with
+`actions/checkout@v7`, `actions/setup-python@v7` and Python **3.11.17**.
+It completed **44 tests**: **43 passed** and the opt-in renderer test was skipped;
+`python scripts/check_repo.py` also passed.
+
+This confirms the two action upgrades work together for that revision's main push
+workflow. It does not cover the additional local changes awaiting a push or every
+hosted workflow and Dependabot operation.
 
 ## Optional real-renderer coverage
 
@@ -46,8 +57,7 @@ the earlier result is historical evidence, not a render of a current real presen
 
 - End-to-end slide production with the current ppt-master implementation.
 - Upstream Git clone/update over the network.
-- Authenticated remote repository creation or push.
-- Hosted GitHub Actions and Dependabot execution.
+- Hosted workflow paths and Dependabot operations beyond the run recorded above.
 - A real-paper end-to-end presentation using this skill.
 
 The configured upstream branch, recorded gitlink and license observations document

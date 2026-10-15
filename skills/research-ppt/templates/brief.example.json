@@ -4,7 +4,7 @@
   "project_name": "合成教学汇报",
   "output_files": {
     "pptx": "exports/合成教学汇报.pptx",
-    "pdf": "exports/合成教学汇报.pdf",
+    "pdf": "exports/合成教学汇报-preview.pdf",
     "speaker_notes": "exports/合成教学汇报-notes.md"
   },
   "language": "zh-CN",

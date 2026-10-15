@@ -1,6 +1,7 @@
 import contextlib
 import copy
 import io
+import os
 import subprocess
 import sys
 import tempfile
@@ -28,7 +29,7 @@ class WorkflowTests(unittest.TestCase):
         self.assertEqual(w.preflight_report(project)['status'],'fail')
     def init_command(self, request_dir, *extra):
         return subprocess.run([sys.executable,w.__file__,'init',
-                               '--source',str(Path(self.tmp.name)/'synthetic_source.md'),
+                               '--source',os.path.relpath(Path(self.tmp.name)/'synthetic_source.md',request_dir),
                                '--minutes','2','--language','en','--audience','researchers',*extra],
                               cwd=request_dir,capture_output=True,text=True,check=True)
     def test_init_defaults_to_request_directory_and_source_name(self):
@@ -56,7 +57,7 @@ class WorkflowTests(unittest.TestCase):
         self.assertEqual(list(reserved.iterdir()),[])
         brief=d.load(second/'brief.json')
         self.assertEqual(brief['project_name'],second.name)
-        self.assertEqual(brief['output_files']['pdf'],f'exports/{second.name}.pdf')
+        self.assertEqual(brief['output_files']['pdf'],f'exports/{second.name}-preview.pdf')
     def test_init_explicit_project_overrides_default_without_overwriting(self):
         project=Path(self.tmp.name)/'custom-location'
         args=Namespace(project=project,name='自定名称',
@@ -236,8 +237,12 @@ class WorkflowTests(unittest.TestCase):
         args=Namespace(project=self.project,run_id='one');w.handoff(args)
         with self.assertRaises(ValueError):w.handoff(args)
     def test_handoff_carries_named_delivery_paths(self):
-        w.handoff(Namespace(project=self.project,run_id='named'))
         brief=d.load(self.project/'brief.json')
+        # Saved user/legacy filenames remain authoritative after defaults change.
+        brief['output_files']['pdf']='exports/previous-custom-name.pdf'
+        path=self.project/'brief.json';d.write(path,brief);before=path.read_bytes()
+        w.handoff(Namespace(project=self.project,run_id='named'))
+        self.assertEqual(path.read_bytes(),before)
         handoff_dir=self.project/'handoff/named'
         self.assertEqual(d.load(handoff_dir/'brief.json')['output_files'],brief['output_files'])
         text=(handoff_dir/'handoff.md').read_text()

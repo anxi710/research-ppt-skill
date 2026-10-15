@@ -53,18 +53,21 @@ evidence, with rich notes and backups within the agreed time—not a fixed slide
 | Final render, inspection, revisions and delivery | `references/review-and-revision.md` |
 | Compare a generated deck with the user's edited final | `references/reference-calibration.md` |
 
-Resolve this skill's absolute directory before using bundled scripts. Runtime
-scripts and references live inside this folder. Repository maintenance helpers
-are optional; a separately installed current ppt-master is also supported when the
+Accept relative or absolute paths supplied by the user. Repository-root examples use
+`./skills/research-ppt/SKILL.md` and `<path-to-material>`; resolve these against the
+request's working directory before changing directories. Resolve this skill's actual
+absolute directory before using bundled scripts; skill-local references resolve from
+that directory. Runtime scripts and references live inside this folder. Repository
+maintenance helpers are optional; a separately installed current ppt-master is also supported when the
 user supplies its path. Do not search unrelated home directories for credentials.
 
 ## Durable state and stage gates
 
 Keep each talk in its own **private workspace**. Unless the user specifies a name or
 destination, summarize a short project name from the supplied topic/source title and
-use `<request-working-directory>/outputs/<project-name>/`. Resolve that working
-directory before changing to the skill/backend installation. Pass the name via
-`init --name`; the helper makes it a safe filename, preserves Chinese and adds `-02`,
+use `./outputs/<project-name>/` relative to the request's working directory. Resolve
+that working directory before changing to the skill/backend installation. Pass the
+name via `init --name`; the helper makes it a safe filename, preserves Chinese and adds `-02`,
 `-03`, etc. for new talks with the same name. Capture the actual path printed by init;
 resume an existing talk at its original path. Explicit user names/paths take priority.
 
@@ -88,10 +91,13 @@ Restore from these files before resuming. Never infer completion from a previous
 assistant message or a successful export alone. Do not overwrite accepted inputs,
 previous snapshots, earlier QA or final versions.
 Default delivery filenames are `exports/<project-name>.pptx`,
-`exports/<project-name>.pdf` and `exports/<project-name>-notes.md`, for requested
+`exports/<project-name>-preview.pdf` and `exports/<project-name>-notes.md`, for requested
 formats only. Persist them as workspace-relative `output_files` in `brief.json` and
 pass them through the handoff. Keep prior revision files and review the exact delivered
 PPTX. `outputs/` is private job data, ignored in this repository and never published.
+The preview PDF is rendered from the final PPTX's visible slides; all-slide QA still
+includes hidden backups. Existing workspaces retain their saved `output_files`; new
+defaults do not rename accepted files.
 
 ### 0. Agree on the presentation brief
 

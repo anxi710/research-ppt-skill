@@ -77,9 +77,12 @@ unvalidated draft and describe what still needs inspection, never fabricate QA.
 Deliver only existing artifacts. Normally: final PPTX, visible-only PDF, notes Markdown and
 an authorized source package with provenance, actual backend revision and build receipt.
 Use the brief's `output_files`: normally `exports/<project-name>.pptx`,
-`exports/<project-name>.pdf` and `exports/<project-name>-notes.md` inside the private
-`outputs/<project-name>/` workspace. Honor user overrides. New revisions use new
-filenames; inspect and hash the exact delivery copies and keep previous versions.
+`exports/<project-name>-preview.pdf` and `exports/<project-name>-notes.md` inside the private
+`./outputs/<project-name>/` workspace, relative to the request's working directory.
+The preview contains the final PPTX's visible slides; do not substitute the all-slide
+QA PDF that includes hidden backups. Preserve existing workspaces' saved paths and
+honor user overrides. New revisions use new filenames; inspect and hash the exact
+delivery copies and keep previous versions.
 Record editable/raster elements and font requirements; never redistribute font binaries.
 
 A skill release must not include the private talk's PDFs, original images, institution logos,

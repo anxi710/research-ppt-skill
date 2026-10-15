@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Research PPT material and artifact helpers. No LLM/API calls; semantic and visual review remain agent tasks.
 
-Python 3.10+. All output paths are explicit. No source is modified in place. Production is delegated to ppt-master.
+Python 3.11. All output paths are explicit. No source is modified in place. Production is delegated to ppt-master.
 """
 from __future__ import annotations
 import argparse

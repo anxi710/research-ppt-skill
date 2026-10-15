@@ -5,7 +5,7 @@ paper analysis. It references no private paper, image, institution or presenter.
 Its intake records are fictional fixtures for demonstrating the contract, not evidence
 of actual user approval. Real work must capture the user's actual acceptance or delegation.
 
-Run from the repository root:
+Run from the repository root; all relative paths below use that directory:
 
 ```bash
 python examples/synthetic/prepare.py --out outputs/synthetic-talk
@@ -18,6 +18,8 @@ acceptance so it can demonstrate a handoff without a real conversation.
 The demo's fixed fixture names are not semantic naming. For a real talk, the agent
 summarizes the topic and uses `workflow.py init --name <project-name>` to create
 `outputs/<project-name>/` with matching delivery filenames under `exports/`.
+The defaults are `<project-name>.pptx`, `<project-name>-preview.pdf` (visible-slide
+render) and `<project-name>-notes.md`; this preparation-only demo creates none of them.
 
 A separate [pending brief example](../../skills/research-ppt/templates/brief.example.json)
 shows a 25-minute session with 5 minutes reserved for Q&A. It uses the same synthetic

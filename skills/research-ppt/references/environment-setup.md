@@ -12,23 +12,31 @@ research reading, production or publication. Use synthetic fixtures for verifica
   `scripts/`; read that `SKILL.md`. In a repository checkout, also read the applicable
   `AGENTS.md` and resolve the repository root. A separately installed skill need not
   have the repository's maintenance scripts, requirements file or tests.
+- Accept the repository-root entry `./skills/research-ppt/references/environment-setup.md`.
+  Resolve relative user paths against the request's working directory before any `cd`;
+  the user need not rewrite them as absolute paths. Internal script/reference paths
+  use the resolved installation directory. Absolute paths remain supported.
 - Reuse the user's selected Python/conda environment. An environment name such as
   `docs` is a user choice, not a built-in default. Otherwise create an isolated
   environment in an appropriate writable location. Do not change unrelated global
   packages, shell startup files or the user's default environment.
 - Resolve the backend from this checkout's configured Git submodule or the user's
-  supplied absolute ppt-master checkout path. Do not guess another installation.
+  supplied ppt-master checkout path. Resolve a relative path against the request's
+  working directory and record the real absolute location. Do not guess another
+  installation.
 - Record the request's working directory before changing directories. Presentation
-  jobs default to its `outputs/<agent-summarized-project-name>/`, with delivery files
-  in that workspace's `exports/`. Honor explicit destination/name choices. Check
-  that the output parent is writable; setup does not create a real talk or `brief.json`.
+  jobs default to its `./outputs/<project-name>/`, with delivery files
+  `<project-name>.pptx`, `<project-name>-preview.pdf` and `<project-name>-notes.md`
+  in that workspace's `exports/`. Honor explicit destination/name choices and saved
+  paths for resumed jobs. Check that the output parent is writable; setup does not
+  create a real talk or `brief.json`.
 
 ## 2. Inspect and install helper dependencies
 
 **Purpose:** make the preparation and review tools work in the selected environment.
 
 Record `sys.executable`, Python version, platform and package import results. Python
-3.10+ is required. In commands below, `python` means that selected interpreter with
+3.11 is required. In commands below, `python` means that selected interpreter with
 its environment active; use `conda run -n <chosen-name>` where appropriate. Use its
 `python -m pip`, never a potentially unrelated `pip` executable.
 
@@ -112,8 +120,9 @@ python <skill-dir>/scripts/decktools.py render-pptx --pptx <fixture.pptx> --out 
 python <skill-dir>/scripts/decktools.py render-pptx --pptx <fixture.pptx> --out <visible-dir>
 ```
 
-Replace placeholders with quoted absolute paths. Require audit pass, two all-slide
-pages with mapping `[1, 2]`, one visible page with mapping `[1]`, readable rendered
+Replace placeholders with quoted resolved paths. Relative paths work from the recorded
+working directory; absolute paths are useful after directory changes. Require audit
+pass, two all-slide pages with mapping `[1, 2]`, one visible page with mapping `[1]`, readable rendered
 images and an unchanged original hash. If any check cannot run, report that limit.
 
 ## 6. Report setup status

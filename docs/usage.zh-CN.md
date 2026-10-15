@@ -4,9 +4,11 @@
 
 本指南按“第一次使用”和“后续使用与维护”说明每一步的作用、操作与完成标志。环境配置可以交给 Agent 按[独立指引](../skills/research-ppt/references/environment-setup.md)执行；需要逐条材料处理、渲染和验收命令时，查阅运行手册。
 
-环境准备可以由你或 Agent 完成；需求整理、文件维护、制作交接和审查通常由 Agent 执行，你负责提供材料、回答缺项并确认需求。默认提议制作详细研究报告，按主题或问题整合所给论文、笔记、实验结果、数据、图表和报告；明确指定时也可制作单篇论文汇报。以下命令使用已选定的 Python 3.10+ 环境。
+环境准备可以由你或 Agent 完成；需求整理、文件维护、制作交接和审查通常由 Agent 执行，你负责提供材料、回答缺项并确认需求。默认提议制作详细研究报告，按主题或问题整合所给论文、笔记、实验结果、数据、图表和报告；明确指定时也可制作单篇论文汇报。以下命令使用已选定的 Python 3.11 环境。
 
-Agent 在任何 `cd` 之前先记录本次请求工作目录的绝对路径，默认产物根目录以此为准，不随技能安装位置变化。以下环境命令在仓库根目录运行；任务示例也以仓库根目录作为示例请求目录，使用已被 Git 忽略的 `outputs/`。实际请求位于其他目录时，在原目录用绝对脚本路径运行 `init`，或通过 `--project` 传入原请求目录下的绝对工作区路径。
+以下示例在 `cd research-ppt-skill` 后从仓库根目录运行。将 `<path-to-material>` 替换为实际材料目录，可使用绝对路径或相对路径。
+
+Agent 在任何 `cd` 之前先记录本次请求工作目录的绝对路径，并以此解析相对的技能入口和材料路径。默认产物根目录以此为准，不随技能安装位置变化。Agent 定位真实技能与脚本后，内部使用解析后的绝对路径；在其他目录运行时也可直接提供绝对入口和材料路径。实际请求位于其他目录时，在原目录用解析后的绝对脚本路径运行 `init`，或切换目录后通过 `--project` 传入原请求目录下的绝对工作区路径，并使用解析后的材料路径。以下任务示例以仓库根目录作为请求目录，使用已被 Git 忽略的 `./outputs/`。
 
 ## 第一次使用
 
@@ -30,7 +32,7 @@ python -m pip install -r requirements.txt
 
 **操作：** 在新任务开始前检查更新，再查看实际路径、提交和入口文件。
 
-也可以把[环境配置指引](../skills/research-ppt/references/environment-setup.md)的绝对路径交给 Agent，让它完成环境检查、安装和验证，再返回所选 Python、后端版本、渲染器及测试结果。README 中提供了可直接改写的调用示例。
+也可以让 Agent 读取 `./skills/research-ppt/references/environment-setup.md`，按[环境配置指引](../skills/research-ppt/references/environment-setup.md)完成环境检查、安装和验证，再返回所选 Python、后端版本、渲染器及测试结果。README 中提供了可直接改写的调用示例；从其他目录发起时也可提供该指引的绝对路径。
 
 ```bash
 python scripts/upstream.py update
@@ -52,15 +54,15 @@ python scripts/upstream.py status
 **操作：**
 
 让具有文件读取、代码执行和图片查看能力的 Agent 读取
-`skills/research-ppt/SKILL.md` 的**绝对路径**，并提供材料文件或文件夹及研究主题／问题。
+`./skills/research-ppt/SKILL.md`，并提供材料文件或文件夹及研究主题／问题。
 说明听众是谁、已有何种基础、汇报目的、详略程度、总时长与问答安排、语言、风格或参考模板、
 结构重点和交付物。通常由 Agent 创建工作区并维护 JSON，你无需手写这些记录；材料清点、
 选择和综合是 Agent 的工作，辅助脚本只负责组织和校验，不自动理解文件夹或生成研究结论。
 
 下面是一段可直接改写的任务，把路径和要求替换为本次汇报的实际信息：
 
-> 请读取 `/绝对路径/research-ppt-skill/skills/research-ppt/SKILL.md`，
-> 根据 `/materials/project/` 制作详细研究报告 PPT。先清点其中的论文、阅读笔记和我的
+> 请读取 `./skills/research-ppt/SKILL.md`，
+> 根据 `<path-to-material>` 制作详细研究报告 PPT。先清点其中的论文、阅读笔记和我的
 > 实验结果，再围绕研究问题组织。面向了解基础机器学习、但不熟悉本方向的 AI 研究人员，
 > 讲清必要背景、问题、机制与方法、证据、比较综合、局限，以及有材料支持的个人进展与下一步。
 > 区分文献结论、我的结果和分析，标出证据缺口。总时长 25 分钟，包含 5 分钟 Q&A。
@@ -90,21 +92,21 @@ python scripts/upstream.py status
 `brief.json` 是**每次汇报工作区里的需求文件，由 `init` 生成**。Agent 先从已提供的
 主题或来源标题概括简短、描述性的项目名，不必为命名提前阅读实质证据，也不能加上
 没有依据的研究结论。项目名应是安全的单个路径名，可以保留中文。以下命令以仓库
-根目录为本次请求目录，创建新的**私有工作区**：
+根目录为本次请求目录，创建新的**私有工作区**；运行前将引号内的材料占位路径替换为实际路径：
 
 ```bash
-python skills/research-ppt/scripts/workflow.py init \
+python ./skills/research-ppt/scripts/workflow.py init \
   --name 课题研究汇报 \
-  --source /materials/project/paper-a.pdf \
-  --source /materials/project/paper-b.pdf \
-  --source /materials/project/reading-notes.md \
-  --source /materials/project/experiment-results.csv \
+  --source "<path-to-material>/paper-a.pdf" \
+  --source "<path-to-material>/paper-b.pdf" \
+  --source "<path-to-material>/reading-notes.md" \
+  --source "<path-to-material>/experiment-results.csv" \
   --presentation-type research_report --detail-level detailed \
   --minutes 25 --language zh-CN \
   --audience "了解基础机器学习，但不熟悉本方向的 AI 研究人员"
 ```
 
-不传 `--project` 时，命令默认在执行目录的 `outputs/<安全项目名>/` 创建工作区，
+不传 `--project` 时，命令默认在执行目录的 `./outputs/<安全项目名>/` 创建工作区，
 并打印实际路径。例如当前目录为 `/workspace/research-ppt-skill` 时，文件会出现在
 `/workspace/research-ppt-skill/outputs/课题研究汇报/brief.json`。后续命令应使用实际
 打印的路径，替换下文示例。同名新项目自动加 `-02`、`-03` 等后缀，不覆盖旧目录，
@@ -122,7 +124,7 @@ Agent 负责提供概括后的 `--name`；省略时，辅助脚本只回退到�
 保留实际生成的来源 ID、路径和哈希，不要用示例值覆盖；来源角色一并纳入步骤 5 的确认。
 
 中间文件也保存在同一工作区。默认成品名为 `exports/课题研究汇报.pptx`、
-`exports/课题研究汇报.pdf`、`exports/课题研究汇报-notes.md`，只生成用户要求的格式。
+`exports/课题研究汇报-preview.pdf`、`exports/课题研究汇报-notes.md`，只生成用户要求的格式。
 可选的 `project_name` 与 `output_files` 字段记录命名默认值和显式覆盖，不代表需求已获确认。
 这些文件属于私有任务材料，即使位于仓库内已忽略的 `outputs/`，也不能提交或公开。
 
@@ -159,7 +161,7 @@ Agent 负责提供概括后的 `--name`；省略时，辅助脚本只回退到�
 这里的 25 分钟包含 5 分钟问答，因此正文讲述时间为 20 分钟。初始化默认的问答是否计时尚未确定，风格也待补充；汇报类型与详略同样是待接受的提议。Agent 可在确认前修改 `presentation_type` 和 `detail_level`，两项存在时会纳入需求快照。旧需求文件没有这两项仍然有效，不得为套用新默认值而静默改写。填好后再执行：
 
 ```bash
-python skills/research-ppt/scripts/workflow.py intake --project outputs/课题研究汇报
+python ./skills/research-ppt/scripts/workflow.py intake --project outputs/课题研究汇报
 ```
 
 命令在 `brief.json.intake_confirmation` 中生成**待确认**的需求快照，由 Agent
@@ -178,9 +180,9 @@ python skills/research-ppt/scripts/workflow.py intake --project outputs/课题�
 详细报告讲清必要背景、问题、机制与方法、证据、比较综合和局限；个人进展与下一步以所给材料为依据。正文适配约定讲述时间，支撑细节放入充分讲稿和真正隐藏的备答页，不固定页数，也不靠塞满文字增加详细程度。准备好后执行：
 
 ```bash
-python skills/research-ppt/scripts/workflow.py preflight \
+python ./skills/research-ppt/scripts/workflow.py preflight \
   --project outputs/课题研究汇报 --out outputs/课题研究汇报/qa/preflight.json
-python skills/research-ppt/scripts/workflow.py handoff \
+python ./skills/research-ppt/scripts/workflow.py handoff \
   --project outputs/课题研究汇报 --run-id run-01
 ```
 
@@ -193,6 +195,8 @@ python skills/research-ppt/scripts/workflow.py handoff \
 **作用：** 将方案做成实际 PPT，并确认最终文件的科学内容、可读性和导出效果符合要求。
 
 **操作：** Agent 将交接材料映射到步骤 2 所记录版本的 ppt-master，完成其当前必经关卡，先检查代表页再扩展制作。导出后真实渲染最终 PPTX，逐页检查并修复，覆盖隐藏备答页；修改后的文件使用新的渲染和审查记录。
+
+交付的 `-preview.pdf` 是最终 PPTX 可见页的真实渲染；隐藏备答页仍须纳入独立的全页渲染和审查。
 
 **完成标志：** 所请求的 PPTX、可见页 PDF、讲稿等文件实际存在，最终审查对应最终版本，并说明可编辑与栅格内容的范围。缺少真实渲染时标为未验证草稿。制作回执、渲染和验收命令见[运行手册](runbook.md)。
 
@@ -213,6 +217,8 @@ python skills/research-ppt/scripts/workflow.py handoff \
 **作用：** 延续已确认的要求与正确内容，只处理本次变更及其影响。
 
 **操作：** 告诉 Agent 原工作区路径和修改目标，让它恢复现有 `brief.json`、交接与 QA 记录，不重新运行 `init`。受众、时长、来源或其他关键要求变更时，只确认受影响的选择；准备材料变更时生成新交接，布局或导出问题交给后端定点修复。新 PPTX 重新渲染和审查，保留旧版本。
+
+已有工作区和 `output_files` 路径继续有效，不为套用新的命名默认值而改写。
 
 **完成标志：** 新版本及其审查记录对应本次变更，需求快照仍有效，已接受的旧版本没有被覆盖。
 

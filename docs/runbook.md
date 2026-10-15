@@ -11,12 +11,16 @@ presentation autonomously. The agent integrates supplied papers, notes, experime
 results, data, figures and reports around the research topic/question; explicit
 single-paper talks remain supported.
 
-Use Python 3.10+ and a current tool-capable host. Before changing directories, capture
-the absolute working directory of the user's request. Default outputs belong under
-that directory, rather than the skill's install location. Run `init` in the request
-directory with an absolute script path, or use an absolute `--project` beneath the
-captured request directory after changing directories. The examples below treat this
-repository's root as the request directory and use its ignored `outputs/`.
+Use Python 3.11 and a current tool-capable host. Before changing directories, capture
+the absolute working directory of the user's request and resolve relative skill-entry
+and material paths against it. Locate the real skill and scripts, then use their
+resolved absolute paths internally. Default outputs belong under the captured request
+directory, rather than the skill's install location. Run `init` in the request
+directory with the resolved script path, or use an absolute `--project` beneath the
+captured request directory after changing directories, with resolved material paths.
+Absolute entry and material paths remain valid when running elsewhere. The examples
+below treat this repository's root as the request directory and use its ignored
+`./outputs/`.
 
 Obtain the repository with its backend submodule, then run the commands below from
 the checkout root:
@@ -26,10 +30,14 @@ git clone --recurse-submodules <repository-url> research-ppt-skill
 cd research-ppt-skill
 ```
 
+Replace `<path-to-material>` below with the actual material folder's absolute or
+relative path. Replace other angle-bracket placeholders with real values before
+running commands; retain quotes around paths containing spaces.
+
 ## 1. Confirm requirements and initialize a workspace
 
 Start a new presentation with the parent's intake procedure in
-`skills/research-ppt/references/preparation.md`. Reuse requirements already supplied;
+`./skills/research-ppt/references/preparation.md`. Reuse requirements already supplied;
 ask short batches only for missing or contradictory essentials: research topic/question,
 audience and prior knowledge, purpose, presentation type and depth, duration and whether
 it includes Q&A, language, style/template, structure/focus and deliverables. Source
@@ -44,13 +52,13 @@ Use a safe single path component and preserve Chinese when present. Initialize:
 ```bash
 python -m pip install -r requirements.txt
 python scripts/upstream.py update --out outputs/backend-observation.local.json
-python skills/research-ppt/scripts/workflow.py init \
+python ./skills/research-ppt/scripts/workflow.py init \
   --name synthetic-research-report \
-  --source /materials/project/paper-a.pdf \
-  --source /materials/project/paper-b.pdf \
-  --source /materials/project/reading-notes.md \
-  --source /materials/project/experiment-results.csv \
-  --template /path/optional-reference.pptx \
+  --source "<path-to-material>/paper-a.pdf" \
+  --source "<path-to-material>/paper-b.pdf" \
+  --source "<path-to-material>/reading-notes.md" \
+  --source "<path-to-material>/experiment-results.csv" \
+  --template "<path-to-template>.pptx" \
   --presentation-type research_report --detail-level detailed \
   --minutes 27 --language zh-CN \
   --audience "AI researchers outside this subfield"
@@ -63,7 +71,7 @@ each one, using the appropriate readers for its format. Initialization copies an
 fingerprints inputs; it does not classify content, synthesize findings or process
 folder structure semantically.
 
-Without `--project`, the command creates `outputs/<safe-project-name>/brief.json`
+Without `--project`, the command creates `./outputs/<safe-project-name>/brief.json`
 relative to its working directory and prints the actual workspace path. For example,
 running from `/work/research-ppt-skill` creates
 `/work/research-ppt-skill/outputs/synthetic-research-report/brief.json`. Later commands
@@ -71,6 +79,8 @@ must use the actual path printed by `init`; replace the example paths below when
 needed. For a new same-name project, the helper adds `-02`, `-03`, and so on; it
 never overwrites or implicitly resumes an existing talk. To resume, explicitly
 identify the original workspace and reuse its records without running `init`.
+Preserve existing workspace and `output_files` paths rather than rewriting them
+solely to adopt new naming defaults.
 
 Explicit `--project` overrides the directory and must point to a new, empty
 workspace; relative paths resolve from the invocation directory. Explicit filenames
@@ -79,7 +89,7 @@ to the source filename stem without semantically summarizing it. The agent norma
 maintains `brief.json` from the conversation; the user need not write JSON first.
 
 Working artifacts stay in the workspace. Accepted exports default to
-`exports/synthetic-research-report.pptx`, `exports/synthetic-research-report.pdf` and
+`exports/synthetic-research-report.pptx`, `exports/synthetic-research-report-preview.pdf` and
 `exports/synthetic-research-report-notes.md`, for requested formats only. Keep all task
 materials private and out of commits/publication, including the ignored `outputs/`.
 
@@ -136,7 +146,7 @@ that reservation. Initialization leaves Q&A unspecified and intake pending; its 
 are proposals, not user approval. Then prepare the requirement snapshot:
 
 ```bash
-python skills/research-ppt/scripts/workflow.py intake --project outputs/synthetic-research-report
+python ./skills/research-ppt/scripts/workflow.py intake --project outputs/synthetic-research-report
 ```
 
 `intake` validates the brief and writes a **pending** `intake_confirmation` snapshot
@@ -166,12 +176,12 @@ Record its output, then read the current backend entry instructions before produ
 ## 2. Read sources and inspect style
 
 ```bash
-python skills/research-ppt/scripts/decktools.py extract-pdf \
+python ./skills/research-ppt/scripts/decktools.py extract-pdf \
   --pdf outputs/synthetic-research-report/inputs/source_01.pdf --out outputs/synthetic-research-report/analysis/paper.md
-python skills/research-ppt/scripts/decktools.py render-pdf \
+python ./skills/research-ppt/scripts/decktools.py render-pdf \
   --pdf outputs/synthetic-research-report/inputs/source_01.pdf --pages 1-5 \
   --out outputs/synthetic-research-report/qa/source-pages --dpi 160
-python skills/research-ppt/scripts/decktools.py inspect-template \
+python ./skills/research-ppt/scripts/decktools.py inspect-template \
   --pptx outputs/synthetic-research-report/inputs/template.pptx --out outputs/synthetic-research-report/analysis/template
 ```
 
@@ -202,11 +212,11 @@ The crop helper accepts one PDF at a time; for multiple sources, pass a source-f
 crop manifest and merge the verified records into the workspace's figure inventory.
 
 ```bash
-python skills/research-ppt/scripts/decktools.py crop \
+python ./skills/research-ppt/scripts/decktools.py crop \
   --pdf outputs/synthetic-research-report/inputs/source_01.pdf \
   --manifest outputs/synthetic-research-report/analysis/figure_manifest.json \
   --out outputs/synthetic-research-report/assets/paper --dpi 360
-python skills/research-ppt/scripts/decktools.py montage \
+python ./skills/research-ppt/scripts/decktools.py montage \
   --images outputs/synthetic-research-report/assets/paper --out outputs/synthetic-research-report/qa/figure-montage.png
 ```
 
@@ -232,9 +242,9 @@ example without a paper image; label it explicitly. Every slide still needs a
 reading order, takeaway, source/illustration link and useful notes.
 
 ```bash
-python skills/research-ppt/scripts/workflow.py preflight \
+python ./skills/research-ppt/scripts/workflow.py preflight \
   --project outputs/synthetic-research-report --out outputs/synthetic-research-report/qa/preflight.json
-python skills/research-ppt/scripts/workflow.py handoff \
+python ./skills/research-ppt/scripts/workflow.py handoff \
   --project outputs/synthetic-research-report --run-id run-01
 ```
 
@@ -263,15 +273,15 @@ Use the actual produced path if it differs from `exports/synthetic-research-repo
 below. Keep earlier accepted versions when making revisions.
 
 ```bash
-python skills/research-ppt/scripts/decktools.py audit \
+python ./skills/research-ppt/scripts/decktools.py audit \
   --pptx outputs/synthetic-research-report/exports/synthetic-research-report.pptx \
   --plan outputs/synthetic-research-report/design/slide_plan.json --out outputs/synthetic-research-report/qa/machine-v1.json
-python skills/research-ppt/scripts/decktools.py render-pptx \
+python ./skills/research-ppt/scripts/decktools.py render-pptx \
   --pptx outputs/synthetic-research-report/exports/synthetic-research-report.pptx --include-hidden \
   --out outputs/synthetic-research-report/qa/render-v1
-python skills/research-ppt/scripts/decktools.py montage \
+python ./skills/research-ppt/scripts/decktools.py montage \
   --images outputs/synthetic-research-report/qa/render-v1/pages --out outputs/synthetic-research-report/qa/montage-v1.png
-python skills/research-ppt/scripts/workflow.py review-init \
+python ./skills/research-ppt/scripts/workflow.py review-init \
   --project outputs/synthetic-research-report --pptx outputs/synthetic-research-report/exports/synthetic-research-report.pptx \
   --handoff outputs/synthetic-research-report/handoff/run-01 \
   --render-report outputs/synthetic-research-report/qa/render-v1/render_report.json \
@@ -292,7 +302,7 @@ to ppt-master; update evidence/assets/plan first when those are wrong. After cha
 new PPTX, new render and new review, with a new handoff for preparation changes.
 
 ```bash
-python skills/research-ppt/scripts/workflow.py gate \
+python ./skills/research-ppt/scripts/workflow.py gate \
   --project outputs/synthetic-research-report --pptx outputs/synthetic-research-report/exports/synthetic-research-report.pptx \
   --handoff outputs/synthetic-research-report/handoff/run-01 \
   --render-report outputs/synthetic-research-report/qa/render-v1/render_report.json \
@@ -307,10 +317,28 @@ reviewer understood the research materials or synthesis. Keep review evidence, n
 
 ## 8. Deliver and improve
 
-Render once without `--include-hidden` into a new directory for the visible-only PDF.
-Export speaker notes to Markdown through the actual backend or a documented extraction.
-Use the agreed `output_files` paths, defaulting here to
-`exports/synthetic-research-report.pdf` and `exports/synthetic-research-report-notes.md`.
+Render the final PPTX again without `--include-hidden` into a fresh directory for
+the visible-only PDF; `--out` names that directory, not a PDF file. For example:
+
+```bash
+python ./skills/research-ppt/scripts/decktools.py render-pptx \
+  --pptx outputs/synthetic-research-report/exports/synthetic-research-report.pptx \
+  --out outputs/synthetic-research-report/qa/render-visible-v1
+```
+
+This emits `qa/render-visible-v1/main_slides.pdf` within the workspace. Verify that
+the visible-slide mapping and PDF match the final PPTX, then copy those verified
+bytes to the agreed `output_files.pdf` path, defaulting here to
+`exports/synthetic-research-report-preview.pdf`. Record the delivered PDF's hash
+and provenance from the visible render. Preserve existing versions; use a new
+render directory and delivery version when revising. The `-preview.pdf` is the
+actual visible-slide PDF; keep the all-slide QA render, including hidden backups,
+in its own directory and retain its review records.
+
+Export speaker notes to Markdown through the actual backend or a documented
+extraction, defaulting here to `exports/synthetic-research-report-notes.md`.
+Use existing `output_files` paths and user overrides rather than changing them to
+adopt these defaults.
 Provide real paths, page/backup counts, planned time, actual backend revision, editable/raster
 scope and known limitations. Without rendering, label the output an unvalidated draft.
 
