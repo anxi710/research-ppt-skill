@@ -49,6 +49,27 @@ deck or a string of disconnected paper summaries during layout. Keep explanatory
 source distinctions, key comparisons and planned hidden backups; propose scope/time
 changes rather than deleting necessary explanation to fit a template.
 
+Pass display-ready figure/table crops separately from full captions and original-page
+evidence. The backend uses the display crop, not an uncropped source page. Keep decoding
+legends and consequential conditions visible; use notes for the removed prose caption.
+Carry the named typography roles, limited palette and any section-navigation settings
+with the per-page `section_id` mapping. Carry the accepted cover-only fields and separate
+background page, coordinated page chrome (navigation, title rule and page badge), and
+the semantic grouping/reading order of multi-passage pages. Specify one active nav
+fill without a redundant underline, peer component dimensions/padding, and minimum
+gutters; keep the body-title divider. Separate image carriers from commentary classes.
+Pass external context images with original-source/version attribution and their
+context-only role, not as evidence of the focal paper's results. Mark generated concept
+assets separately, carry their prompt/tool/model/output provenance, and use native text
+for labels; do not assign paper citations to generated pixels. Give exact template asset
+paths for the default `assets/academic-navigator/` style, or for the user's selected
+replacement. New workspaces carry the default page-chrome and grouping policies;
+complete actual section labels and mappings during planning rather than importing
+a fixed chapter list. Read
+the current backend's template contract and supported route; a bundled SVG or style
+profile does not imply automatic structural import. These are presentation requirements to implement
+through the backend's current instructions, not a replacement backend schema or engine.
+
 Carry the style profile's communication contract and concrete reference observations into
 the backend brief. `display_title` and `on_slide_text` are the intended visible copy;
 `question`, `topic`, `takeaway`, reading order and notes are planning/speaking fields unless
@@ -89,3 +110,11 @@ change and acceptance criteria. Cosmetic fixes preserve evidence, numeric labels
 identity and unaffected slides. Evidence corrections update the preparation snapshot first.
 The backend's repair receipt states which slides changed, what remains unresolved, and
 where the new artifact exists. The orchestrator rerenders and rechecks it independently.
+
+When adding a background to an existing native content unit, keep it beneath that
+unit's text and evidence in the same semantic group through the backend's supported
+edit route. Inspect the final PPTX for occlusion and stacking order; SVG order alone
+does not establish the exported native order.
+Give each editable paragraph its planned line width through the backend's current
+text-frame contract. Widening a surrounding panel does not widen its child text boxes;
+check the actual PPTX for unintended wrapping before accepting consistent-looking cards.

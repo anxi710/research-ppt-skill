@@ -49,6 +49,8 @@ Agent 会从主题或来源标题概括简短项目名，默认在 `./outputs/<p
 
 安装、需求确认、制作与验收的逐步说明见[首次使用指南](docs/usage.zh-CN.md#第一次使用)，每一步均保留作用、操作和完成标志。
 
+需要少量风格一致的概念插图时，见[生图配置指南](skills/research-ppt/references/image-generation.md)，包含 Codex、Claude Code 和 API 三种方式。
+
 ### 后续使用与维护
 
 - **新汇报或续作：** 新汇报用新工作区；已有汇报恢复原工作区，只确认变更。见[后续使用与维护](docs/usage.zh-CN.md#后续使用与维护)。

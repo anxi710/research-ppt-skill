@@ -165,7 +165,11 @@ logs/data for observed results and conditions, notes for leads and interpretatio
 for cited methods and published evidence. Reconcile terminology across sources without
 erasing real differences. If a cited original is absent, identify the claim as supported
 only by the supplied secondary material; flag the gap rather than inventing an original
-locator or fetching unrelated literature to fill the deck.
+locator or fetching unrelated literature to fill the deck. For necessary background or
+benchmark concepts, purposeful primary-source image sourcing is allowed unless the
+user restricts sources or browsing. Record the external image as attributed context,
+not new result evidence, following `story-and-style.md`. Adding substantive research
+claims still requires the accepted scope or an authorized source-gap resolution.
 
 Prioritize text extraction and native page rendering. OCR is a last resort for genuinely
 image-only content; manually confirm numerals, signs, subscripts and axis text. An image

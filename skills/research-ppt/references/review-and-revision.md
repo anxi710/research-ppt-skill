@@ -26,6 +26,46 @@ figure axes/legends/panels, image aspect ratio, readable fonts, title/figure agr
 citation placement, annotation placement, whitespace and excessive density. Read the notes.
 Check that critical definitions precede results and that teaching examples are labelled.
 
+On the actual PPTX renders, check display crops against their full source context: the
+paper's prose caption and adjacent text are removed unless explicitly requested, while
+data legends, table headers, units and consequential conditions remain readable. Check
+that explanations removed from the slide are present in notes or local evidence. Inspect
+each native text role for the agreed family, size and weight across pages, and compare
+emphasis colors with the limited palette. Theme/font statistics support this review;
+they do not replace seeing the final rendered text. Source-figure lettering and recorded
+cover/backup exceptions are reviewed separately.
+
+When section navigation is enabled, check every applicable page for the same ordered,
+consistently spaced top labels, the correct single active section, agreement with its `section_id`,
+and clearance from the title and figures. The active fill should not gain a redundant
+underline; do retain the separate body-title divider. A correct SVG strip can still shift or lose
+fonts in PPTX export. Record these findings in the page's layout/reference review along
+with any explicit exceptions.
+When the corresponding policies are enabled, the helper also seeds pending
+`figure_framing`, `section_navigation`, `typography_consistency` and `palette_consistency`
+checks. Complete them from actual inspection, not from the presence of valid settings.
+
+Review page chrome as a complete system: navigation aligns across content pages, the
+title divider clears the title/figure, and the current-page-only badge stays at the
+agreed lower-right position with its background and numbering convention. Check
+declared cover/backup exceptions rather than adding body chrome indiscriminately.
+For a title-only cover, verify that it contains only approved title/metadata and that
+background explanation appears on its own planned page. On multi-passage pages, inspect
+whether headings, numbers or containers expose the intended semantic groups and reading
+order without crowding, decorative repetition or separating a qualifier from its claim.
+Compare peer component heights, padding and edge treatment both within and across
+pages; differing evidence-image carriers need not match commentary boxes. Confirm that
+minimum gutters remain visibly clear and no border, shadow or text crowds its neighbor.
+Any pending chrome/grouping checks require judgment from actual PPTX renders; schema
+validation and template previews cannot pass them.
+The helper seeds pending `page_chrome` when that policy is present and
+`content_grouping` when its policy is enabled. Complete them with concrete observations
+about the rendered cover, recurring elements and passage hierarchy.
+For new workspaces, check the built-in research style unless the user chose an
+override: title-information-only cover with separate background, continuous physical
+page numbers, body title separators, meaningful passage groups and coherent active
+navigation. A valid default policy is still pending evidence of correct rendering.
+
 For communication-contract workspaces, `audience_copy` and `reference_match` are separate
 pending checks on every page. Compare final titles/body with the display plan, read the
 titles as one outline and check terminology and direct wording. Compare page composition,
@@ -41,7 +81,13 @@ Compare the final deck and notes with the agreed presentation type, depth and co
 record. For an integrated report, verify that material from different sources answers
 the central questions coherently, and that published evidence, user results and analysis
 remain distinct. Check explanations of prerequisites, mechanisms, setup and limitations
-where needed; missing required topics or a merely abstract-level deck are scope defects,
+where needed. Check contextual images against their original source and version,
+verify attribution, and ensure they are not presented as the focal paper's experiment
+or as support for a new result claim. A text-only background/benchmark page needs a
+deliberate reason when a useful primary-source illustration is available. Inspect
+generated concept images for false scientific details, invented interfaces/data/text,
+style drift and misleading evidence attribution. Missing required topics or a merely
+abstract-level deck are scope defects,
 even if every existing slide is visually correct. Retain exclusions and evidence gaps.
 
 Recheck each load-bearing numeric result, denominator, threshold, evaluation unit, budget,

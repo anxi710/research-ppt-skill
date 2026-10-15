@@ -6,7 +6,25 @@ The current version is recorded in [SKILL.md](skills/research-ppt/SKILL.md)'s
 
 ## Unreleased
 
-Changes after 0.3.0 will be collected here.
+### Added
+
+- Figure framing keeps paper captions in notes and verifiable local context while
+  preserving the data, axes, units and series legends in displayed crops.
+- Default section navigation, fixed typography roles and a limited accent palette
+  travel through preparation and handoff into pending, per-slide visual review.
+- A reusable, synthetic Academic Navigator template provides information covers,
+  numbered explanations, evidence panels and synthesis pages. Cover separation,
+  title rules, current-page badges and semantic grouping have explicit review checks.
+- Background and benchmark pages can source attributed primary-source context images
+  beyond supplied materials, respecting explicit source/browsing limits and claim scope.
+- Optional concept-image generation keeps style and provenance separate from evidence;
+  a setup guide covers available Codex tools, Claude Code integration and the Image API.
+
+### Fixed
+
+- PPTX inspection counts editable text inside nested shape groups.
+- Default navigation uses one active fill; peer cards keep consistent geometry/padding
+  and clear gutters across pages while image frames preserve source aspect ratios.
 
 ## 0.3.0 - 2026-10-15
 

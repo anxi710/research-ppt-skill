@@ -196,8 +196,11 @@ published findings, the user's results, interpretations and presenter analysis;
 trace comparisons to their contributing sources and check whether conditions permit
 them. Label missing evidence, conflicting findings and preliminary results. Follow
 the supplied materials: do not invent results or expand research automatically.
-Separately attributed external background belongs only within an explicitly agreed
-scope; a source gap is not permission to start a new literature search.
+For agreed background or benchmark concepts, the agent seeks useful images from
+original papers or official project/task documentation even when the supplied paper
+has none, unless sources or browsing are explicitly restricted. Record these as
+attributed external context with exact versions and original images; this does not
+authorize new scientific claims or a broader literature search.
 
 ## 3. Prepare original figures
 
@@ -226,6 +229,8 @@ figure manifest. Do not change pending status before actually checking axes/lege
 Unusual page boxes, rotation and user units may require a separately normalized PDF and
 new provenance. Verify a known geometry region before bulk cropping such documents.
 
+For optional generated concept illustrations, see the [image generation setup guide](../skills/research-ppt/references/image-generation.md) for Codex, Claude Code and direct API use. Keep generated illustrations distinct from source evidence and review their scientific meaning and style before production.
+
 ## 4. Plan, preflight and handoff
 
 The agent fills evidence, style and slide plans using the templates as examples.
@@ -233,6 +238,16 @@ A detailed research report covers necessary background, the problem, mechanism/m
 evidence, comparisons/synthesis and limitations, plus the user's progress and next
 steps where the materials support them. An explicit single-paper talk centers on
 that paper; the report default does not override the accepted presentation type.
+
+Without another requested style or template, the agent uses the built-in synthetic
+[`academic-navigator` style](../skills/research-ppt/assets/academic-navigator/):
+title-information cover, separate background, a single active navigation fill without
+a redundant underline, body-title rules, lower-right current-page badges and semantic
+text groups. Peer cards share dimensions/padding and clear gutters across pages;
+evidence-image carriers retain their own aspect ratios. New workspaces receive its
+page-chrome and grouping policies; user overrides take precedence. The agent still reads
+the current ppt-master template contract, adapts the talk's sections and reviews the
+actual PPTX. This is a style starting point, not an automatic import command.
 
 Keep main slides within the agreed speaking time. Put supporting derivations,
 secondary comparisons and additional conditions in useful speaker notes and genuinely

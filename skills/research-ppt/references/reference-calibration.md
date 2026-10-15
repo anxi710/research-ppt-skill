@@ -26,6 +26,9 @@ Common useful distinctions:
   New material in the edited deck was not necessarily available during the first build.
 - Bibliographic footers versus experimental conditions: a clean reference may move
   bibliography to notes; axes, metrics and consequential qualifiers stay on the page.
+- Paper captions versus data legends: remove surrounding prose when adapting an original
+  figure/table, but retain the decoding legend and consequential conditions. Keep the full
+  caption and source-page context in local evidence and notes.
 - Natural terminology versus rhetorical padding: keep audience-recognized terms,
   affirmative definitions and concise findings. Do not require every page to disclaim
   all possible misreadings after the distinction has already been taught.
@@ -55,6 +58,18 @@ Translate repeated edits into a small `communication_contract.rules` list and se
 `citation_placement` to `compact_footer`, `notes`, or `per_slide`. In the last case,
 record each page's placement in its plan. Record terminology and opening/closing/backup
 choices alongside it. Mark inference as inference; preserve explicit user requirements.
+If the reference uses top section tabs, record their order, geometry, active treatment
+and applicable page types, then map the new talk's own sections to them. Extract font
+roles and a limited emphasis palette across representative pages; do not copy individual
+page font changes or method-role colors without a reason. Use one active navigation
+fill without a redundant underline unless a user selects that treatment.
+Inspect the opening separately: a title-only cover is a page-role choice, not evidence
+that background should disappear. Record navigation, title rules and page-number badges
+together as page chrome, including the current-page convention and cover/backup exceptions.
+Distinguish meaningful numbered/grouped passages from decorative boxes; transfer the
+reading hierarchy rather than mechanically putting every paragraph in a card. Compare
+peer box dimensions, padding and gutters across pages; isolate legitimate image-frame
+variants from accidental oversized commentary cards.
 
 Use final `display_title` and `on_slide_text` in the page plan. Prototype representative
 opening, explanation and dense-results pages through the current backend before expanding.
@@ -63,4 +78,6 @@ and source locators even if the edited reference lost its notes during a manual 
 
 Publish only generalized workflow changes and synthetic regression tests. Do not put
 the private reference, screenshots, paper content, names or institutional assets into
-the distributable skill, and do not make one user's choices universal defaults.
+the distributable skill. Promote a preference into skill defaults only when the user
+explicitly asks to do so, as with the built-in academic-navigator research style;
+retain clear user overrides and generalize its assets with synthetic content.

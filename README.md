@@ -79,6 +79,8 @@ also work when you run elsewhere.
    delegates production to ppt-master, then renders and reviews every final PPTX slide.
    See the [full seven-step guide](docs/usage.md#first-time-use) for purposes and completion criteria.
 
+Optional concept illustrations: see the [Codex, Claude Code and API image generation guide](skills/research-ppt/references/image-generation.md) (Chinese setup steps).
+
 ### Ongoing use and maintenance
 
 Use a new workspace for each new talk; resume an existing talk from its saved records.

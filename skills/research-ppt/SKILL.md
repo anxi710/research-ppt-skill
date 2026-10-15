@@ -49,6 +49,7 @@ evidence, with rich notes and backups within the agreed time—not a fixed slide
 | Requested environment setup | `references/environment-setup.md` |
 | Intake, source reading and evidence | `references/preparation.md` |
 | Audience, structure, style and figures | `references/story-and-style.md` |
+| Optional concept images and Codex/Claude Code/API setup | `references/image-generation.md` |
 | Backend discovery and production delegation | `references/production-handoff.md` |
 | Final render, inspection, revisions and delivery | `references/review-and-revision.md` |
 | Compare a generated deck with the user's edited final | `references/reference-calibration.md` |
@@ -127,8 +128,11 @@ selected sources in their exact versions. Notes summarizing another work are nav
 not verified substitutes for that original; a project report or result log can itself
 be a primary source for the user's work. Distinguish published evidence, user results,
 author interpretations, presenter analysis and synthetic teaching examples. Map each
-claim to its actual sources. Add outside research only when requested or within an
-agreed source-gap resolution; keep its attribution separate.
+claim to its actual sources. Seek primary-source illustrations when they clarify the
+agreed background or benchmark concepts, even if the supplied paper has none; keep
+their provenance and contextual role separate. Respect source-only/offline/no-web
+constraints. Expanding the scientific claims or literature scope still needs an
+authorized source-gap resolution.
 
 Inspect original figure/table images, not just parsed text. Record definitions,
 units, axes, denominators, confidence intervals, intervention/control, sample size,
@@ -156,12 +160,24 @@ Each page has one question, one topic, one core visual or coherent panel group,
 source IDs, reading order, minimal display text, a scoped takeaway, speaker notes,
 planned duration and visible/backup status. Separate design from result when needed.
 
-Extract visual rules from a reference deck—not its old names, dates, claims or logos
-without permission. Record palette, fonts, aspect ratio, source footer, visual density
-and layout variations in a style profile. Never use decorative filler to eliminate
-whitespace. Enlarge/recompose the core visual first; preserve useful margins.
+When no different style or template is supplied, use the built-in
+`assets/academic-navigator/` research style: title-and-metadata-only cover, separate
+background, ordered section navigation with one active highlight and no redundant
+active underline, a line below each body title, and a lower-right background badge showing only the current physical page
+number. Group multiple passages by meaning with restrained frames or numbering;
+use consistent component dimensions/padding and clear, repeated gutters. Use
+fixed font roles, one native emphasis color and figure/table bodies without prose
+captions. These are skill defaults; explicit user style/template choices override them.
+Derive navigation labels from the actual talk rather than requiring five chapters.
+Record palette, fonts, chrome exceptions and layout patterns in the style profile.
+Follow `references/story-and-style.md` and the backend's current template contract.
+Extract visual rules from a supplied reference without copying its old names, dates,
+claims or logos. Never use decorative filler to eliminate whitespace.
+Enlarge/recompose the core visual first; preserve
+useful margins.
 
-For new workspaces, record a communication contract in the style profile and explicit
+New workspaces start with `page_chrome` and `content_grouping` default policies.
+Record a communication contract in the style profile and explicit
 `display_title`/`on_slide_text` in the page plan. Keep planning metadata out of display
 copy unless deliberately selected. Match a supplied final reference's terminology,
 citation placement and opening/closing/backup choices; inspect representative rendered
@@ -169,10 +185,16 @@ pages before expanding. Full locators remain in notes even when bibliography is 
 The reference-calibration procedure distinguishes repeated preferences from content fixes
 and editor artifacts. It does not make one user's deck a universal template.
 
-Prepare high-resolution original figures. Preserve axes, legends, ticks, units,
-panel labels and uncertainty information. Split panels only when the relevant legend
-and context remain attached. Original data plots must not be redrawn or generatively
-repaired. Native explanatory diagrams are allowed, clearly distinguished from evidence.
+Prepare high-resolution original figures. Display the figure/table itself by default;
+remove the paper's surrounding caption and prose, retaining them with the original
+page in local evidence and speaker notes. Preserve data legends, axes, ticks, units,
+panel labels, statistical conditions and uncertainty needed to interpret it. Split
+panels only when the necessary legend and context remain attached. Original data
+plots must not be redrawn or generatively repaired. Native explanatory diagrams are
+allowed, clearly distinguished from evidence. A few style-matched generated concept
+illustrations may also help; follow `references/image-generation.md` for actual tool
+discovery, optional setup, provenance and review. Never use generation to recreate
+published plots, benchmark screenshots or empirical evidence.
 
 **Gate:** Sources and assets are available and checked; the talk has an audience-fit
 story and time budget; every page has a real job and planned core visual.
@@ -208,8 +230,14 @@ Inspect the montage, every full slide and necessary figure crops at useful magni
 
 Check scientific claims/numbers/units/conditions against source evidence; inspect axes,
 legends, typography, editable text, clipping, stretching, visual density, source footers,
-notes, speaker timing and audience comprehension. Backend self-checks do not replace
-this independent comparison to the preparation contract.
+notes, speaker timing and audience comprehension. Verify caption removal, consistent
+font roles and limited colors; when navigation is enabled, verify every applicable
+page's labels and active section. Inspect cover/body separation, title dividers,
+current-page badges and semantic text grouping against the accepted style. Compare
+peer box geometry, padding and gaps across pages; check that external context images
+are correctly attributed and do not imply evidence from the main paper. Backend
+self-checks do not replace this independent
+comparison to the preparation contract.
 
 Record defects with slide ID, category, evidence or screenshot, severity, requested
 change and acceptance test. Pending/unviewed pages cannot be marked passed. Hashes

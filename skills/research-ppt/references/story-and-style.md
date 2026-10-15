@@ -72,7 +72,38 @@ what it does not measure. Preserve consequential distinctions and experimental c
 Put full provenance and secondary caution in notes; the main reasoning must still be
 understandable from the visible page. Do not shorten every page to the same number of labels.
 
+By default, keep the cover limited to the talk/paper title and supplied metadata such
+as presenter, occasion, date and source. Do not add
+a background lesson, findings teaser or invented presenter information. Put the
+necessary background on a separately planned content page and rebalance the time
+budget; a cover is an explicit exception to the core-visual requirement. A different
+opening format requires an explicit user choice or accepted replacement template.
+
+For several passages on one page, group by meaning: stages, parallel comparisons,
+observations versus implications, or a claim with its qualification. Use numbers for
+an ordered argument and restrained frames or a shared panel for related text. Give
+each group a short heading and enough separation to reveal the reading order. Record
+the intended groups in the page plan; retain evidence qualifiers with their claim.
+The default `content_grouping` policy records `enabled: true` and selected `treatments`
+such as `cards` or `numbered_blocks`; it does not require the same group count on every page.
+Define a small set of component classes: peer explanation cards share dimensions,
+padding and edge treatment within each layout variant, including across pages. Edit or
+split excess copy rather than enlarging an isolated card. Evidence frames and commentary
+are different classes; preserve source-image aspect ratios rather than forcing every
+container to match. Record minimum gutters and padding in the style profile. At
+1280 × 720, start with 24–32 px between peer cards and scale with the canvas; keep a
+clear gap after accounting for borders, shadows and text. Do not turn every sentence
+into a separate card or surround a legible figure with decorative boxes. If groups
+still feel crowded, simplify or split the page rather than squeeze the gutters.
+
 ## Style decisions
+
+Unless the user supplies a different style or template, select the built-in synthetic
+`assets/academic-navigator/` research style. Its defaults are a title-information cover,
+separate background, coordinated navigation/title separator/page badge, semantic text
+groups, body-only figures, fixed typography roles and one native emphasis color.
+Record this basis in the project style profile; user overrides take precedence. The
+defaults concern visual organization, not a fixed topic, chapter count or slide count.
 
 Inspect a template's rendered pages and explicit formatting. Theme/master-inherited
 fonts and colors may not appear in run-level statistics. Capture which decisions were
@@ -83,7 +114,57 @@ Choose aspect ratio, typography, palette, source/footer convention and 3–5 com
 layout patterns. Make academic visual density purposeful: enlarge the core visual,
 arrange comparison panels, add only necessary annotations. Avoid big empty title-only
 section dividers unless they serve the timing and narrative. Avoid copy-paste card grids.
-The optional academic-blue profile is an example, not a school identity or global default.
+Other bundled profiles remain selectable alternatives; none supplies a school identity.
+
+In `typography.roles`, define a small set of named roles with installed `font_family`,
+`font_size_px` and agreed weight, such as title, body, annotation, navigation and footer. Keep each
+role consistent across pages; a cover or backup exception must be explicit. Original
+figure lettering is source content, not an invitation to vary native slide text.
+Shorten copy, enlarge its area or split a page rather than shrinking one page's body
+font to fit. Keep normal body text neutral and use a limited palette with one primary
+emphasis color by default. Do not assign a new emphasis color to every method role,
+box or keyword. Record native emphasis colors in `palette_policy.accent_colors` and
+their maximum count in `palette_policy.max_accent_colors`. Preserve original data
+colors and their meanings.
+
+Use section navigation on body pages by default. Once the actual talk sections are
+planned, record `section_navigation` in the style profile: enabled state, ordered
+sections with stable IDs and short labels, applicable pages, placement, equal-sized
+tab geometry, font role and inactive/active treatment. A coherent rail, connected tabs
+or another restrained treatment may refine a plain row of boxes. Keep label spacing,
+baselines and active shape consistent; highlight exactly the current section with
+the primary color. The active fill is sufficient: omit a second underline or indicator
+under that tab by default. The separate line below the body title remains. Labels follow this talk's actual structure; do not
+impose a fixed chapter sequence. Map each applicable page's `section_id` in the slide
+plan to one of those IDs; a backup either names its section or has an explicit
+navigation exception. A user-selected alternative may omit or replace the strip.
+With navigation enabled, visible pages apply by default; record
+cover/ending or other exceptions in `exempt_slide_ids`. Hidden pages may omit the strip,
+but any supplied `section_id` must still be valid. Reserve the strip's area so it does
+not compete with the title.
+
+Treat recurring navigation, title separator and page numbering as one `page_chrome`
+system. Record their geometry, applicable page types and exceptions in the style
+profile. By default, place the separator below the content title at a common
+position and keep a current-page-only number in a small background badge at the lower
+right. Count all physical pages, including the cover and backups, in one continuous
+sequence unless explicitly overridden; do not switch to a total-page fraction. Keep
+the badge clear of sources and data. A title-only cover can omit body navigation and the title rule
+without losing the shared typography and palette.
+The default policy uses `cover: {slide_ids: [...], title_information_only: true}`,
+`page_number: {format: "current", position: "bottom_right", background: true}` and
+`title_separator: {enabled: true}`. New workspaces receive page-chrome and content-grouping
+policies; initialization does not complete intake or approve their rendering. Cover IDs
+identify visible pages in the plan. Geometry, page-type exceptions and the numbering
+convention remain explicit design decisions.
+
+`assets/academic-navigator/` supplies the reusable synthetic template assets for this
+default style. A user can replace its palette, sections or template without losing
+the evidence requirements. It is not a mandatory chapter list, page count or scientific
+structure. Inspect its available previews and template files, then read the current backend's template
+contract and supported route before reuse. These bundled assets are not an automatic
+template importer. Adapt section labels and content to the accepted talk, and validate
+the resulting PPTX rather than assuming template reuse guarantees correct rendering.
 
 When a user supplies their edited final deck, treat it as stronger style evidence than a
 generic profile. Read `references/reference-calibration.md` for pairwise analysis. Record
@@ -110,20 +191,63 @@ are improvements when the user's reference already keeps the body composition in
 
 ## Figure handling
 
+Actively consider relevant primary-source images for necessary background and benchmark
+pages, including when the supplied paper has no suitable image. Prefer the benchmark's
+original paper, official project/task documentation or original dataset page; select a
+real task scene or explanatory figure that teaches the agreed concept. Search only for
+the required context, respecting explicit source-only, offline and no-web limits. A
+single-paper talk can use this contextual visual sourcing without becoming a literature
+review; it does not authorize new result claims or replacing the supplied paper version.
+
+Read the original page and inspect the actual image before use. Register its original
+URL, title/author, version/date, figure/page locator, retrieval date and local file/hash
+in the private source/figure inventory. Retain the available attribution/usage terms.
+Mark its role as external context/illustration, distinguish its benchmark version from
+the focal experiment and carry a concise source label plus full locator in notes. Do
+not imply that it depicts the focal paper's experiment. Use original image pixels and
+faithful crops; do not redraw or generate a lookalike of published evidence. If no
+suitable retrievable image exists, use a clearly labelled native teaching schematic or
+record the gap, rather than adding unrelated visual filler.
+
 Use `figure_manifest.example.json` for provenance. Original crop coordinates use the
 visible unrotated PDF page, top-left origin, PDF points. Check rotations and nonstandard
 page boxes; normalize a separate copy and update provenance when necessary. Never infer
 crop coordinates from unknown-resolution previews. Preserve original colors and scale.
 
-Crop page text/outer whitespace, not axes or legends. Keep a full context image available
-when using a panel crop. Cite the paper/figure and label panel crops. If a shared legend is
-separate, bind it to the panels in the plan. Avoid decorative icons drawn over data.
+The presentation asset normally contains only the figure/table body. Remove the paper's
+Figure/Table number and descriptive caption, adjacent prose, cross-page text and outer
+whitespace; do not paste their long explanations into slide copy. Preserve the full
+caption and original page/context image separately in local evidence, and carry the
+explanation and full locator into notes. A concise native source locator or panel label
+may remain according to the citation policy. An explicit user request can retain a caption.
+Record the default as `figure_policy: {display_region: "body_only", caption_policy:
+"notes_only"}`. In each original figure/table record, the verified `path`/`sha256`
+identify its display crop; `context` retains the original context image and provenance,
+and `caption_provenance` retains the caption text and locator. These records support
+inspection; a policy string cannot prove that a crop excluded the caption.
+
+Distinguish a prose caption from a data legend. Keep decoding information: axes, units,
+series/color/symbol legends, panel labels, table headers, footnote markers and uncertainty.
+Retain consequential metric definitions or statistical/experimental conditions from a
+caption on the slide as concise native text when the image would otherwise be misleading;
+notes alone cannot replace those conditions. If a shared legend is separate, bind it to
+the panels in the plan. Check both the display crop and full context before marking the
+asset verified, including when extraction supplied the image automatically. Avoid
+decorative icons drawn over data.
 Use native editable labels and explanatory diagrams, but do not claim a raster plot has
 editable source data. An accessibility description belongs in the asset inventory/notes.
 
+For a conceptual scene that benefits from raster illustration, modest image generation
+is another option; follow `image-generation.md`. Match the accepted palette and visual
+style, keep text as native slide labels, register `kind: generated_concept`, and preserve
+the prompt, actual tool/model and output provenance. It is an illustration, not a source
+figure or measured result. Choose among source images, native diagrams and generation
+by teaching value; neither external search nor generation is mandatory on every page.
+
 ## Exit review
 
-Every visible page has a question, core visual, source links, notes and duration. Main
+Every visible content page has a question, core visual, source links, notes and duration;
+the title-only cover retains its explicit role and metadata constraints. Main
 conclusions receive more time than routine setup; detailed proof/ablation/Q&A material
 can become real hidden backup slides. Summed durations are planning estimates only.
 Compare the deck and notes with the accepted scope and coverage list. Are the important
