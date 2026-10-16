@@ -6,6 +6,24 @@ The current version is recorded in [SKILL.md](skills/research-ppt/SKILL.md)'s
 
 ## Unreleased
 
+## 0.4.1 - 2026-10-16
+
+### Fixed
+
+- Default English text uses Times New Roman and Chinese text uses Microsoft YaHei
+  throughout role-level style data, reusable templates, handoff and rendered review.
+- Default navigation lists main-talk sections only, with visible gaps between
+  equal-width tabs; hidden backups do not become navigation parts.
+- Projection-readability review is required for the default contract. Dense evidence
+  pages use readable, faithful excerpts with metric keys; actual-PPTX review and
+  repair finish before delivery, including roster/notes consistency after replanning.
+- New workspaces require a resolved design contract: planned section navigation,
+  complete default visual policies and an explicit template decision. A different
+  user-requested style is recorded as an override; legacy workspaces remain supported.
+- Default template assets now travel in the immutable handoff with exact paths and
+  fingerprints. Acceptance checks require installed-template provenance and independent
+  rendered-page review, preventing a style-name-only free-design fallback.
+
 ## 0.4.0 - 2026-10-15
 
 ### Added

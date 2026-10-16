@@ -83,7 +83,10 @@ research claims. Do not start a production route merely to test installation.
 The bundled `scripts/decktools.py render-pptx` needs LibreOffice (`soffice` or
 `libreoffice`) and `pypdfium2`. Detect the actual executable and version. Install
 platform-appropriate rendering support when permitted, or report the exact blocker.
-Use installed fonts; do not copy font files into the repository. A successful import
+For the default style, verify that Times New Roman and Microsoft YaHei are both
+installed and visible to the backend and the PPTX renderer. Report an unavailable
+face rather than silently replacing it; an explicit user font choice overrides the
+default. Use installed fonts; do not copy font files into the repository. A successful import
 or an SVG preview alone does not establish that PPTX rendering works.
 
 ## 5. Verify using the available installation

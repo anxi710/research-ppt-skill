@@ -9,7 +9,7 @@ description: >
   delegate actual slide authoring and export to the current ppt-master backend.
 license: MIT
 metadata:
-  version: "0.4.0"
+  version: "0.4.1"
 ---
 
 # Research PPT
@@ -160,14 +160,21 @@ Each page has one question, one topic, one core visual or coherent panel group,
 source IDs, reading order, minimal display text, a scoped takeaway, speaker notes,
 planned duration and visible/backup status. Separate design from result when needed.
 
-When no different style or template is supplied, use the built-in
-`assets/academic-navigator/` research style: title-and-metadata-only cover, separate
+When no different style or template is supplied, select and apply the built-in
+`assets/academic-navigator/` template, not just its name or approximate colors:
+title-and-metadata-only cover, separate
 background, ordered section navigation with one active highlight and no redundant
 active underline, a line below each body title, and a lower-right background badge showing only the current physical page
 number. Group multiple passages by meaning with restrained frames or numbering;
 use consistent component dimensions/padding and clear, repeated gutters. Use
-fixed font roles, one native emphasis color and figure/table bodies without prose
+fixed font roles with Times New Roman for English and Microsoft YaHei for Chinese,
+one native emphasis color and figure/table bodies without prose
 captions. These are skill defaults; explicit user style/template choices override them.
+Default style data and templates use `Times New Roman, Microsoft YaHei` for each
+native text role. Resolve the backend's actual Latin/CJK font mapping from its current
+instructions; a documented equivalent realization may differ in stack order. Confirm
+both installed faces and mixed-script line fit in final PPTX renders, not from stack
+order alone.
 Derive navigation labels from the actual talk rather than requiring five chapters.
 Record palette, fonts, chrome exceptions and layout patterns in the style profile.
 Follow `references/story-and-style.md` and the backend's current template contract.
@@ -176,7 +183,24 @@ claims or logos. Never use decorative filler to eliminate whitespace.
 Enlarge/recompose the core visual first; preserve
 useful margins.
 
-New workspaces start with `page_chrome` and `content_grouping` default policies.
+New workspaces carry `brief.design_contract_version: 1` and a
+`style.design_contract` with mode `academic_navigator`. Keep this contract when
+editing the generated files. Navigation starts enabled with no invented sections;
+resolve its main-talk labels, page mappings and cover exemptions during planning.
+Keep `scope: main_talk` and explicit `tab_gap_px`: hidden backups do not add chapter
+tabs, and adjacent tabs retain visible gaps rather than forming a dense strip. Resolve
+`template_reference.status` from `pending_default` to `selected`, preserving init's
+real root/spec paths. This records the template decision, not completed production.
+Unplanned navigation, pending template selection or missing default policies block
+handoff. Do not replace the generated profile with a smaller legacy example.
+
+An explicitly different user style/template can use `mode: user_override`, with
+`override.reason` and `override.user_instruction` recording its actual basis.
+Generic requests such as “make a group-meeting PPT”, “clean academic style”, or
+delegating design choices do not request an override. Existing workspaces retain
+their accepted contracts; do not silently migrate them or reuse an old talk's style
+as the default for a new one.
+
 Record a communication contract in the style profile and explicit
 `display_title`/`on_slide_text` in the page plan. Keep planning metadata out of display
 copy unless deliberately selected. Match a supplied final reference's terminology,
@@ -214,9 +238,19 @@ Pass our brief as source material and constraints, not as its internal design lo
 Do not disable attribution, integrity, licensing or safety checks.
 
 Create an immutable handoff with preparation files and checksums, source/asset paths,
-page requirements, notes and acceptance criteria. The backend should try representative
+page requirements, notes and acceptance criteria. For the default mode, give the
+backend the exact template workspace root copied into the handoff. Follow its current
+template selection and installation route, including actual confirmations or existing
+delegation; a bare style name must not silently become free design. Inspect candidate
+metadata before its template gate and full prototypes only at the permitted stage.
+Record how the installed template supplies the accepted navigation, typography,
+page chrome and component patterns; layout adaptation preserves these binding rules.
+The backend should try representative
 method, dense-experiment and explanation pages before expanding. Obtain a build receipt:
-actual command/path/revision, output paths, source locations and limitations.
+actual command/path/revision, output paths, source locations and limitations. Default
+mode also requires `template_application`: snapshot fingerprint, actual installed
+template files and a hashed application record. Never turn `applied` on to complete
+preparation or treat “referenced its style” as proof of application.
 
 **Gate:** A real PPTX exists and the receipt accurately states what was used. Export
 success is not final acceptance.
@@ -227,6 +261,11 @@ Audit structural integrity, notes, hidden-slide flags and correspondence to the 
 Then render the **actual final PPTX**, including hidden backups, using a real PPTX
 renderer. SVG previews alone do not validate PPTX import/export or font substitution.
 Inspect the montage, every full slide and necessary figure crops at useful magnification.
+Judge the main deck at its intended presentation size: the audience must be able to
+read the explanation and key evidence without zooming. A readable source crop or
+passing machine audit does not establish readable placement on a slide. Follow the
+projection-readability procedure in `references/review-and-revision.md`, especially
+for dense tables, long text and evidence near navigation or footers.
 
 Check scientific claims/numbers/units/conditions against source evidence; inspect axes,
 legends, typography, editable text, clipping, stretching, visual density, source footers,
@@ -238,6 +277,9 @@ peer box geometry, padding and gaps across pages; check that external context im
 are correctly attributed and do not imply evidence from the main paper. Backend
 self-checks do not replace this independent
 comparison to the preparation contract.
+For default-mode jobs, complete the pending `template_application` review from
+actual renders and the installed-template record. A template name, valid receipt
+or successful install alone cannot approve the resulting design.
 
 Record defects with slide ID, category, evidence or screenshot, severity, requested
 change and acceptance test. Pending/unviewed pages cannot be marked passed. Hashes
@@ -254,6 +296,11 @@ the unresolved limitation. Never declare success just because retry budget was u
 Regenerate, render, inspect affected pages and check whole-deck consistency. The final
 review must correspond to the final PPTX and latest contract. A changed file invalidates
 its old approval. Do not rewrite old hashes to pretend an old review was performed anew.
+Complete this repair loop before delivery without asking the user to identify routine
+readability defects. Batch related fixes, then independently inspect every page of the
+final rendered deck; reconcile page order, hidden backups, coverage and notes after
+splitting or moving pages. Unresolved material limitations require an honest status,
+not an approval inferred from elapsed effort or successful export.
 
 ### 6. Deliver and learn
 

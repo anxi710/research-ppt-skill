@@ -57,6 +57,11 @@ Key interventions often deserve a setup page before a results page.
 Write display text for viewers and notes for the speaker. Notes include evidence locators,
 reading order, the useful interpretation, limitations, transition and planned seconds.
 If text cannot fit legibly, shorten or split the page before reducing font size.
+Budget space for the accepted navigation, title, gutters and source/footer before
+placing body copy or evidence. Prototype long titles and the densest evidence at the
+intended presentation size; preserve usable margins instead of expanding text into
+page chrome. The main argument must work without audience zooming or a full-table
+backup being opened during the talk.
 
 Specify the final `display_title` separately from `on_slide_text` (final body copy).
 `question`, `topic`, `takeaway` and `reading_order` are planning metadata, not four more
@@ -99,13 +104,42 @@ still feel crowded, simplify or split the page rather than squeeze the gutters.
 ## Style decisions
 
 Unless the user supplies a different style or template, select the built-in synthetic
-`assets/academic-navigator/` research style. Its defaults are a title-information cover,
+`assets/academic-navigator/` template workspace. Its defaults are a title-information cover,
 separate background, coordinated navigation/title separator/page badge, semantic text
 groups, body-only figures, fixed typography roles and one native emphasis color.
 Record this basis in the project style profile; user overrides take precedence. The
 defaults concern visual organization, not a fixed topic, chapter count or slide count.
 
-Inspect a template's rendered pages and explicit formatting. Theme/master-inherited
+New briefs record `design_contract_version: 1`; their style profile records
+`design_contract: {version: 1, mode: "academic_navigator"}` for this default. Initialization
+leaves a proposed template decision, not a completed application. Resolve it to a selected
+template before preparation preflight; a `pending_default` decision or `applied: false`
+cannot serve as evidence of backend use. Navigation starts enabled with no sections:
+complete its ordered sections and each applicable page's `section_id` from the real talk.
+Do not disable it merely to pass preflight with an unfinished plan.
+
+Resolve the default workspace root from this skill's actual absolute directory, not from
+the talk's working directory. Carry the exact root and an immutable template snapshot
+through `production-handoff.md`. A template name or prose statement that the design was
+inspired by Academic Navigator does not select or install its prototypes. The default
+requires actual template application and the binding visual elements below; free layout
+without importing the template system is not an equivalent default.
+
+A user-selected replacement or explicit free-design choice records
+`design_contract.mode: "user_override"` and an
+`override` with `reason` and `user_instruction` grounded in the actual instruction or
+accepted choice in the brief or intake response. Record which defaults it replaces.
+A replacement follows the backend's current template workflow; the parent helper's
+mandatory template packaging/application-record format applies only to the built-in
+default. A genuine no-template choice needs no template snapshot or installation receipt.
+A generic request to make a PPT,
+an agent's aesthetic preference or a backend's free-design recommendation is not an
+override. A different palette or suitable installed font does not by itself waive the
+remaining navigation, cover, page-chrome and grouping requirements.
+
+Inspect a selected template's rendered pages and explicit formatting at the backend's
+allowed stage: candidate frontmatter first, full prototypes after selection and
+installation when the current backend requires that order. Theme/master-inherited
 fonts and colors may not appear in run-level statistics. Capture which decisions were
 observed, user-required, or inferred. Reference aesthetics do not authorize reuse of
 another presenter's identity, organization logo or confidential slide content.
@@ -115,6 +149,19 @@ layout patterns. Make academic visual density purposeful: enlarge the core visua
 arrange comparison panels, add only necessary annotations. Avoid big empty title-only
 section dividers unless they serve the timing and narrative. Avoid copy-paste card grids.
 Other bundled profiles remain selectable alternatives; none supplies a school identity.
+
+For new work without an explicit font choice, use Times New Roman for English and
+Microsoft YaHei for Chinese. Set `typography.font_family` and each default role's
+`font_family` to `Times New Roman, Microsoft YaHei`, with
+`latin_font_family: "Times New Roman"` and `cjk_font_family: "Microsoft YaHei"`.
+The default Latin-first stack gives SVG/CSS previews the intended English face because
+Microsoft YaHei also covers Latin characters. If the current backend resolves scripts
+separately or needs an equivalent authoring realization, record its actual mapping and
+any preview difference; verify the delivered PPTX's fonts and mixed-script line fit.
+Stack order alone cannot prove the final fonts or safe textbox width.
+Verify both fonts are available to the production
+and rendering environments; do not silently substitute a different family. Existing
+accepted project styles and explicit user font choices remain valid.
 
 In `typography.roles`, define a small set of named roles with installed `font_family`,
 `font_size_px` and agreed weight, such as title, body, annotation, navigation and footer. Keep each
@@ -130,17 +177,22 @@ colors and their meanings.
 Use section navigation on body pages by default. Once the actual talk sections are
 planned, record `section_navigation` in the style profile: enabled state, ordered
 sections with stable IDs and short labels, applicable pages, placement, equal-sized
-tab geometry, font role and inactive/active treatment. A coherent rail, connected tabs
-or another restrained treatment may refine a plain row of boxes. Keep label spacing,
-baselines and active shape consistent; highlight exactly the current section with
-the primary color. The active fill is sufficient: omit a second underline or indicator
+tab geometry, font role and inactive/active treatment. The default records
+`scope: "main_talk"`: each listed section must have a visible, non-exempt content page.
+Hidden backups do not create a separate chapter label. Record positive `tab_gap_px`;
+start with 16 px at 1280 px canvas width (roughly 12–16 px is a useful starting range),
+scale to the actual canvas, and confirm clear whitespace between tabs in the render.
+Use separate equal-width tabs with visible gaps and no continuous backing rail.
+Keep label spacing, baselines and active shape consistent; highlight exactly the
+current section with the primary color. The active fill is sufficient: omit a second underline or indicator
 under that tab by default. The separate line below the body title remains. Labels follow this talk's actual structure; do not
 impose a fixed chapter sequence. Map each applicable page's `section_id` in the slide
 plan to one of those IDs; a backup either names its section or has an explicit
 navigation exception. A user-selected alternative may omit or replace the strip.
 With navigation enabled, visible pages apply by default; record
-cover/ending or other exceptions in `exempt_slide_ids`. Hidden pages may omit the strip,
-but any supplied `section_id` must still be valid. Reserve the strip's area so it does
+cover/ending or other exceptions in `exempt_slide_ids`. Hidden pages may omit the strip
+and `section_id`; any supplied ID must still name an existing main-talk section.
+Reserve the strip's area so it does
 not compete with the title.
 
 Treat recurring navigation, title separator and page numbering as one `page_chrome`
@@ -158,13 +210,19 @@ policies; initialization does not complete intake or approve their rendering. Co
 identify visible pages in the plan. Geometry, page-type exceptions and the numbering
 convention remain explicit design decisions.
 
-`assets/academic-navigator/` supplies the reusable synthetic template assets for this
-default style. A user can replace its palette, sections or template without losing
+`assets/academic-navigator/` supplies the reusable synthetic template workspace for this
+default. A user can replace its palette, sections or template without losing
 the evidence requirements. It is not a mandatory chapter list, page count or scientific
-structure. Inspect its available previews and template files, then read the current backend's template
-contract and supported route before reuse. These bundled assets are not an automatic
-template importer. Adapt section labels and content to the accepted talk, and validate
-the resulting PPTX rather than assuming template reuse guarantees correct rendering.
+structure. Read the current backend's template contract and supported route before reuse;
+follow its selection, validation and installation sequence rather than treating bundled
+assets as an automatic importer. After installation, derive a concrete application plan
+from the project-local prototypes: record what persists, how page roles map to available
+prototypes, and any required layout adaptation. Even if the backend permits style-only or
+flat reuse, the default retains the binding information-only cover, separate background,
+single-highlight navigation, body-title divider, current-page badge, typography/palette
+roles and consistent peer grouping. Changing the backend's internal reuse scope does not
+waive them. Adapt section labels and content to the accepted talk, and validate actual
+PPTX renders rather than assuming template installation proves its visual application.
 
 When a user supplies their edited final deck, treat it as stronger style evidence than a
 generic profile. Read `references/reference-calibration.md` for pairwise analysis. Record
@@ -234,6 +292,17 @@ notes alone cannot replace those conditions. If a shared legend is separate, bin
 the panels in the plan. Check both the display crop and full context before marking the
 asset verified, including when extraction supplied the image automatically. Avoid
 decorative icons drawn over data.
+For a dense source table, select a faithful crop of the rows/columns needed for this
+page's comparison and keep their original headers, method/baseline labels and decoding
+context attached. Several labelled original-image excerpts may form one coherent
+comparison; disclose selection and keep full context/provenance in local evidence.
+Retain uncertainty notation (for example SEM), units and consequential conditions on
+the page when they determine the reading. Do not silently replace a cropped-away
+baseline with a native claim or enlarge a column without its header. Put the complete
+table in a true backup when useful. Prefer a wider evidence panel, a separate setup
+page or a split comparison to shrinking the whole table into a narrow commentary
+layout. Judge the rendered critical values and labels rather than imposing one
+absolute font-size threshold on all source figures.
 Use native editable labels and explanatory diagrams, but do not claim a raster plot has
 editable source data. An accessibility description belongs in the asset inventory/notes.
 

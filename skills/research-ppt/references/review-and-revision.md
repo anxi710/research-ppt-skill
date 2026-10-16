@@ -8,12 +8,61 @@
 
 The production tool's successful exit code answers none of these completely.
 
+## Template application
+
+For a new default design-contract workspace, begin with the immutable handoff's
+template snapshot, its exact root and file fingerprints.
+Compare the handoff template manifest's digest with the build receipt's
+`template_application.handoff_template_sha256`. Verify `status: "applied"`, the real
+`installed_template_root`, and the referenced `application_record` file/hash. The record's
+matching digest/root, `application_notes` and complete `files` mapping identify the
+actual spec/prototype paths and hashes. Check source-to-installed mappings, allowing
+only the current backend's documented filename/provenance transformations. Read the
+actual installed specs/prototypes when
+needed to check a claimed mapping or adaptation. A selected template, successful copy,
+matching hashes, or a sentence saying the design follows the template does not establish
+that its visual elements reached the deck.
+
+For the default, the helper seeds `template_application` as pending. Complete it from actual PPTX renders
+and the accepted design contract, alongside the page-specific chrome, navigation,
+typography, palette and grouping checks. Check a representative cover, explanation and
+dense evidence page first within the backend's allowed production/review order, then
+inspect every final page and applicable exception. Representative pages cannot approve
+the unseen remainder.
+
+For `mode: "academic_navigator"`, verify the information-only cover, separately planned
+background, single-highlight navigation without an extra active underline, body-title
+divider, lower-right badge showing the current physical page only, fixed native text
+roles, limited accent palette, consistent peer groups/gutters and body-only source
+figure crops. Compare geometry and recurring elements with the selected prototypes and
+documented adaptations. An internal style-only or flat reuse label does not waive these
+binding visual requirements. For `mode: "user_override"`, check the actual user instruction
+and reason, then inspect the replacement's accepted rules, its actual backend selection/
+application evidence and all retained requirements. This mode does not require the
+default's parent snapshot or application-record schema.
+An explicitly accepted no-template override does not need template installation evidence;
+inspect its accepted design requirements directly. Do not invent an override after
+seeing an export that lost the default design.
+
+Missing installation/application evidence or a deck that discarded the selected design
+is a production defect. Return it to the backend with concrete slide observations and
+the missing required element; repair, rerender and review before acceptance. Do not pass
+`template_application` merely because the other checklist fields contain pass values.
+
 ## Structural and rendering checks
 
 Verify ZIP/XML relationships, slide count/order, native text existence, note content, hidden
 flags and time-budget consistency. Box-boundary warnings need human/agent interpretation:
 intentional bleed is possible. Grouped/rotated shapes, theme inheritance and SVG handling
 require visual review even if no machine warning appears.
+
+When a backend lacks hidden-slide controls, use only the limited delivery-copy
+visibility repair in `production-handoff.md` before final hashing and review. Verify
+that package changes are confined to the planned slide-root visibility attributes
+and any existing `HiddenSlides` count; content and all other parts remain unchanged.
+Read back the actual visible/hidden sequence through Presentation relationships.
+Keep the raw export/report as provenance, and bind all acceptance records to the
+repaired delivery copy rather than treating the raw-export report as its approval.
 
 Render the final PPTX in a real renderer. Use a temporary ZIP/XML-only copy to expose hidden
 slides for QA; do not resave the deck through a library merely to toggle visibility, because
@@ -26,6 +75,41 @@ figure axes/legends/panels, image aspect ratio, readable fonts, title/figure agr
 citation placement, annotation placement, whitespace and excessive density. Read the notes.
 Check that critical definitions precede results and that teaching examples are labelled.
 
+## Projection readability
+
+After examining details at useful magnification, inspect the actual PPTX's main slides
+at the intended presentation size, with the whole page visible. Read the title, body,
+navigation and load-bearing figure labels/numbers at that size. Detail zoom supports
+source checking; it cannot excuse a main result that the audience cannot read. Check
+the densest evidence page, longest title/body and smallest critical labels first to
+catch a repeated layout problem, then review every page. A montage is for consistency,
+not for approving small text.
+
+On dense evidence pages, verify the visible row/column headers, baseline identities,
+units, uncertainty notation and consequential conditions against full source context.
+A caption-free crop can still lose SEM or the comparison that makes a number meaningful.
+Keep key values and their decoding context legible together. If a full table fits only
+as tiny print, move it to a true backup and use faithful, labelled original-image
+excerpts with headers in the main deck; recheck the selection and context. Enlarge or
+recompose the evidence panel before reducing native font roles. Check that long text
+stays inside its content area and clears navigation, gutters, sources and page badges.
+Important explanation cannot depend only on notes when the visible page is ambiguous.
+
+Check exported native text for extra wrapping, isolated trailing characters and lines
+that escape a frame even when the SVG checker passed. Compare the actual native text
+frame with the planned content area and both script fonts. Repair at the backend's
+supported authoring/export layer using its current instructions; do not default to
+smaller fonts, remove scientific conditions or treat a valid SVG as evidence of a valid
+PPTX. A changed export mode or font stack requires a fresh actual-PPTX render and
+review of every affected page and recurring text role.
+
+For default `academic_navigator` contracts, `review-init` seeds `projection_readability`
+as pending on every page. Complete it with concrete observations from the final PPTX
+render, including relevant evidence labels and the accepted role/exception of covers
+or hidden backups. A backup may be denser than a main slide, but the intended Q&A
+material still needs a usable reading view. Machine geometry/font checks, a source
+crop inspected alone and approval of an earlier render cannot pass this check.
+
 On the actual PPTX renders, check display crops against their full source context: the
 paper's prose caption and adjacent text are removed unless explicitly requested, while
 data legends, table headers, units and consequential conditions remain readable. Check
@@ -34,6 +118,11 @@ each native text role for the agreed family, size and weight across pages, and c
 emphasis colors with the limited palette. Theme/font statistics support this review;
 they do not replace seeing the final rendered text. Source-figure lettering and recorded
 cover/backup exceptions are reviewed separately.
+For the default fonts, inspect both English and Chinese in the final render:
+English uses Times New Roman and Chinese uses Microsoft YaHei, including navigation,
+titles, annotations and page badges where applicable. Check for substitution and
+mixed-language line reflow; a declared font stack alone does not prove either face
+rendered correctly. Follow an accepted explicit font override instead when present.
 
 When section navigation is enabled, check every applicable page for the same ordered,
 consistently spaced top labels, the correct single active section, agreement with its `section_id`,
@@ -41,6 +130,11 @@ and clearance from the title and figures. The active fill should not gain a redu
 underline; do retain the separate body-title divider. A correct SVG strip can still shift or lose
 fonts in PPTX export. Record these findings in the page's layout/reference review along
 with any explicit exceptions.
+For default `scope: "main_talk"`, compare the labels with visible non-exempt pages:
+no label exists solely for hidden backups or an exempt cover. Hidden pages can omit
+navigation or reuse an existing main section. Check actual whitespace between tabs
+against the declared positive `tab_gap_px`, scaled for the canvas; an unbroken dense
+bar fails this review even when all labels and colors are technically present.
 When the corresponding policies are enabled, the helper also seeds pending
 `figure_framing`, `section_navigation`, `typography_consistency` and `palette_consistency`
 checks. Complete them from actual inspection, not from the presence of valid settings.
@@ -102,9 +196,25 @@ A blocker prevents acceptance; a warning may remain only with a written rational
 mark unseen pages passed. A judge model is an assistant to review, not ground truth.
 
 Send layout/export fixes to ppt-master. Send source/claim problems to preparation, regenerate
-the handoff and then request backend changes. Keep previous accepted versions. After each
-repair, rerender affected content and check deck-wide consistency. Review the final full deck
-before acceptance. No arbitrary retry count converts a failure to a pass.
+the handoff and then request backend changes. Own routine readability repair through
+delivery: do not hand over a known tiny table, overflowing title or crowded page for
+the user to rediscover. Record related defects together and request a coherent repair
+batch rather than repeatedly changing isolated boxes. Keep previous versions.
+
+After repair, rerender the actual new PPTX, inspect affected pages and compare recurring
+elements across the deck. Independently review every final page before acceptance;
+the production agent's claim or a first passing checker is insufficient. The same
+agent can conduct a distinct review pass when no separate reviewer is available;
+record the actual review mode honestly. For page splits/reordering, reconcile stable
+slide IDs with physical order, navigation, page numbers, visible/hidden status, coverage
+links, notes and the speaking budget before rebuilding the handoff and QA records.
+
+Continue while a concrete repair can resolve the defects within the accepted scope.
+If repeated local changes do not help, simplify the composition or change the evidence
+selection with its context intact. Stop and explain an actual source, renderer or
+scope limitation when no justified repair remains; label the affected deliverable
+accordingly. No arbitrary retry count converts a failure to a pass, and routine repairs
+within the accepted brief do not require another user confirmation.
 
 ## Gate and audit trail
 

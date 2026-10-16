@@ -30,6 +30,10 @@ PRESENTATION_CHOICES = {
     'presentation_type': {'research_report','paper_talk','literature_review','progress_report','method_tutorial'},
     'detail_level': {'overview','standard','detailed'},
 }
+SKILL_ROOT = Path(__file__).resolve().parents[1]
+BUILTIN_TEMPLATE_ROOT = SKILL_ROOT/'assets/academic-navigator'
+BUILTIN_TEMPLATE_SPEC = 'templates/design_spec.deck.academic-navigator.md'
+DESIGN_MODES = {'academic_navigator','user_override'}
 
 
 def now() -> str:
@@ -78,7 +82,97 @@ def review_checks(style: dict, assets: list[dict] | None = None) -> list[str]:
         checks.append('content_grouping')
     if any(item.get('kind')=='context_illustration' for item in assets or []):
         checks.append('external_visual_provenance')
+    if isinstance(style.get('design_contract'),dict) and style['design_contract'].get('mode')=='academic_navigator':
+        checks.extend(['template_application','projection_readability'])
     return checks
+
+
+def template_files(root: Path, spec: str) -> dict[str, Path]:
+    """Only the bundled, synthetic design specification and SVG prototypes travel."""
+    spec_path=under(root,spec)
+    if not spec_path.is_file():raise ValueError('Template specification is missing')
+    files={spec:spec_path}
+    for path in sorted(root.rglob('*.svg')):
+        relative=str(path.relative_to(root))
+        checked=under(root,relative)
+        if not checked.is_file():raise ValueError('Template SVG is missing')
+        files[relative]=checked
+    if len(files)<2:raise ValueError('Template package has no SVG prototypes')
+    return files
+
+
+def design_contract_errors(brief: dict, style: dict, *, template_snapshot: Path | None=None) -> list[str]:
+    """New jobs cannot silently downgrade to a legacy or unresolved design profile."""
+    if 'design_contract_version' not in brief:return []
+    errors=[];contract=style.get('design_contract')
+    if type(brief['design_contract_version']) is not int or brief['design_contract_version']!=1:
+        errors.append('Design contract: brief design_contract_version must be 1')
+    if (not isinstance(contract,dict) or type(contract.get('version')) is not int
+            or contract.get('version')!=1 or not isinstance(contract.get('mode'),str)
+            or contract.get('mode') not in DESIGN_MODES):
+        return errors+['Design contract: style requires version 1 and mode academic_navigator or user_override']
+    if contract['mode']=='user_override':
+        override=contract.get('override')
+        if not isinstance(override,dict) or not all(nonempty(override.get(key)) for key in ['reason','user_instruction']):
+            errors.append('Design contract: user_override requires reason and actual user_instruction')
+        else:
+            record=brief.get('intake_confirmation',{})
+            accepted=[brief.get('style_intent',''),record.get('user_response','') if isinstance(record,dict) else '']
+            if not any(override['user_instruction'] in text for text in accepted if isinstance(text,str)):
+                errors.append('Design contract: user_override instruction must be quoted in the accepted brief or actual intake response')
+        return errors
+    required=['communication_contract','figure_policy','section_navigation','typography',
+              'palette_policy','page_chrome','content_grouping','external_visuals','template_reference']
+    for key in required:
+        if not isinstance(style.get(key),dict):errors.append(f'Design contract: default requires {key}')
+    figure=style.get('figure_policy',{})
+    if not isinstance(figure,dict) or figure.get('display_region')!='body_only' or figure.get('caption_policy')!='notes_only':
+        errors.append('Design contract: default requires body-only figures and notes-only captions')
+    navigation=style.get('section_navigation',{})
+    if not isinstance(navigation,dict) or navigation.get('enabled') is not True or navigation.get('active_indicator')!='fill_only':
+        errors.append('Design contract: default requires enabled fill-only section navigation')
+    if not isinstance(navigation,dict) or navigation.get('scope')!='main_talk' or not positive(navigation.get('tab_gap_px')):
+        errors.append('Design contract: default navigation requires scope main_talk and positive tab_gap_px')
+    typography=style.get('typography',{})
+    roles=typography.get('roles',{}) if isinstance(typography,dict) else {}
+    if not isinstance(roles,dict) or not all(key in roles for key in ['cover','title','body','annotation','footer','navigation']):
+        errors.append('Design contract: default requires all fixed typography roles including cover and navigation')
+    elif any(not isinstance(role,dict) or not nonempty(role.get('font_family')) or not positive(role.get('font_size_px')) for role in roles.values()):
+        errors.append('Design contract: fixed typography roles require font_family and positive font_size_px')
+    palette=style.get('palette_policy',{})
+    if (not isinstance(palette,dict) or type(palette.get('max_accent_colors')) is not int
+            or palette.get('max_accent_colors')!=1 or not isinstance(palette.get('accent_colors'),list)
+            or len(palette['accent_colors'])!=1):
+        errors.append('Design contract: default requires exactly one native accent color')
+    chrome=style.get('page_chrome',{})
+    number=chrome.get('page_number',{}) if isinstance(chrome,dict) else {}
+    if (not isinstance(chrome,dict) or not isinstance(chrome.get('cover'),dict)
+            or chrome['cover'].get('title_information_only') is not True
+            or not isinstance(number,dict) or number.get('format')!='current'
+            or number.get('position')!='bottom_right' or number.get('background') is not True
+            or not isinstance(chrome.get('title_separator'),dict)
+            or chrome['title_separator'].get('enabled') is not True):
+        errors.append('Design contract: default requires information-only cover, current-page badge and body title separator')
+    grouping=style.get('content_grouping',{})
+    if (not isinstance(grouping,dict) or grouping.get('enabled') is not True
+            or grouping.get('same_role_consistency') is not True
+            or not isinstance(grouping.get('spacing'),dict)
+            or not all(positive(grouping['spacing'].get(key)) for key in ['min_gap_px','padding_px'])):
+        errors.append('Design contract: default requires consistent semantic grouping and explicit positive gaps/padding')
+    external=style.get('external_visuals',{})
+    if not isinstance(external,dict) or type(external.get('enabled')) is not bool:
+        errors.append('Design contract: default requires an explicit external_visuals decision')
+    reference=style.get('template_reference',{})
+    if not isinstance(reference,dict) or reference.get('status')!='selected' or reference.get('kind')!='deck':
+        errors.append('Design contract: select the built-in deck template before handoff; pending_default is unresolved')
+    else:
+        try:
+            if (not nonempty(reference.get('root')) or Path(reference['root']).resolve()!=BUILTIN_TEMPLATE_ROOT.resolve()
+                    or reference.get('spec')!=BUILTIN_TEMPLATE_SPEC):
+                raise ValueError('Default template must reference the actual built-in Academic Navigator package')
+            template_files(template_snapshot or BUILTIN_TEMPLATE_ROOT,BUILTIN_TEMPLATE_SPEC)
+        except (ValueError,OSError) as exc:errors.append(f'Design contract: {exc}')
+    return errors
 
 
 def visual_style_errors(style: dict, slides: list[dict]) -> list[str]:
@@ -114,6 +208,12 @@ def visual_style_errors(style: dict, slides: list[dict]) -> list[str]:
                 required=not slide.get('hidden') and slide.get('id') not in exempt
                 if (required or 'section_id' in slide) and (not nonempty(slide.get('section_id')) or slide['section_id'] not in section_ids):
                     errors.append(f'{slide.get("id")}: section_id must reference section_navigation sections')
+            contract=style.get('design_contract')
+            if isinstance(contract,dict) and contract.get('mode')=='academic_navigator':
+                used={slide['section_id'] for slide in slides if not slide.get('hidden')
+                      and slide.get('id') not in exempt and nonempty(slide.get('section_id'))}
+                for sid in sorted(section_ids-used):
+                    errors.append(f'Style: main_talk navigation section {sid!r} has no visible non-exempt slide')
     typography=style.get('typography')
     if isinstance(typography,dict) and 'roles' in typography:
         roles=typography['roles']
@@ -268,6 +368,7 @@ def intake_requirements(brief: dict) -> dict:
     result={key:brief.get(key) for key in INTAKE_FIELDS}
     # Preserve accepted legacy briefs that predate these choices without rewriting them.
     result.update({key:brief[key] for key in PRESENTATION_CHOICES if key in brief})
+    if 'design_contract_version' in brief:result['design_contract_version']=brief['design_contract_version']
     result['sources']=[{key:src.get(key) for key in ['id','sha256','role']}
                        for src in brief.get('sources',[])]
     return copy.deepcopy(result)
@@ -372,7 +473,7 @@ def init(args: argparse.Namespace) -> int:
         dest=root/'inputs'/('template'+args.template.suffix.lower());shutil.copy2(args.template,dest)
         sources.append({'id':'STYLE','path':str(dest.relative_to(root)),
                         'original_name':args.template.name,'sha256':sha256(dest),'role':'style_reference'})
-    brief={**presentation,'project_name':name,
+    brief={**presentation,'design_contract_version':1,'project_name':name,
            'output_files':{'pptx':f'exports/{name}.pptx','pdf':f'exports/{name}-preview.pdf',
                            'speaker_notes':f'exports/{name}-notes.md'},
            'language':args.language,'audience':args.audience,'target_minutes':args.minutes,
@@ -389,8 +490,9 @@ def init(args: argparse.Namespace) -> int:
     example=load(Path(__file__).resolve().parents[1]/'templates/style_profile.example.json')
     defaults={key:example[key] for key in ['canvas','typography','palette','figure_policy',
                                          'palette_policy','page_chrome','content_grouping','external_visuals']}
-    defaults['section_navigation']={'enabled':False,
-                                   'active_indicator':example['section_navigation']['active_indicator']}
+    defaults['section_navigation']={'enabled':True,'sections':[],'exempt_slide_ids':['P01'],
+                                   'active_indicator':example['section_navigation']['active_indicator'],
+                                   'scope':'main_talk','tab_gap_px':16}
     if not args.template:
         defaults['template_reference']={
             'kind':'deck',
@@ -399,6 +501,8 @@ def init(args: argparse.Namespace) -> int:
             'status':'pending_default','applied':False}
     write(root/'design/style_profile.json',{
         **defaults,'name':'academic-navigator','review_status':'pending',
+        'design_contract':({'version':1,'mode':'user_override','override':{'reason':'','user_instruction':''}}
+                           if args.template else {'version':1,'mode':'academic_navigator'}),
         'basis':'Built-in academic-navigator baseline; adapt to source content and any supplied reference.',
         'communication_contract':{
             'version':1,'citation_placement':'compact_footer',
@@ -415,7 +519,7 @@ def init(args: argparse.Namespace) -> int:
     return 0
 
 
-def preflight_report(root: Path) -> dict:
+def preflight_report(root: Path, *, template_snapshot: Path | None=None) -> dict:
     errors=[];warnings=[];data={}
     for name in PREP:
         try: data[name]=load(root/name)
@@ -470,6 +574,7 @@ def preflight_report(root: Path) -> dict:
     has_communication_contract='communication_contract' in style
     communication_contract=style.get('communication_contract')
     slides=data['design/slide_plan.json'].get('slides',[]);slide_ids=set();seconds=0;display_text_metrics=[]
+    errors.extend(design_contract_errors(brief,style,template_snapshot=template_snapshot))
     errors.extend(visual_style_errors(style,slides))
     errors.extend(figure_framing_errors(root,assets,style))
     errors.extend(external_visual_errors(assets,sources,style))
@@ -526,6 +631,40 @@ def preflight(args: argparse.Namespace) -> int:
     print(json.dumps(report,ensure_ascii=False,indent=2));return int(report['status']!='pass')
 
 
+def snapshot_template(style: dict, dest: Path) -> dict:
+    reference=style['template_reference'];source=Path(reference['root']).resolve()
+    files=template_files(source,reference['spec']);package=dest/'template'
+    fingerprints={}
+    for relative,path in files.items():
+        target=package/relative;target.parent.mkdir(parents=True,exist_ok=True)
+        shutil.copy2(path,target);fingerprints[relative]=sha256(target)
+    path=package/'manifest.json'
+    write(path,{'schema_version':1,'source_root':str(source),'spec':reference['spec'],'files':fingerprints})
+    return {'source_root':str(source),'snapshot_root':'template','manifest':'template/manifest.json','sha256':sha256(path)}
+
+
+def checked_template_snapshot(handoff_dir: Path, manifest: dict) -> tuple[dict, Path, dict]:
+    """Verify the immutable package, never re-hash the mutable installation source."""
+    record=manifest.get('template')
+    if (not isinstance(record,dict) or record.get('snapshot_root')!='template'
+            or record.get('manifest')!='template/manifest.json' or not nonempty(record.get('source_root'))):
+        raise ValueError('Missing/incomplete template snapshot in handoff manifest')
+    package=under(handoff_dir,record['snapshot_root']);path=under(handoff_dir,record['manifest'])
+    if not path.is_file() or sha256(path)!=record.get('sha256'):
+        raise ValueError('Missing/changed template snapshot manifest')
+    data=load(path);files=data.get('files')
+    if (data.get('schema_version')!=1 or data.get('source_root')!=record['source_root']
+            or data.get('spec')!=BUILTIN_TEMPLATE_SPEC or not isinstance(files,dict)
+            or data['spec'] not in files or not any(name.endswith('.svg') for name in files)):
+        raise ValueError('Incomplete template snapshot file roster')
+    actual={str(path.relative_to(package)) for path in package.rglob('*') if path.is_file() and path!=package/'manifest.json'}
+    if actual!=set(files):raise ValueError('Template snapshot file roster differs from package')
+    for relative,digest in files.items():
+        path=under(package,relative)
+        if not path.is_file() or sha256(path)!=digest:raise ValueError(f'Missing/changed template snapshot file: {relative}')
+    return record,package,data
+
+
 def handoff(args: argparse.Namespace) -> int:
     root=args.project.resolve();report=preflight_report(root)
     if report['status']!='pass':raise ValueError('Preparation not ready: '+'; '.join(report['errors']))
@@ -543,8 +682,12 @@ def handoff(args: argparse.Namespace) -> int:
         resources[item['path']]=sha256(under(root,item['path']))
         if isinstance(item.get('context'),dict) and nonempty(item['context'].get('path')):
             context=item['context'];resources[context['path']]=sha256(under(root,context['path']))
+    style=load(root/'design/style_profile.json')
+    contract=style.get('design_contract',{})
+    default_template=isinstance(contract,dict) and contract.get('mode')=='academic_navigator'
     manifest={'schema_version':'1','created_at':now(),'workspace':str(root),
               'preparation':fingerprints,'resources':resources}
+    if default_template:manifest['template']=snapshot_template(style,dest)
     write(dest/'manifest.json',manifest)
     text=f'''# Research production handoff\n\nPrivate workspace: `{root}`\nContract manifest: `{dest/'manifest.json'}`\n\nRead all five preparation snapshots in this directory. Use the referenced original\nsource/asset files in the private workspace, preserving their hashes and figure identity.\nThey are local references, not permission to upload/publish them.\n\nUse the current, real ppt-master checkout and its current documented route. Map this\nbrief into its current runtime; do not invent CLI flags or forge confirmation gates.\nDo not change claims, durations, page roster or figure meaning silently. Raise needed\ncontract changes to preparation before production. Work under `{root/'production'}`.\n\nReturn a real PPTX and a completed build receipt listing actual backend revision,\ncommands, outputs and limitations. Native text/annotations remain editable; original\npaper charts remain source images. Include notes, citations and true hidden flags.\nThe final PPTX will be independently rendered and checked against this contract.\n'''
     brief=load(root/'brief.json')
@@ -557,7 +700,22 @@ def handoff(args: argparse.Namespace) -> int:
            'into audience-facing labels. Legacy plans without `display_title` retain their accepted design.\n\n'
            'Preserve meaningful scientific qualifiers, conditions and uncertainty on the slide wherever '
            'they are necessary to interpret its claim, even when bibliographic citations are placed in notes.\n')
-    style=load(root/'design/style_profile.json')
+    if 'design_contract' in style:
+        text+='\n## Design mode and template decision\n\n```json\n'
+        text+=json.dumps({'design_contract':style['design_contract'],
+                         'template_reference':style.get('template_reference')},ensure_ascii=False,indent=2)+'\n```\n\n'
+    if default_template:
+        template_root=(dest/'template').resolve()
+        text+=(f'Use the immutable Academic Navigator deck template rooted at `{template_root}`. '
+               f'Its exact specification is `{template_root/BUILTIN_TEMPLATE_SPEC}` and its source manifest '
+               f'is `{template_root/"manifest.json"}` (SHA-256 `{manifest["template"]["sha256"]}`). '
+               'Select/apply this exact workspace through the current backend template-selection and installation route; '
+               'do not treat it as optional style inspiration or replace it with free composition. '
+               'Read its specification and SVG prototypes, adapt their layouts to the accepted section/page plan, '
+               'and follow the current backend gates. Record the actual installed template root and its source-to-installed '
+               'file mapping in template_application; installation provenance added to the specification is allowed. '
+               'Selection in preparation is not proof of production application. The receipt and independent visual '
+               'template_application review must both demonstrate application to the actual output.\n')
     if 'communication_contract' in style:
         text+='\n## Communication contract\n\n'
         text+='```json\n'+json.dumps(style['communication_contract'],ensure_ascii=False,indent=2)+'\n```\n\n'
@@ -571,8 +729,13 @@ def handoff(args: argparse.Namespace) -> int:
                'Keep its separate context image and caption_provenance for evidence review and speaker notes; '
                'do not place the long paper caption on the slide. Preserve scientific legends, axes, units and panel identifiers. '
                'When section navigation is enabled, preserve the ordered sections and derive the active tab from each slide section_id, '
-               'respecting explicit exempt_slide_ids. For active_indicator fill_only, use the filled active tab without an extra navigation underline; '
-               'this does not remove the separate title separator. Apply the same typography role sizes across slides and the declared accent color limit. '
+               'respecting explicit exempt_slide_ids. For scope main_talk, list only sections used by visible non-exempt pages; '
+               'hidden backups do not add navigation labels. Preserve the declared tab_gap_px at the canvas scale as visible space between tabs, '
+               'rather than merging them into a compact bar. For active_indicator fill_only, use the filled active tab without an extra navigation underline; '
+               'this does not remove the separate title separator. Preserve the declared font families and sizes for every typography role across slides, '
+               'including the selected Latin and CJK faces in mixed-script font-family stacks; use the default Latin-first stack for previews, '
+               'or record a documented equivalent backend script mapping and verify actual exported faces, textbox width and line breaks. '
+               'Apply the declared accent color limit. '
                'When page_chrome is supplied, keep the identified covers to title and accepted metadata, move background explanation to content pages, '
                'apply its current-page-only number, bottom-right placement, background box and title-separator instructions. '
                'When content_grouping is enabled, organize multi-part prose with the accepted cards or numbered blocks instead of an undifferentiated text pile. '
@@ -601,6 +764,15 @@ def handoff(args: argparse.Namespace) -> int:
     (dest/'handoff.md').write_text(text,encoding='utf-8')
     receipt=load(Path(__file__).resolve().parents[1]/'templates/build_receipt.example.json')
     receipt['handoff_manifest_sha256']=sha256(dest/'manifest.json')
+    if default_template:
+        receipt['template_application']={'status':'pending',
+            'handoff_template_sha256':manifest['template']['sha256'],'installed_template_root':'',
+            'application_record':{'path':'','sha256':''}}
+        write(dest/'template_application.example.json',{
+            'handoff_template_sha256':manifest['template']['sha256'],'installed_template_root':'',
+            'application_notes':'',
+            'files':{relative:{'path':'','sha256':''} for relative in load(dest/'template/manifest.json')['files']}})
+    else:receipt.pop('template_application',None)
     write(dest/'build_receipt.template.json',receipt)
     print(dest);return 0
 
@@ -615,6 +787,16 @@ def contract_errors(project: Path, handoff_dir: Path) -> list[str]:
     for name,digest in manifest.get('resources',{}).items():
         path=under(project,name)
         if not path.is_file() or sha256(path)!=digest:errors.append(f'Changed source/asset: {name}')
+    try:
+        brief=load(handoff_dir/'brief.json');style=load(handoff_dir/'design/style_profile.json')
+        contract=style.get('design_contract',{})
+        required=('design_contract_version' in brief and isinstance(contract,dict)
+                  and contract.get('mode')=='academic_navigator')
+        if required or 'template' in manifest:
+            record,_,_=checked_template_snapshot(handoff_dir,manifest)
+            if record['source_root']!=style.get('template_reference',{}).get('root'):
+                errors.append('Template snapshot differs from selected template root')
+    except (ValueError,OSError,KeyError,TypeError) as exc:errors.append(f'Template contract: {exc}')
     return errors
 
 
@@ -630,6 +812,66 @@ def render_entries(pptx: Path, report_path: Path, count: int) -> tuple[dict, lis
         path=under(report_path.parent/'pages',row['file'])
         if not path.is_file() or sha256(path)!=row.get('sha256'):raise ValueError('Missing/stale render image')
     return report, sorted(rows,key=lambda r:r['pdf_page'])
+
+
+def installed_spec_matches(source: Path, installed: Path) -> bool:
+    if source.read_bytes()==installed.read_bytes():return True
+    # Current ppt-master adds exactly a blank line and an installation provenance
+    # line after the H1. No other specification rewrite is silently permitted.
+    try:
+        expected=source.read_text(encoding='utf-8').splitlines()
+        actual=installed.read_text(encoding='utf-8').splitlines()
+    except UnicodeError:return False
+    h1=next((n for n,line in enumerate(actual) if line.startswith('# ')),None)
+    if h1 is None or len(actual)<=h1+2 or actual[h1+1]!='':return False
+    if not re.fullmatch(r'> \*\*Installed from\*\*: `[^`]+` \((?:library|explicit)\)',actual[h1+2]):return False
+    return actual[:h1+1]+actual[h1+3:]==expected
+
+
+def template_application_errors(project: Path, handoff_dir: Path, receipt: dict) -> list[str]:
+    style=load(handoff_dir/'design/style_profile.json');contract=style.get('design_contract',{})
+    if not isinstance(contract,dict) or contract.get('mode')!='academic_navigator':return []
+    try:
+        manifest=load(handoff_dir/'manifest.json')
+        template,package,source=checked_template_snapshot(handoff_dir,manifest)
+        application=receipt.get('template_application')
+        if not isinstance(application,dict) or application.get('status')!='applied':
+            raise ValueError('applied template_application receipt is required')
+        if application.get('handoff_template_sha256')!=template['sha256']:
+            raise ValueError('receipt must identify this handoff template manifest')
+        location=application.get('installed_template_root')
+        if not nonempty(location) or not Path(location).is_absolute() or not Path(location).is_dir():
+            raise ValueError('actual absolute installed_template_root is required')
+        installed_root=Path(location).resolve();reference=application.get('application_record')
+        if not installed_root.is_relative_to((project/'production').resolve()):
+            raise ValueError('installed_template_root must be a real installation under this workspace production/')
+        if not isinstance(reference,dict) or not nonempty(reference.get('path')):
+            raise ValueError('application_record path and SHA-256 are required')
+        if Path(reference['path']).is_absolute():raise ValueError('application_record path must be workspace-relative')
+        record_path=under(project,reference['path'])
+        if not record_path.is_file() or sha256(record_path)!=reference.get('sha256'):
+            raise ValueError('application_record is missing or its bytes changed')
+        record=load(record_path)
+        if (record.get('handoff_template_sha256')!=template['sha256']
+                or record.get('installed_template_root')!=location or not nonempty(record.get('application_notes'))):
+            raise ValueError('application_record must identify the same template, installation root and actual application notes')
+        files=record.get('files')
+        if not isinstance(files,dict) or set(files)!=set(source['files']):
+            raise ValueError('application_record must map every snapshot specification/SVG file')
+        targets=set()
+        for relative,item in files.items():
+            if not isinstance(item,dict) or not nonempty(item.get('path')) or Path(item['path']).is_absolute():
+                raise ValueError(f'invalid installed file mapping: {relative}')
+            target=under(installed_root,item['path'])
+            if target in targets:raise ValueError('installed file mapping must be one-to-one')
+            targets.add(target)
+            if not target.is_file() or sha256(target)!=item.get('sha256'):
+                raise ValueError(f'missing/changed installed template file: {relative}')
+            matches=(installed_spec_matches(under(package,relative),target) if relative==source['spec']
+                     else sha256(target)==source['files'][relative])
+            if not matches:raise ValueError(f'installed file does not correspond to the handoff template: {relative}')
+    except (ValueError,OSError,KeyError,TypeError) as exc:return [f'Template application: {exc}']
+    return []
 
 
 def review_init(args: argparse.Namespace) -> int:
@@ -656,7 +898,12 @@ def review_init(args: argparse.Namespace) -> int:
 
 def gate(args: argparse.Namespace) -> int:
     root=args.project.resolve();errors=contract_errors(root,args.handoff.resolve())
-    prep=preflight_report(root)
+    template_snapshot=None
+    try:
+        manifest=load(args.handoff/'manifest.json')
+        if 'template' in manifest:_,template_snapshot,_=checked_template_snapshot(args.handoff,manifest)
+    except (ValueError,OSError,KeyError,TypeError):pass  # contract_errors already reports the invalid snapshot.
+    prep=preflight_report(root,template_snapshot=template_snapshot)
     errors+=prep['errors']
     checks=review_checks(load(root/'design/style_profile.json'),load(root/'analysis/figure_manifest.json')['figures'])
     plan=root/'design/slide_plan.json';rows=load(plan)['slides'];digest=sha256(args.pptx)
@@ -697,6 +944,7 @@ def gate(args: argparse.Namespace) -> int:
     if not receipt.get('commands_executed') or not receipt.get('documents_read'):
         errors.append('Backend execution/document provenance missing')
     if receipt.get('pptx_sha256')!=digest:errors.append('Backend receipt PPTX hash stale/missing')
+    errors.extend(template_application_errors(root,args.handoff,receipt))
     report={'status':'fail' if errors else 'pass','pptx_sha256':digest,
             'handoff_manifest_sha256':mh,'errors':errors,'warnings':actual['warnings'],
             'meaning':'Record/provenance consistency gate, not a proof of reviewer judgment.'}

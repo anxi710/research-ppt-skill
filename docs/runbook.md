@@ -116,6 +116,7 @@ understand the fields rather than replacing that inventory.
 | `sources` | Local copies and fingerprints created by `init`; record exact versions and appropriate roles for each supplied file. |
 | `assumptions`, `research_connection` | Explicit assumptions and any requested connection to the user's research. |
 | `intake_confirmation` | Pending by default; `intake` fills the snapshot, and the agent records only an actual acceptance or delegation. |
+| `design_contract_version` | New workspaces use `1`; preserve it when editing. It requires a resolved style contract and prevents accidentally replacing current defaults with a legacy minimal profile. |
 
 Inputs are copied into the private workspace and fingerprinted. Ordinary inputs
 initially have `role: research_source`; `--template` creates a `style_reference`.
@@ -241,13 +242,31 @@ that paper; the report default does not override the accepted presentation type.
 
 Without another requested style or template, the agent uses the built-in synthetic
 [`academic-navigator` style](../skills/research-ppt/assets/academic-navigator/):
-title-information cover, separate background, a single active navigation fill without
-a redundant underline, body-title rules, lower-right current-page badges and semantic
+title-information cover, separate background, main-section navigation with visible
+gaps and a single active fill, body-title rules, lower-right current-page badges and semantic
 text groups. Peer cards share dimensions/padding and clear gutters across pages;
 evidence-image carriers retain their own aspect ratios. New workspaces receive its
-page-chrome and grouping policies; user overrides take precedence. The agent still reads
-the current ppt-master template contract, adapts the talk's sections and reviews the
-actual PPTX. This is a style starting point, not an automatic import command.
+complete design policies; user overrides take precedence when supported by an actual
+different style/template request. Keep `brief.design_contract_version: 1` and
+`style.design_contract: {version: 1, mode: "academic_navigator"}`. Navigation is
+enabled but has no invented sections: fill its main sections, slide mappings and cover
+exemptions. Preserve init's absolute `template_reference.root` and `spec`; resolve
+its status from `pending_default` to `selected` after choosing the default. This is
+selection, not a claim that production has already applied it. Preflight rejects
+unresolved choices or missing default policies. Do not overwrite init's profile
+with the example's placeholder root or a legacy style.
+
+Default navigation records `scope: "main_talk"` and `tab_gap_px: 16` at the 1280-wide
+canvas scale. Each listed part is used by a visible main slide; hidden backups do
+not add a part. Keep clear gaps between individual tabs and omit a continuous backing
+rail. Review the final slide at its intended presentation size, including critical
+figure lettering; repair unreadable dense pages before delivery.
+
+For a different requested style, use `mode: "user_override"` and
+`override: {reason: "...", user_instruction: "..."}` with the real instruction or
+traceable reference. A supplied style-reference file can be the basis; ordinary
+design delegation is not a request to drop the default. Legacy workspaces without
+the new marker retain their saved contracts.
 
 Keep main slides within the agreed speaking time. Put supporting derivations,
 secondary comparisons and additional conditions in useful speaker notes and genuinely
@@ -268,7 +287,12 @@ The bundle contains immutable preparation snapshots with references to local pri
 source/asset files; it is not automatically uploaded. Read the backend's current skill,
 choose the route its current documentation requires, and map the prepared material into it.
 Use commands documented for that checkout; do not manufacture an upstream
-specification or confirmation.
+specification or confirmation. For default-mode jobs, `manifest.json.template`
+identifies a copied template workspace and its manifest/hash. Give that **exact
+workspace root**, not a bare style name or its inner `templates/` directory, to the
+backend's current template selection and installation route. Respect its ordering:
+candidate metadata before selection; full prototypes at the permitted installed
+template stage. Keep the recurring design components binding when adapting layouts.
 
 ## 5. Produce with ppt-master
 
@@ -281,6 +305,29 @@ The receipt includes backend path/revision, documents read, commands actually ex
 `handoff_manifest_sha256`, `pptx_sha256`, output paths and limitations. Begin with the
 pending receipt template; populate it only from observed production results. The helper
 cannot certify that a backend command or document-reading claim actually occurred.
+
+Default-mode receipts also require `template_application`:
+
+```json
+{
+  "status": "applied",
+  "handoff_template_sha256": "<hash of handoff template/manifest.json>",
+  "installed_template_root": "<absolute backend template root>",
+  "application_record": {
+    "path": "production/<job>/template-application.json",
+    "sha256": "<hash of that actual record>"
+  }
+}
+```
+
+This parent-owned record maps observed backend results; do not require ppt-master
+to emit a new native schema. It contains the same `handoff_template_sha256` and
+`installed_template_root`, nonempty `application_notes`, and `files` mapping every
+snapshot-relative template file to `{path, sha256}` in the installed root. Retain
+actual installed hashes. SVGs match the source bytes; the spec may carry the backend's
+documented installation-provenance line. Other changes require a resolved contract,
+not a false matching hash. The gate verifies these files and fingerprints; the
+separate pending `template_application` page review judges the actual PPTX design.
 
 ## 6. Audit and render the actual final artifact
 

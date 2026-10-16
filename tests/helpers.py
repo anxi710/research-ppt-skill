@@ -8,12 +8,14 @@ import decktools as d
 from argparse import Namespace
 
 
-def workspace(root: Path) -> Path:
+def workspace(root: Path, *, current_design: bool=False) -> Path:
+    """Legacy compatibility fixture by default; current_design exercises real defaults."""
     source=root/'synthetic_source.md'
     source.write_text('# Synthetic teaching source\nFor this fixture only: two plus three is five.\n')
     project=root/'talk'
     w.init(Namespace(project=project,source=[source],template=None,minutes=2,language='en',audience='researchers'))
     brief=d.load(project/'brief.json');brief['sources'][0]['version']='synthetic fixture v1'
+    if not current_design:brief.pop('design_contract_version')
     brief.update(qa_time_included=False,style_intent='Synthetic neutral style; no institution')
     # Fictional intake record for synthetic tests/examples, never actual user consent.
     brief['intake_confirmation']={'status':'confirmed',
@@ -21,7 +23,12 @@ def workspace(root: Path) -> Path:
                                   'requirements':w.intake_requirements(brief)}
     d.write(project/'brief.json',brief)
     d.write(project/'analysis/evidence.json',{'claims':[{'id':'C1','kind':'illustration','statement':'Synthetic arithmetic demonstration; not an empirical result.','source_ids':['S1'],'locator':'Synthetic source line 2','conditions':[],'limitations':['No scientific interpretation'],'review_status':'verified'}]})
-    d.write(project/'design/style_profile.json',{'name':'synthetic','review_status':'verified','basis':'Synthetic fixture; no institution'})
+    if current_design:
+        style=d.load(project/'design/style_profile.json');style['review_status']='verified'
+        style['template_reference']['status']='selected'
+        style['section_navigation']['sections']=[{'id':'example','label':'Synthetic example'}]
+    else:style={'name':'synthetic','review_status':'verified','basis':'Synthetic legacy fixture; no institution'}
+    d.write(project/'design/style_profile.json',style)
     slides=[]
     for i in range(1,3):
         slides.append({'id':f'P{i:02d}','section':'Example','question':'What is the fixture checking?',
@@ -30,6 +37,17 @@ def workspace(root: Path) -> Path:
                        'reading_order':['Read the synthetic label','Read the example'],
                        'on_slide_text':['Synthetic only'],'takeaway':'This is not paper evidence.',
                        'speaker_notes':'Synthetic notes for rendering and gate tests.','seconds':120 if i==1 else 30,'hidden':i==2})
+    if current_design:
+        import copy
+        backup=copy.deepcopy(slides[1]);backup['id']='P03';slides.append(backup)
+        slides[0].update(display_title='Synthetic research presentation',on_slide_text=['Synthetic teaching fixture; not empirical research.'],
+                         question='What is this synthetic fixture?',topic='Synthetic title information',seconds=15,
+                         primary_visual={'type':'information_cover','asset_ids':[],
+                                         'description':'Title and supplied synthetic metadata only; no research background.'})
+        slides[1].update(hidden=False,seconds=105)
+        for slide in slides:
+            slide.setdefault('display_title','Synthetic arithmetic teaching example')
+            if slide['id']!='P01':slide['section_id']='example'
     d.write(project/'design/slide_plan.json',{'slides':slides})
     return project
 
@@ -38,10 +56,11 @@ def deck(project: Path) -> Path:
     from pptx import Presentation
     from pptx.util import Inches
     prs=Presentation()
-    for i in range(2):
+    plan=d.load(project/'design/slide_plan.json')['slides']
+    for i,slide in enumerate(plan):
         sl=prs.slides.add_slide(prs.slide_layouts[6]);sl.shapes.add_textbox(Inches(1),Inches(1),Inches(7),Inches(1)).text=f'Synthetic fixture {i+1}: 2 + 3 = 5'
         sl.notes_slide.notes_text_frame.text='Synthetic only; notes used for structural tests.'
-        if i==1:sl._element.set('show','0')
+        if slide['hidden']:sl._element.set('show','0')
     path=project/'exports/synthetic.pptx';prs.save(path);return path
 
 
@@ -51,11 +70,12 @@ def mock_review_fixture(project: Path) -> Namespace:
     pptx=deck(project);w.handoff(Namespace(project=project,run_id='unit'))
     handoff=project/'handoff/unit';out=project/'qa/unit';(out/'pages').mkdir(parents=True)
     renders=[]
-    for i in range(1,3):
+    count=len(d.load(project/'design/slide_plan.json')['slides'])
+    for i in range(1,count+1):
         path=out/'pages'/f'page_{i:03d}.png';Image.new('RGB',(100,50),(255,255,255)).save(path)
         renders.append({'pdf_page':i,'file':path.name,'sha256':d.sha256(path)})
     render_report=out/'render_report.json'
-    d.write(render_report,{'source_pptx_sha256':d.sha256(pptx),'includes_hidden':True,'slide_mapping':[1,2],'renders':renders})
+    d.write(render_report,{'source_pptx_sha256':d.sha256(pptx),'includes_hidden':True,'slide_mapping':list(range(1,count+1)),'renders':renders})
     review=out/'review.json';w.review_init(Namespace(project=project,pptx=pptx,handoff=handoff,render_report=render_report,out=review))
     r=d.load(review);r['reviewer']='UNIT TEST - not a real reviewer';r['review_mode']='human'
     for row in r['slides']:

@@ -27,8 +27,11 @@ source bytes, but keeps confirmation pending and does not contain a prepared sli
 plan. Use the [runbook field guide](../../docs/runbook.md#1-confirm-requirements-and-initialize-a-workspace)
 to adapt requirements while keeping actual source fingerprints from `init`.
 
-The command creates two illustrative page contracts (one visible, one backup), a
-synthetic source, notes and an immutable production handoff. It deliberately does not
+The command uses the current design contract: a cover, a visible example page and
+a hidden backup, with planned navigation and an explicitly selected default template.
+The immutable handoff includes the template snapshot and fingerprints; actual template
+application and rendered-page review remain pending production. It also creates a
+synthetic source and planned notes. It deliberately does not
 build a PPTX: hand the resulting `handoff/run-*/handoff.md` to the current ppt-master
 through your agent, then follow the review loop. Unit-test decks are generated only
 inside temporary test directories and are not accepted presentation examples.

@@ -13,6 +13,6 @@ import shutil
 p=argparse.ArgumentParser(description=__doc__);p.add_argument('--out',type=Path,required=True);a=p.parse_args()
 if a.out.exists():raise SystemExit('Output already exists; choose a new path')
 with tempfile.TemporaryDirectory() as t:
-    project=workspace(Path(t));shutil.copytree(project,a.out)
+    project=workspace(Path(t),current_design=True);shutil.copytree(project,a.out)
 w.handoff(Namespace(project=a.out,run_id='run-synthetic'))
 print('Synthetic fixture only. Delegate PPT production to the current backend.')

@@ -117,10 +117,14 @@ For example:
 New briefs propose `presentation_type: research_report` and `detail_level: detailed`.
 You can instead request a single-paper talk, literature review, progress report or
 method tutorial, with standard or overview depth. The other choices above are examples.
-The skill does not assume an institution, discipline, color, language, slide count
-or presenter.
-[`academic-blue.json`](../skills/research-ppt/profiles/academic-blue.json) is an
-optional neutral blue-and-white style without institutional branding.
+The skill does not assume an institution, discipline, language, slide count or presenter.
+Without a different requested style, it applies the Academic Navigator template:
+fixed font roles using Times New Roman for English and Microsoft YaHei for Chinese,
+one emphasis color, section navigation, an information cover,
+title rules, current-page badges and consistent content groups. Sections and layouts
+follow this talk's content. You can explicitly choose another template or style,
+including the optional [`academic-blue.json`](../skills/research-ppt/profiles/academic-blue.json).
+“Clean academic style” or delegating design does not by itself replace the default template.
 
 For automatic discovery, optionally copy or symlink the **complete**
 `skills/research-ppt/` folder into your host's skill location. Its references,
@@ -271,7 +275,12 @@ evidence, comparisons/synthesis and limitations; include the user's progress and
 next steps only where supported by supplied materials. Main slides fit the agreed
 speaking time, with supporting details in useful notes and genuinely hidden backup
 slides. There is no fixed page count and detail does not mean dense slide text.
-When those records and assets are ready, run:
+Preserve init's `design_contract_version` and style contract. Default navigation
+starts enabled: fill its actual sections, slide mappings and cover exemptions.
+Preserve the generated absolute template root and mark its selection `selected`
+when decided. Pending template selection, unplanned navigation and missing default
+policies block handoff. Record `user_override` only for an actual user-requested
+alternative. When those records and assets are ready, run:
 
 ```bash
 python ./skills/research-ppt/scripts/workflow.py preflight \
@@ -287,7 +296,7 @@ ppt-master. See the [runbook](runbook.md) for detailed preparation commands.
 
 **Done when:** Preflight passes, the agent has checked the evidence and assets,
 and the handoff contains the agreed slide requirements, notes and acceptance
-criteria with source and asset references.
+criteria with source and asset references, plus a fingerprinted default-template snapshot.
 
 ### Step 7. Produce, review and deliver the actual deck
 
@@ -300,6 +309,11 @@ PPTX**, including hidden backup slides, then inspect every slide and necessary
 figure crops against the preparation contract. Backend checks and SVG previews do
 not replace this review. Repair defects and create fresh render/review records
 for changed artifacts; preparation changes also require a new handoff.
+
+For default-mode talks, pass the handoff's exact template root through backend
+selection and installation. The receipt records source fingerprints, installed
+files and application notes; independent rendered-page review checks their visual
+application. A template name or copied colors alone cannot complete acceptance.
 
 Run the final acceptance gate with records bound to the final PPTX. The delivered
 `-preview.pdf` is an actual rendering of the visible slides. Independently render

@@ -1,7 +1,7 @@
 # Research PPT Skill
 
 <p align="center">
-  <a href="CHANGELOG.md"><img src="https://img.shields.io/static/v1?label=Skill&amp;message=v0.4.0&amp;color=2563eb" alt="Skill v0.4.0" height="20"></a>
+  <a href="CHANGELOG.md"><img src="https://img.shields.io/static/v1?label=Skill&amp;message=v0.4.1&amp;color=2563eb" alt="Skill v0.4.1" height="20"></a>
   <a href="skills/research-ppt/references/environment-setup.md"><img src="https://img.shields.io/badge/Python-3.11-3776AB?logo=python&amp;logoColor=white" alt="Python 3.11" height="20"></a>
   <a href="https://github.com/anxi710/research-ppt-skill/actions/workflows/ci.yml"><img src="https://github.com/anxi710/research-ppt-skill/actions/workflows/ci.yml/badge.svg?branch=main" alt="Validate skill" height="20"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License: MIT" height="20"></a>
@@ -78,6 +78,13 @@ also work when you run elsewhere.
    confirmation or explicit scoped delegation, the agent prepares the evidence,
    delegates production to ppt-master, then renders and reviews every final PPTX slide.
    See the [full seven-step guide](docs/usage.md#first-time-use) for purposes and completion criteria.
+
+Without a different requested style, new talks use the built-in Academic Navigator
+template: an information cover, separated main-section tabs, title rules, current-page
+badges and consistent content components. Hidden backups stay out of navigation.
+The agent selects and installs the template, checks the actual renders and repairs
+readability defects before delivery.
+See [production handoff](skills/research-ppt/references/production-handoff.md).
 
 Optional concept illustrations: see the [Codex, Claude Code and API image generation guide](skills/research-ppt/references/image-generation.md) (Chinese setup steps).
 

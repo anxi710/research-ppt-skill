@@ -11,5 +11,14 @@
     "source_workspace": ""
   },
   "limitations": [],
+  "template_application": {
+    "status": "pending",
+    "handoff_template_sha256": "",
+    "installed_template_root": "",
+    "application_record": {
+      "path": "",
+      "sha256": ""
+    }
+  },
   "pptx_sha256": ""
 }

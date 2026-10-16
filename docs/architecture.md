@@ -45,6 +45,13 @@ path and read the current entry instructions. Follow that checkout's production 
 record the actual revision used; keep it unchanged during the job. The backend owns its
 production and export implementation.
 
+New workspaces record a design-contract version so missing current policies cannot
+silently turn them into legacy jobs. The default Academic Navigator template is
+selected explicitly, copied into the immutable handoff and passed as an exact
+workspace root to the backend. Installed-file provenance and independent rendered
+page review check its application. User-requested alternatives are recorded as
+overrides; saved legacy contracts remain supported.
+
 The first successful private case inspired figure-first pages, necessary foundations,
 short slide text, rich notes and all-slide rendering. Those are configurable practices,
 not rules tying every new talk to its institution, topic, language, duration or page count.

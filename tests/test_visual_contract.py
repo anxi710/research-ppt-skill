@@ -289,7 +289,11 @@ class VisualContractTests(unittest.TestCase):
         self.assertEqual(style['figure_policy'],{'display_region':'body_only','caption_policy':'notes_only'})
         self.assertEqual(style['palette_policy']['max_accent_colors'],1)
         self.assertIn('body',style['typography']['roles'])
-        self.assertEqual(style['section_navigation'],{'enabled':False,'active_indicator':'fill_only'})
+        self.assertEqual(style['section_navigation'],{'enabled':True,'sections':[],
+                                                      'exempt_slide_ids':['P01'],'active_indicator':'fill_only',
+                                                      'scope':'main_talk','tab_gap_px':16})
+        self.assertEqual(style['design_contract'],{'version':1,'mode':'academic_navigator'})
+        self.assertEqual(d.load(project/'brief.json')['design_contract_version'],1)
         self.assertEqual(style['external_visuals'],{
             'enabled':True,'purposes':['background','benchmark_context'],
             'claim_boundary':'context_only','source_scope_precedence':True})
@@ -309,7 +313,10 @@ class VisualContractTests(unittest.TestCase):
         explicit=Path(self.tmp.name)/'explicit-template-talk'
         w.init(Namespace(project=explicit,source=[Path(self.tmp.name)/'synthetic_source.md'],
                          template=supplied,minutes=2,language='en',audience='researchers'))
-        self.assertNotIn('template_reference',d.load(explicit/'design/style_profile.json'))
+        explicit_style=d.load(explicit/'design/style_profile.json')
+        self.assertNotIn('template_reference',explicit_style)
+        self.assertEqual(explicit_style['design_contract'],{
+            'version':1,'mode':'user_override','override':{'reason':'','user_instruction':''}})
         # Creating a new talk must not silently migrate a legacy talk's style.
         self.assertEqual(legacy.read_bytes(),before)
         with self.assertRaisesRegex(ValueError,'new/empty'):

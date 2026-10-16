@@ -185,11 +185,19 @@ class WorkflowTests(unittest.TestCase):
                  'conditions':['Synthetic arithmetic fixture only'],'limitations':['No empirical inference'],
                  'review_status':'verified'}]
         d.write(project/'analysis/evidence.json',{'claims':claims})
-        d.write(project/'design/style_profile.json',d.load(self.project/'design/style_profile.json'))
+        style=d.load(project/'design/style_profile.json');style['review_status']='verified'
+        style['template_reference']['status']='selected'
+        style['section_navigation']['sections']=[{'id':'comparison','label':'Synthetic comparison'}]
+        d.write(project/'design/style_profile.json',style)
         plan=d.load(self.project/'design/slide_plan.json')
-        for slide in plan['slides']:slide['evidence_ids']=['C1','C2','C3']
+        backup=copy.deepcopy(plan['slides'][1]);backup['id']='P03';plan['slides'].append(backup)
+        plan['slides'][0]['seconds']=15
+        plan['slides'][1].update(hidden=False,seconds=105)
+        for slide in plan['slides']:
+            slide.update(evidence_ids=['C1','C2','C3'],display_title='Synthetic comparison')
+            if slide['id']!='P01':slide['section_id']='comparison'
         plan['coverage']=[{'topic':'Synthetic teaching/log comparison','source_ids':['S1','S2','S3'],
-                           'slide_ids':['P01','P02'],'disposition':'main_and_backup',
+                           'slide_ids':['P01','P02','P03'],'disposition':'main_and_backup',
                            'rationale':'UNIT TEST ONLY: demonstrate mixed-material provenance.'}]
         d.write(project/'design/slide_plan.json',plan)
         self.assertEqual(w.preflight_report(project)['status'],'pass')

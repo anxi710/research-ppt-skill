@@ -47,6 +47,8 @@ Agent 会从主题或来源标题概括简短项目名，默认在 `./outputs/<p
 
 由你确认需求或明确委托后继续；完整配置见[合成示例](skills/research-ppt/templates/brief.example.json)。制作后仍须真实渲染和审查最终 PPTX。
 
+没有指定其他风格时，默认实际采用内置 Academic Navigator 模板：信息封面、带间隙的主讲章节导航、标题分隔线、右下当前页码和统一图文组件；隐藏备份不列入导航。Agent 须完成模板选择、安装和渲染核对，并在交付前修复影响讲述和读图的可读性问题。详见[设计与交接](skills/research-ppt/references/production-handoff.md)。
+
 安装、需求确认、制作与验收的逐步说明见[首次使用指南](docs/usage.zh-CN.md#第一次使用)，每一步均保留作用、操作和完成标志。
 
 需要少量风格一致的概念插图时，见[生图配置指南](skills/research-ppt/references/image-generation.md)，包含 Codex、Claude Code 和 API 三种方式。
