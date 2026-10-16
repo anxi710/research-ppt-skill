@@ -6,6 +6,14 @@ The current version is recorded in [SKILL.md](skills/research-ppt/SKILL.md)'s
 
 ## Unreleased
 
+## 0.4.2 - 2026-10-16
+
+### Documentation
+
+- Add concise API image-generation setup to both READMEs, distinguish available
+  built-in/tools from external-service setup, and clarify environment inheritance
+  and the separate image-model parameter.
+
 ## 0.4.1 - 2026-10-16
 
 ### Fixed

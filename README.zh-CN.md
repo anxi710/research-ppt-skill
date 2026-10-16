@@ -51,13 +51,45 @@ Agent 会从主题或来源标题概括简短项目名，默认在 `./outputs/<p
 
 安装、需求确认、制作与验收的逐步说明见[首次使用指南](docs/usage.zh-CN.md#第一次使用)，每一步均保留作用、操作和完成标志。
 
-需要少量风格一致的概念插图时，见[生图配置指南](skills/research-ppt/references/image-generation.md)，包含 Codex、Claude Code 和 API 三种方式。
-
 ### 后续使用与维护
 
 - **新汇报或续作：** 新汇报用新工作区；已有汇报恢复原工作区，只确认变更。见[后续使用与维护](docs/usage.zh-CN.md#后续使用与维护)。
 - **更新与检查：** 在制作任务之间更新版本，并验证共享改动。详见[维护步骤](docs/usage.zh-CN.md#后续使用与维护)和[上游策略](docs/upstream.md)。
 - **查看具体命令：** [Agent 运行手册](docs/runbook.md)包含材料处理、渲染、审查和最终验收命令。
+
+## 可选生图配置
+
+先让 Agent 检查当前会话的实际生图工具，再决定是否配置 API：
+
+| 使用情况 | 是否需要额外配置 |
+|---|---|
+| Codex 当前会话已有内置 `imagegen` | 直接调用，无需另配图片 API key，使用宿主提供的额度。 |
+| Codex／Claude Code 已接入并认证生图工具或 MCP | 直接复用已有工具，无需重复配置。 |
+| 没有可用工具，或希望指定图片模型并通过 API 使用 | 配置图片服务的 SDK、API key 和图片模型。 |
+
+Claude Code 并不默认自带图片生成模型；Claude 登录或语言模型 API 配置不等于图片服务已配置。
+参见 [Codex 官方生图说明](https://learn.chatgpt.com/docs/image-generation)、
+[Claude 图片能力说明](https://support.claude.com/en/articles/9002504-can-claude-produce-images)
+和 [Claude Code MCP 指南](https://code.claude.com/docs/en/mcp)。
+
+需要自配 API 时，以 OpenAI Image API 为例，在选定的 Python 3.11 环境、准备启动 Agent 的 Bash 终端中执行：
+
+```bash
+python -m pip install openai
+read -rsp 'OpenAI API key: ' RESEARCH_PPT_IMAGE_API_KEY
+export OPENAI_API_KEY="$RESEARCH_PPT_IMAGE_API_KEY"
+unset RESEARCH_PPT_IMAGE_API_KEY
+export RESEARCH_PPT_IMAGE_MODEL="gpt-image-2.5-flare"
+```
+
+图片模型示例于 2026-10-16 按[官方指南](https://developers.openai.com/api/docs/guides/image-generation)核验，以账号可用模型和额度为准。
+模型变量供 Agent 显式传入图片 API 请求，不会切换 Agent 主模型。随后从同一终端启动 Agent；已运行或 GUI 会话须能继承这些环境变量。密钥不写入仓库。这些配置步骤不会生成图片或发起付费请求。
+
+需要通过 API 生图时，可把下面的话交给 Agent：
+
+> 读取 `./skills/research-ppt/references/image-generation.md`。本次通过已配置的 Image API 生图，从 `RESEARCH_PPT_IMAGE_MODEL` 读取并显式传入图片模型。只为本次汇报生成必要的概念插图，沿用已确认风格，保存到本次私有工作区的 `assets/generated/`，登记生成信息并检查。
+
+完整 Python 调用示例、Claude Code 工具接入及素材复核见[生图配置指南](skills/research-ppt/references/image-generation.md)。
 
 ## 仓库内容
 

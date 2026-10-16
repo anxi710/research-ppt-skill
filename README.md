@@ -1,7 +1,7 @@
 # Research PPT Skill
 
 <p align="center">
-  <a href="CHANGELOG.md"><img src="https://img.shields.io/static/v1?label=Skill&amp;message=v0.4.1&amp;color=2563eb" alt="Skill v0.4.1" height="20"></a>
+  <a href="CHANGELOG.md"><img src="https://img.shields.io/static/v1?label=Skill&amp;message=v0.4.2&amp;color=2563eb" alt="Skill v0.4.2" height="20"></a>
   <a href="skills/research-ppt/references/environment-setup.md"><img src="https://img.shields.io/badge/Python-3.11-3776AB?logo=python&amp;logoColor=white" alt="Python 3.11" height="20"></a>
   <a href="https://github.com/anxi710/research-ppt-skill/actions/workflows/ci.yml"><img src="https://github.com/anxi710/research-ppt-skill/actions/workflows/ci.yml/badge.svg?branch=main" alt="Validate skill" height="20"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License: MIT" height="20"></a>
@@ -86,13 +86,46 @@ The agent selects and installs the template, checks the actual renders and repai
 readability defects before delivery.
 See [production handoff](skills/research-ppt/references/production-handoff.md).
 
-Optional concept illustrations: see the [Codex, Claude Code and API image generation guide](skills/research-ppt/references/image-generation.md) (Chinese setup steps).
-
 ### Ongoing use and maintenance
 
 Use a new workspace for each new talk; resume an existing talk from its saved records.
 Update the skill/backend between jobs and validate reusable changes. Follow the
 [maintenance scenarios](docs/usage.md#ongoing-use-and-maintenance) for the relevant steps.
+
+## Optional image generation setup
+
+Concept illustrations are optional. The agent checks its available tools before choosing a setup:
+
+| Available capability | Configuration needed |
+|---|---|
+| Codex session with a built-in image generation tool | No separate image API key; use the host's access and usage limits. |
+| Either agent with an authorized image tool or MCP service | Reuse that service's existing configuration. |
+| No image tool, or a specific external model/account is required | Configure an external image service and its credentials. |
+
+[Codex image generation](https://learn.chatgpt.com/docs/image-generation) depends on the session's actual tools. Claude Code sign-in alone does not provide an image generation service; connect an image tool through [MCP](https://code.claude.com/docs/en/mcp) or configure an API. See [Claude's image capabilities](https://support.claude.com/en/articles/9002504-can-claude-produce-images).
+
+For an OpenAI image API, activate your Python 3.11 environment and run this in the Bash terminal from which you will start the agent:
+
+```bash
+python -m pip install openai
+read -rsp 'OpenAI API key: ' RESEARCH_PPT_IMAGE_API_KEY
+export OPENAI_API_KEY="$RESEARCH_PPT_IMAGE_API_KEY"
+unset RESEARCH_PPT_IMAGE_API_KEY
+export RESEARCH_PPT_IMAGE_MODEL="gpt-image-2.5-flare"
+```
+
+Choose an image model available to your API account. `RESEARCH_PPT_IMAGE_MODEL` is a convention for the agent to read and explicitly pass in its API request; it is neither a global Codex/Claude Code setting nor an automatic helper switch. It does not change the main agent model.
+
+An already-running or GUI agent must inherit the same environment. Keep keys out of Git; API billing belongs to the configured API account. These setup commands do not request or generate an image.
+
+For API generation, give the agent this instruction:
+
+> Read `./skills/research-ppt/references/image-generation.md`. This report uses the
+> configured Image API; read `RESEARCH_PPT_IMAGE_MODEL` and pass it explicitly in the
+> API request. Generate only concept illustrations needed for this report, match the
+> deck's style, save them in its private `assets/generated/`, and record and inspect them.
+
+See the [full configuration guide](skills/research-ppt/references/image-generation.md) for Python and MCP examples, and the official [image API guide](https://developers.openai.com/api/docs/guides/image-generation) for current models and access requirements.
 
 ## Workflow and files
 

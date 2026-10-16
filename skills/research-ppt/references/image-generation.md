@@ -10,8 +10,9 @@ illustrations distinct. Never generate or redraw empirical evidence, fabricate a
 benchmark interface, or give a generated image a paper citation.
 
 Before use, discover the host's actual image tools and read their current instructions.
-Prefer an available native tool; otherwise use an already configured provider/API
-within the user's authorized data and spending scope. Configuration guidance alone
+Honor an explicit provider/API choice; otherwise prefer an available native tool,
+then an already configured provider/API within the user's authorized data and spending
+scope. Configuration guidance alone
 does not authorize installation, credential changes, uploads or paid test calls.
 If unavailable, report the capability gap and use source images or native diagrams.
 
@@ -39,8 +40,12 @@ clutter before handoff; inspect its crop and legibility again in the final PPTX.
 | Claude Code 工具调用 | 使用 Claude Code，已有可用生图 MCP，或允许 Bash 调用图片 API | 真实 MCP 服务，或下节的 Python SDK 与 API key |
 | 直接调用图片 API | 希望明确指定模型、参数、输出与费用归属 | 官方 SDK、`OPENAI_API_KEY`、账号可用的图片模型 |
 
-**能力与模型核验日期：2026-10-15。** 模型、工具和账号权限会变化，配置前应重查下方官方来源。
+**能力与模型核验日期：2026-10-16。** 模型、工具和账号权限会变化，配置前应重查下方官方来源。
 本 skill 不附带生图服务、MCP 服务或 API 凭证，也不会因为读取本指南就自动安装或付费调用。
+
+Codex 当前会话已提供内置生图时，不需要另配图片 API key；Claude Code 已接入并认证
+可用生图工具时也无需重复配置。Claude Code 本身不默认附带图片生成模型；只有语言
+模型登录或 API key，不能据此认定图片生成可用。先检查实际工具，缺少时再配置外部服务。
 
 ## Codex：优先使用已有 imagegen
 
@@ -52,15 +57,17 @@ clutter before handoff; inspect its crop and legibility again in the final PPTX.
 > 品牌或人物身份。将图片保存到本次私有工作区的 assets/generated/，登记生成信息并检查。
 
 官方文档支持在交互会话中用 `$imagegen` 显式调用；文档当前说明内置生图使用
-`gpt-image-2`。工具的实际可用性以当前会话为准，内置图片模型由宿主管理；改变 Codex
+`gpt-image-2` 并计入 Codex 使用额度，无需另配图片 API key。工具的实际可用性以当前会话为准，内置图片模型由宿主管理；改变 Codex
 主模型不等于切换图片模型。若缺少工具，可采用下方 API 路径，不能假设存在
 `codex image` 之类的命令。[Codex 官方生图说明](https://learn.chatgpt.com/docs/image-generation)
 
 ## Claude Code：通过工具或 API 生图
 
-Claude Code 可以编排外部工具；这里使用图片服务来产出像素文件，不把 Claude 的普通
-文本回复当作图片生成接口。最少配置的做法是在已授权的 Bash 工具中运行下节 Python
-示例，使用相同的 `OPENAI_API_KEY` 环境变量。无需为了单次调用额外安装 MCP。
+Claude 本身不生成照片或插画；Claude Code 可以编排外部图片工具。已有可用且已认证的
+生图工具/MCP 时直接复用，不必重新配置。没有时可在已授权的 Bash 工具中运行下节
+Python 示例，使用图片服务的 `OPENAI_API_KEY` 环境变量；无需为了单次调用额外安装
+MCP。Claude 的登录、订阅或语言模型 API 认证不代替图片服务所需的认证。
+[Claude 官方图片能力说明](https://support.claude.com/en/articles/9002504-can-claude-produce-images)
 
 若已经选定一个可信、实际存在的生图 MCP 服务，按该服务的安装说明配置，不能把
 `/v1/images/generations` API 地址直接当成 MCP 地址。下面只是本地 stdio 服务的配置形状，
@@ -92,12 +99,19 @@ python -m pip install --upgrade openai
 read -rsp 'OpenAI API key: ' RESEARCH_PPT_API_KEY
 export OPENAI_API_KEY="$RESEARCH_PPT_API_KEY"
 unset RESEARCH_PPT_API_KEY
+export RESEARCH_PPT_IMAGE_MODEL="gpt-image-2.5-flare"
 ```
 
 当前官方图片指南列出 `gpt-image-2.5-flare` 与 `gpt-image-2.5-sunburst`；下面使用前者。
 先确认账号有相应权限和费用额度；模型 ID 是图片模型，不是 Codex 或 Claude 的主模型。
 单张概念插图可以直接使用 Image API，复杂多轮流程也可使用 Responses 的生图工具。
 [官方图片指南](https://developers.openai.com/api/docs/guides/image-generation)
+
+`RESEARCH_PPT_IMAGE_MODEL` 是本示例向脚本 `--model` 参数传值的环境变量，不是自动
+开启生图或切换 Agent 主模型的配置项。在准备启动 Agent 的同一终端设置这些变量，再
+从该终端启动 Agent。已运行或 GUI 启动的会话须确认其工具进程能继承相同环境；确认
+时只检查变量是否存在，不输出密钥。第三方服务须按其官方文档核对图片端点、鉴权、
+模型与返回格式，不能仅配置语言模型接口就认定图片 API 可用。
 
 把下面示例保存为本次私有工作区中的 `generate_concept.py`，准备一个 UTF-8
 `prompt.txt`。脚本每运行一次都会请求生成一张图片；仅在授权调用后运行：
@@ -145,7 +159,7 @@ args.out.with_suffix(".provenance.json").write_text(
 例如在该私有工作区目录中运行：
 
 ```bash
-python generate_concept.py --model gpt-image-2.5-flare \
+python generate_concept.py --model "$RESEARCH_PPT_IMAGE_MODEL" \
   --prompt prompt.txt --out assets/generated/background-01.png
 ```
 
@@ -171,6 +185,8 @@ python generate_concept.py --model gpt-image-2.5-flare \
 
 ## 核验范围
 
-本指南编写时只读核验了当前会话的生图工具可见性、Codex CLI 0.162.1 和 Claude Code
-2.1.300 的 MCP 配置帮助，以及示例 Python 的离线语法。没有安装 SDK/MCP、设置真实
-密钥或调用付费模型；具体服务连接、账户模型权限和生成效果需在使用时验证。
+2026-10-16 已重新阅读官方 Codex 生图说明、Claude 图片能力与 MCP 文档、OpenAI
+Image API 指南及接口示例；本会话也实际提供生图工具。此前只读核验过 Codex CLI
+0.162.1、Claude Code 2.1.300 的 MCP 帮助和示例 Python 的离线语法。以上不等于对
+其他安装环境的连接测试；没有为本次文档更新安装 SDK/MCP、设置真实密钥或调用付费
+模型。服务连接、账户权限和生成效果仍在实际使用时验证。
