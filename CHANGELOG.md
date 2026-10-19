@@ -6,6 +6,15 @@ The current version is recorded in [SKILL.md](skills/research-ppt/SKILL.md)'s
 
 ## Unreleased
 
+### Tests
+
+- Run the opt-in real PPTX render tests in a separate Linux CI job with LibreOffice
+  and open fallback fonts; an explicitly requested render run fails if the renderer
+  is missing. Retain synthetic PDFs, PNGs, reports and logs for inspection.
+- Extend synthetic rendering coverage to mixed Chinese/English text, main-section
+  labels, interleaved hidden backups, page order and output fingerprints. This is
+  helper-path regression coverage, not backend template or visual-quality acceptance.
+
 ## 0.4.2 - 2026-10-16
 
 ### Documentation

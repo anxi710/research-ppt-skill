@@ -19,3 +19,36 @@ jobs:
       - run: python -m pip install -r requirements.txt
       - run: python -m unittest discover -s tests -v
       - run: python scripts/check_repo.py
+  render:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      RUN_RENDER_TESTS: '1'
+      RENDER_TEST_ARTIFACTS: ${{ github.workspace }}/qa/render-regression
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: false
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+      - name: Install real renderer and open fallback fonts
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y libreoffice-impress fonts-noto-cjk fonts-liberation
+          command -v libreoffice || command -v soffice
+          libreoffice --version
+          fc-match 'Times New Roman'
+          fc-match 'Microsoft YaHei'
+      - run: python -m pip install -r requirements.txt
+      - name: Run real PPTX render regressions
+        run: PYTHONPATH=tests python -m unittest test_decktools.RenderTests -v
+      - name: Retain synthetic render evidence (also on failure)
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: synthetic-pptx-render
+          path: ${{ env.RENDER_TEST_ARTIFACTS }}
+          if-no-files-found: warn
+          retention-days: 7
