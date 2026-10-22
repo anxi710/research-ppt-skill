@@ -26,6 +26,7 @@ class WorkflowTests(unittest.TestCase):
         self.assertEqual(brief['intake_confirmation']['user_response'],'')
         self.assertEqual(brief['presentation_type'],'research_report')
         self.assertEqual(brief['detail_level'],'detailed')
+        self.assertFalse((project/'state.json').exists())
         self.assertEqual(w.preflight_report(project)['status'],'fail')
     def init_command(self, request_dir, *extra):
         return subprocess.run([sys.executable,w.__file__,'init',
@@ -42,6 +43,14 @@ class WorkflowTests(unittest.TestCase):
         self.assertEqual(brief['output_files']['pptx'],'exports/synthetic-source.pptx')
         self.assertEqual(brief['output_files']['speaker_notes'],'exports/synthetic-source-notes.md')
         self.assertEqual(brief['intake_confirmation']['status'],'pending')
+        self.assertEqual(brief['design_mode'],'academic_navigator')
+        self.assertIn('Academic Navigator deck template',brief['style_intent'])
+        style=d.load(project/'design/style_profile.json');reference=style['template_reference']
+        self.assertEqual(reference['status'],'selected')
+        self.assertIs(reference['applied'],False)
+        self.assertEqual(Path(reference['root']),w.BUILTIN_TEMPLATE_ROOT.resolve())
+        self.assertTrue((Path(reference['root'])/reference['spec']).is_file())
+        self.assertEqual(w.design_contract_errors(brief,style),[])
     def test_init_unicode_name_stays_local_and_collisions_preserve_talks(self):
         request_dir=Path(self.tmp.name)/'request';request_dir.mkdir()
         result=self.init_command(request_dir,'--name','../中文 / 方法:讲解?')
@@ -148,7 +157,7 @@ class WorkflowTests(unittest.TestCase):
         self.assertNotIn('detail_level',snapshot)
     def test_invalid_report_choices_fail_intake_cleanly(self):
         path=self.project/'brief.json';original=d.load(path)
-        for key in ['presentation_type','detail_level']:
+        for key in ['presentation_type','detail_level','design_mode']:
             for value in [None,'','unsupported',[],{}]:
                 with self.subTest(key=key,value=value):
                     brief=copy.deepcopy(original);brief[key]=value;d.write(path,brief)
@@ -186,7 +195,6 @@ class WorkflowTests(unittest.TestCase):
                  'review_status':'verified'}]
         d.write(project/'analysis/evidence.json',{'claims':claims})
         style=d.load(project/'design/style_profile.json');style['review_status']='verified'
-        style['template_reference']['status']='selected'
         style['section_navigation']['sections']=[{'id':'comparison','label':'Synthetic comparison'}]
         d.write(project/'design/style_profile.json',style)
         plan=d.load(self.project/'design/slide_plan.json')
@@ -209,6 +217,71 @@ class WorkflowTests(unittest.TestCase):
         self.assertIn('research_report',(handoff_dir/'handoff.md').read_text())
         (project/brief['sources'][2]['path']).write_text('condition,illustrative_sum\nsynthetic_only,6\n')
         self.assertTrue(w.contract_errors(project,handoff_dir))
+    def test_coverage_rejects_invalid_shape_references_and_visibility(self):
+        path=self.project/'design/slide_plan.json';plan=d.load(path)
+        row={'topic':'Synthetic arithmetic','source_ids':['S1'],'slide_ids':['P01'],'disposition':'main'}
+        invalid=[None,{},[None]]
+        invalid += [[{**row,**change}] for change in [
+            {'topic':''},{'source_ids':'S1'},{'source_ids':[{}]},{'source_ids':['S404']},
+            {'source_ids':['S1','S1']},{'slide_ids':None},{'slide_ids':[{}]},
+            {'slide_ids':['P404']},{'slide_ids':['P01','P01']},{'slide_ids':[]},
+            {'disposition':[]},{'disposition':'unknown'},{'slide_ids':['P02']},
+            {'disposition':'backup'},{'disposition':'main_and_backup'},
+            {'disposition':'excluded','rationale':''},{'disposition':'source_gap'}]]
+        for coverage in invalid:
+            with self.subTest(coverage=coverage):
+                plan['coverage']=coverage;d.write(path,plan)
+                report=w.preflight_report(self.project)
+                self.assertEqual(report['status'],'fail')
+                self.assertTrue(any('Coverage' in error for error in report['errors']))
+        with self.assertRaisesRegex(ValueError,'Coverage'):
+            w.handoff(Namespace(project=self.project,run_id='invalid-coverage'))
+        self.assertFalse((self.project/'handoff/invalid-coverage').exists())
+    def test_coverage_accepts_main_backup_notes_and_reasoned_omissions(self):
+        path=self.project/'design/slide_plan.json';plan=d.load(path)
+        plan['coverage']=[{'topic':'Synthetic arithmetic','source_ids':['S1'],
+                          'slide_ids':ids,'disposition':disposition}
+                         for disposition,ids in [('main',['P01']),('backup',['P02']),
+                                                 ('main_and_backup',['P01','P02']),('notes',['P02'])]]
+        plan['coverage'] += [{'topic':'Synthetic omitted topic','source_ids':[],'slide_ids':[],
+                             'disposition':disposition,'rationale':'Outside the synthetic teaching scope.'}
+                            for disposition in ['excluded','source_gap']]
+        d.write(path,plan)
+        self.assertEqual(w.preflight_report(self.project)['status'],'pass')
+    def test_optional_coverage_and_output_files_remain_optional_for_legacy(self):
+        brief=d.load(self.project/'brief.json');brief.pop('output_files');d.write(self.project/'brief.json',brief)
+        state=self.project/'state.json';state.write_text('Synthetic legacy state; preserve as supplied.\n')
+        self.assertNotIn('coverage',d.load(self.project/'design/slide_plan.json'))
+        self.assertEqual(w.preflight_report(self.project)['status'],'pass')
+        w.handoff(Namespace(project=self.project,run_id='legacy-no-output-paths'))
+        self.assertEqual(state.read_text(),'Synthetic legacy state; preserve as supplied.\n')
+    def test_output_files_reject_invalid_shapes_escapes_and_aliases(self):
+        path=self.project/'brief.json';brief=d.load(path)
+        outside=Path(self.tmp.name)/'outside';outside.mkdir()
+        (self.project/'outside-link').symlink_to(outside,target_is_directory=True)
+        (self.project/'exports-link').symlink_to(self.project/'exports',target_is_directory=True)
+        invalid=[None,[],{'':'exports/test.pptx'},{'pptx':''},{'pptx':[]},
+                 {'pptx':str(self.project/'exports/absolute.pptx')},{'pptx':'../outside/test.pptx'},
+                 {'pptx':'outside-link/test.pptx'},{'pptx':'exports'},
+                 {'pptx':'exports/test.pptx','pdf':'exports/../exports/test.pptx'},
+                 {'pptx':'exports/test.pptx','pdf':'exports-link/test.pptx'}]
+        for outputs in invalid:
+            with self.subTest(outputs=outputs):
+                brief['output_files']=outputs;d.write(path,brief)
+                report=w.preflight_report(self.project)
+                self.assertEqual(report['status'],'fail')
+                self.assertTrue(any('Delivery:' in error for error in report['errors']))
+        with self.assertRaisesRegex(ValueError,'Delivery:'):
+            w.handoff(Namespace(project=self.project,run_id='invalid-output-paths'))
+        self.assertFalse((self.project/'handoff/invalid-output-paths').exists())
+    def test_output_files_accept_user_paths_before_files_exist(self):
+        path=self.project/'brief.json';brief=d.load(path)
+        brief['output_files']={'pptx':'自定目录/汇报.pptx','pdf':'preview.pdf','speaker_notes':'notes/讲稿.md'}
+        d.write(path,brief)
+        self.assertEqual(w.preflight_report(self.project)['status'],'pass')
+        self.assertFalse((self.project/'自定目录').exists())
+        w.handoff(Namespace(project=self.project,run_id='custom-output-paths'))
+        self.assertEqual(d.load(self.project/'handoff/custom-output-paths/brief.json')['output_files'],brief['output_files'])
     def test_evidence_metadata_does_not_reopen_intake(self):
         path=self.project/'brief.json';brief=d.load(path)
         brief['sources'][0]['version']='synthetic version clarified, same supplied bytes'

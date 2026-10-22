@@ -291,7 +291,7 @@ class VisualContractTests(unittest.TestCase):
         self.assertIn('body',style['typography']['roles'])
         self.assertEqual(style['section_navigation'],{'enabled':True,'sections':[],
                                                       'exempt_slide_ids':['P01'],'active_indicator':'fill_only',
-                                                      'scope':'main_talk','tab_gap_px':16})
+                                                      'scope':'main_talk','tab_gap_px':16,'width_mode':'content'})
         self.assertEqual(style['design_contract'],{'version':1,'mode':'academic_navigator'})
         self.assertEqual(d.load(project/'brief.json')['design_contract_version'],1)
         self.assertEqual(style['external_visuals'],{
@@ -305,7 +305,7 @@ class VisualContractTests(unittest.TestCase):
         self.assertEqual(Path(reference['root']),Path(w.__file__).resolve().parents[1]/'assets/academic-navigator')
         self.assertTrue((Path(reference['root'])/reference['spec']).is_file())
         self.assertEqual(reference['kind'],'deck')
-        self.assertEqual(reference['status'],'pending_default')
+        self.assertEqual(reference['status'],'selected')
         self.assertIs(reference['applied'],False)
         # A supplied reference must not be recorded as choosing the built-in root.
         supplied=Path(self.tmp.name)/'synthetic-reference.svg'

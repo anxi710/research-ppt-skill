@@ -1,12 +1,11 @@
 ---
 name: research-ppt
 description: >
-  Prepare detailed research-report PPTs from supplied papers, notes, reports and
-  experimental results, and review or revise their final artifacts. Use for integrated
-  topic reports, paper talks, journal clubs, literature reviews, research progress
-  reports and scientific method tutorials. Own evidence, audience prerequisites, narrative,
-  style, original figures, production handoff and independent post-production QA;
-  delegate actual slide authoring and export to the current ppt-master backend.
+  Prepare research presentations from supplied papers, notes, reports and results.
+  Review and revise their final files. Use for research reports, paper talks,
+  journal clubs, literature reviews, progress reports and scientific tutorials.
+  Own evidence, audience, narrative, style, figures, handoff and independent review.
+  delegate slide authoring and export to the current ppt-master backend.
 license: MIT
 metadata:
   version: "0.4.2"
@@ -14,309 +13,214 @@ metadata:
 
 # Research PPT
 
-Requires a tool-capable agent with file access, image inspection and code execution;
-production also requires ppt-master and a real PPTX renderer.
+This skill requires file access, image inspection and code execution.
+Production also requires ppt-master and a real PPTX renderer.
+This skill owns preparation and independent review.
+ppt-master is the backend that produces the slides.
+Follow its current instructions and required approval steps.
+Do not build another slide production engine.
+Keep accepted research claims unchanged.
 
-## Mission and boundaries
+Follow user requirements before defaults.
+If the user does not specify the talk type, propose `research_report` with `detail_level: detailed`.
+Organize the report around the research question.
+A single source is enough.
+Keep the requested scope for paper talks, reviews, progress reports and tutorials.
+Detail means enough explanation, evidence and notes within the time budget.
+It does not require a fixed slide count or dense text.
+Repository maintenance does not start presentation intake.
 
-Deliver an accurate, teachable, visually coherent research talk—not only an outline.
-Own everything **before and after production**. ppt-master is the default production
-backend, not this skill's parent instruction system or a version-frozen exporter.
-Do not author a second production engine here. Backend expertise may refine page
-composition; source claims, target audience, figure identity, and accepted scope are
-not silently changed to make a layout easier.
+## Read by stage
 
-User requirements determine language, duration, structure, medium and style. Never
-hard-code an institution, brand, presenter, research topic, 21-page count or 27-minute
-length. Select defaults only for genuinely unspecified, low-risk choices and record
-them as proposed assumptions for intake confirmation. Do not ask again for information
-already supplied. Repository development and project-structure questions do not start
-a presentation intake.
+Before starting a stage, read its reference.
+Runtime instructions and scripts are inside this skill.
+Repository maintenance is separate and optional.
 
-For a research report based on supplied materials, organize the presentation around
-the research question or project, integrating relevant sources rather than following
-one paper's table of contents or making unrelated paper summaries. A single supplied
-file may also support a report; do not require multiple papers. Explicit paper-talk,
-review, progress-report and tutorial requests keep their intended scope. Propose
-`presentation_type: research_report` and `detail_level: detailed` for new unspecified
-briefs, then resolve them through intake. Detail means sufficient explanation and
-evidence, with rich notes and backups within the agreed time—not a fixed slide count.
-
-## Load only what the stage needs
-
-| Stage | Reference |
+| Work | Reference |
 |---|---|
-| Requested environment setup | `references/environment-setup.md` |
-| Intake, source reading and evidence | `references/preparation.md` |
-| Audience, structure, style and figures | `references/story-and-style.md` |
-| Optional concept images and Codex/Claude Code/API setup | `references/image-generation.md` |
-| Backend discovery and production delegation | `references/production-handoff.md` |
-| Final render, inspection, revisions and delivery | `references/review-and-revision.md` |
-| Compare a generated deck with the user's edited final | `references/reference-calibration.md` |
+| Intake, source reading and evidence | [preparation.md](references/preparation.md) |
+| Audience, narrative, style and figures | [story-and-style.md](references/story-and-style.md) |
+| Backend discovery, template application and handoff | [production-handoff.md](references/production-handoff.md) |
+| Final render, inspection, repair and delivery | [review-and-revision.md](references/review-and-revision.md) |
+| User supplies an edited final deck | [reference-calibration.md](references/reference-calibration.md) |
+| Optional concept images or image-service setup | [image-generation.md](references/image-generation.md) |
+| Requested environment setup | [environment-setup.md](references/environment-setup.md) |
 
-Accept relative or absolute paths supplied by the user. Repository-root examples use
-`./skills/research-ppt/SKILL.md` and `<path-to-material>`; resolve these against the
-request's working directory before changing directories. Resolve this skill's actual
-absolute directory before using bundled scripts; skill-local references resolve from
-that directory. Runtime scripts and references live inside this folder. Repository
-maintenance helpers are optional; a separately installed current ppt-master is also supported when the
-user supplies its path. Do not search unrelated home directories for credentials.
+## Workspace and scripts
 
-## Durable state and stage gates
+Before changing directories, resolve the request's working directory, supplied paths and this skill's real directory.
+Run bundled scripts by their resolved paths.
+Keep each talk in a private workspace.
+To resume a talk, use its saved files instead of initializing again.
+Do not overwrite accepted inputs, handoffs, reviews or earlier deliverables.
 
-Keep each talk in its own **private workspace**. Unless the user specifies a name or
-destination, summarize a short project name from the supplied topic/source title and
-use `./outputs/<project-name>/` relative to the request's working directory. Resolve
-that working directory before changing to the skill/backend installation. Pass the
-name via `init --name`; the helper makes it a safe filename, preserves Chinese and adds `-02`,
-`-03`, etc. for new talks with the same name. Capture the actual path printed by init;
-resume an existing talk at its original path. Explicit user names/paths take priority.
+For every new talk, run `scripts/workflow.py init`.
+Supply a short name based on the topic through `--name`.
+Supply the selected `--source` files, `--minutes`, `--language` and `--audience`.
+Ask for missing required values first.
+Do not invent values to satisfy the command arguments.
+The default workspace is `./outputs/<project-name>/` under the request's working directory.
+Use `--project` to set another location.
+Init handles safe names and duplicate names and prints the actual path.
 
-Within that workspace:
+A design contract records the accepted visual rules.
+A handoff is a fixed copy of the preparation files.
 
-```text
-brief.json                    # requirements, source fingerprints, intake confirmation
-analysis/evidence.json        # claims, source locators, conditions, uncertainty
-analysis/figure_manifest.json # assets and their original-source provenance
-analysis/backend.json         # actual backend path/revision, not a version constraint
-design/style_profile.json     # design decisions and their reference/assumption basis
-design/slide_plan.json        # page jobs, core visuals, reading order and speaker notes
-handoff/run-*/                # immutable preparation snapshot and production brief
-production/                  # backend-owned workspace; do not impose its schema
-qa/                          # machine audit, real renders, page reviews and issues
-exports/                     # accepted PPTX/PDF/notes and provenance
-state.json                    # stage, accepted artifacts, unresolved issues
-```
+| Files | Purpose |
+|---|---|
+| `brief.json` | Requirements, sources, output paths and real intake confirmation |
+| `analysis/evidence.json`, `analysis/figure_manifest.json` | Claims, locators and verified assets |
+| `analysis/backend.json` | Actual backend path/revision and document observations |
+| `design/style_profile.json`, `design/slide_plan.json` | Design contract, coverage, page jobs and notes |
+| `handoff/run-*/` | Fixed preparation and default-template copies |
+| `production/` | Backend-owned workspace |
+| `qa/`, `exports/` | Audits, actual renders, reviews and accepted deliverables |
 
-Restore from these files before resuming. Never infer completion from a previous
-assistant message or a successful export alone. Do not overwrite accepted inputs,
-previous snapshots, earlier QA or final versions.
-Default delivery filenames are `exports/<project-name>.pptx`,
-`exports/<project-name>-preview.pdf` and `exports/<project-name>-notes.md`, for requested
-formats only. Persist them as workspace-relative `output_files` in `brief.json` and
-pass them through the handoff. Keep prior revision files and review the exact delivered
-PPTX. `outputs/` is private job data, ignored in this repository and never published.
-The preview PDF is rendered from the final PPTX's visible slides; all-slide QA still
-includes hidden backups. Existing workspaces retain their saved `output_files`; new
-defaults do not rename accepted files.
+Preserve init's generated fields when filling requirements.
+JSON examples document the format.
+Do not replace real paths or contracts with a reduced example.
+Existing accepted workspaces retain their saved conventions and filenames.
 
-### 0. Agree on the presentation brief
+Use `python <skill-dir>/scripts/workflow.py --help` for arguments:
 
-Read the Intake procedure in `references/preparation.md` before evidence preparation.
-The helper's `init --name <project-name>` creates the default workspace's `brief.json`;
-`--project <private-workspace>` overrides its destination.
-`templates/brief.example.json` shows a complete synthetic brief before confirmation.
-Extract known requirements and check source availability, then ask only missing or
-contradictory essentials in small batches: audience/expertise and purpose, duration
-and Q&A, presentation type/depth, language, style/reference intent, structure/focus
-and requested deliverables.
-Offer concrete choices and explicit delegation where useful. Present a readable brief
-that distinguishes supplied requirements, proposed defaults and delegated decisions.
+| Command | Required use |
+|---|---|
+| `init` | Create each new workspace and defaults |
+| `intake` | Generate the requirement snapshot before recording actual acceptance |
+| `preflight` | Test preparation records before production |
+| `handoff` | Repeat preparation tests and create a fixed copy for the backend |
+| `review-init` | Link a pending review form to the final PPTX's rendered images |
+| `gate` | Test final records, file hashes and review coverage before delivery |
 
-**Gate:** Wait for the user's explicit acceptance before substantive evidence reading,
-story design or production, unless an actual prior instruction already authorizes
-proceeding with the stated requirements or delegates the necessary choices. Record
-that real response/directive and its requirement snapshot in `brief.json`; generic
-requests to make a PPT do not grant delegation. For resumed work, reuse the accepted
-brief and confirm only material changes. Parent intake does not waive backend gates.
+Run these commands instead of simulating their results in prose.
+Use `decktools.py --help` for optional extraction, crop, montage, PPTX audit and rendering helpers.
+The scripts test records, file contents and hashes, which identify file bytes for change detection.
+They cannot establish user consent or judge science and readability.
 
-### 1. Prepare the evidence
+## 1. Agree on the brief
 
-Inventory relevant supplied papers, reports, notes, result files, figures and existing
-slides; expand a supplied folder into explicit file paths for the helper. Read the
-selected sources in their exact versions. Notes summarizing another work are navigation,
-not verified substitutes for that original; a project report or result log can itself
-be a primary source for the user's work. Distinguish published evidence, user results,
-author interpretations, presenter analysis and synthetic teaching examples. Map each
-claim to its actual sources. Seek primary-source illustrations when they clarify the
-agreed background or benchmark concepts, even if the supplied paper has none; keep
-their provenance and contextual role separate. Respect source-only/offline/no-web
-constraints. Expanding the scientific claims or literature scope still needs an
-authorized source-gap resolution.
+Follow `references/preparation.md`.
+List the supplied materials before detailed evidence reading.
+Reuse known requirements.
+Ask only about missing or conflicting requirements: audience, purpose, duration/Q&A, language, scope/depth, style and outputs.
+Distinguish supplied requirements, proposed defaults and choices that the user delegates.
 
-Inspect original figure/table images, not just parsed text. Record definitions,
-units, axes, denominators, confidence intervals, intervention/control, sample size,
-compute budget, and the actual unit of a step/decision where relevant. Register
-contradictions; do not silently repair or reconcile them using background knowledge.
+Record the actual acceptance or an existing instruction that authorizes the choices and further work.
+Save that response with the requirement snapshot from `intake`.
+A generic request to make a PPT does not delegate decisions.
+When resuming, reuse accepted requirements.
+Obtain acceptance only for material changes without prior authorization.
+This acceptance does not replace the backend's required approvals.
 
-**Gate:** Every load-bearing factual claim has an exact source locator and its scope;
-no unresolved contradiction is hidden behind an unconditional slide title.
+## 2. Prepare evidence and design
 
-### 2. Design the talk and style
+Follow `references/preparation.md` and `references/story-and-style.md`.
+Read exact source versions.
+Inspect original figures and tables.
+Separate published findings, user results, author interpretations, presenter analysis and teaching examples.
+Record the source location and scope for each key claim.
+State contradictions and evidence gaps.
+Notes about a paper do not replace the original.
+Follow offline and source-only limits.
+If evidence is missing, obtain authorization before expanding scientific claims or the literature scope.
 
-Identify the central question and a small set of justified takeaways. Work backward
-from the audience's missing prerequisites. Teach only what is necessary to understand
-the key method and evidence. An empirical diagnostic paper need not pretend to have
-a new algorithm; a theory paper may center on an equation or counterexample rather
-than a chart. Literature reviews require synthesis, not a paper-by-paper dump.
+Build one coherent argument for this audience. Each page needs a job, core visual,
+evidence links, final `display_title`/`on_slide_text`, reading order, notes, duration
+and visible/backup status. Planning fields are not extra display copy.
+Record which topics the talk covers or excludes.
+Keep needed reasoning in the main talk.
+Put supporting detail in notes or hidden backup slides.
+Fit main slides to the speaking budget after Q&A.
 
-For a detailed integrated report, connect background, the research problem, necessary
-foundations, methods, results, comparisons, limitations and implications as supported
-by the materials. Include the user's progress/next steps only when supplied or clearly
-labelled as proposals. Follow `references/story-and-style.md` to record coverage and
-place supporting details in notes or true backups without omitting the main argument.
+For the default design, apply `assets/academic-navigator/`.
+Without `--template`, init sets `brief.design_mode: academic_navigator` and the matching versioned style contract.
+It also records the real template root/spec, `status: selected` and `applied: false`.
+Keep these fields.
+Selection does not approve the brief or prove that the backend applied the template.
 
-Each page has one question, one topic, one core visual or coherent panel group,
-source IDs, reading order, minimal display text, a scoped takeaway, speaker notes,
-planned duration and visible/backup status. Separate design from result when needed.
+The default separates the cover from the background explanation.
+Main-talk section tabs fit their labels and align with the title's left edge, with visible gaps and one active fill.
+Body pages have title dividers and bottom-right badges with the current page number.
+Font roles use Times New Roman and Microsoft YaHei.
+The default uses one native accent color and consistent groups of related content.
+Plan section labels, page mappings and exceptions from the actual talk.
+Read `references/story-and-style.md` and the generated profile for detailed rules.
 
-When no different style or template is supplied, select and apply the built-in
-`assets/academic-navigator/` template, not just its name or approximate colors:
-title-and-metadata-only cover, separate
-background, ordered section navigation with one active highlight and no redundant
-active underline, a line below each body title, and a lower-right background badge showing only the current physical page
-number. Group multiple passages by meaning with restrained frames or numbering;
-use consistent component dimensions/padding and clear, repeated gutters. Use
-fixed font roles with Times New Roman for English and Microsoft YaHei for Chinese,
-one native emphasis color and figure/table bodies without prose
-captions. These are skill defaults; explicit user style/template choices override them.
-Default style data and templates use `Times New Roman, Microsoft YaHei` for each
-native text role. Resolve the backend's actual Latin/CJK font mapping from its current
-instructions; a documented equivalent realization may differ in stack order. Confirm
-both installed faces and mixed-script line fit in final PPTX renders, not from stack
-order alone.
-Derive navigation labels from the actual talk rather than requiring five chapters.
-Record palette, fonts, chrome exceptions and layout patterns in the style profile.
-Follow `references/story-and-style.md` and the backend's current template contract.
-Extract visual rules from a supplied reference without copying its old names, dates,
-claims or logos. Never use decorative filler to eliminate whitespace.
-Enlarge/recompose the core visual first; preserve
-useful margins.
+If the user explicitly requests another style/template, set both brief and style modes to `user_override`.
+Record the actual instruction and reason.
+“Clean academic” or delegated design does not waive the default.
+Preserve accepted contracts from earlier workspaces.
 
-New workspaces carry `brief.design_contract_version: 1` and a
-`style.design_contract` with mode `academic_navigator`. Keep this contract when
-editing the generated files. Navigation starts enabled with no invented sections;
-resolve its main-talk labels, page mappings and cover exemptions during planning.
-Keep `scope: main_talk` and explicit `tab_gap_px`: hidden backups do not add chapter
-tabs, and adjacent tabs retain visible gaps rather than forming a dense strip. Resolve
-`template_reference.status` from `pending_default` to `selected`, preserving init's
-real root/spec paths. This records the template decision, not completed production.
-Unplanned navigation, pending template selection or missing default policies block
-handoff. Do not replace the generated profile with a smaller legacy example.
+Use original figure/table bodies.
+Keep prose captions in notes and local evidence.
+Retain axes, legends, units, uncertainty and interpretive context. Do not redraw or
+generate empirical plots. Native explanations and optional generated concept images
+must be distinguishable from evidence and retain source records. Match supplied references
+without copying old identities, claims or logos.
 
-An explicitly different user style/template can use `mode: user_override`, with
-`override.reason` and `override.user_instruction` recording its actual basis.
-Generic requests such as “make a group-meeting PPT”, “clean academic style”, or
-delegating design choices do not request an override. Existing workspaces retain
-their accepted contracts; do not silently migrate them or reuse an old talk's style
-as the default for a new one.
+Before production, make sure that `preflight` passes.
+Inspect the sources and assets.
+Make sure that the plan is teachable and fits the time budget.
+Valid metadata alone does not establish scientific or visual quality.
 
-Record a communication contract in the style profile and explicit
-`display_title`/`on_slide_text` in the page plan. Keep planning metadata out of display
-copy unless deliberately selected. Match a supplied final reference's terminology,
-citation placement and opening/closing/backup choices; inspect representative rendered
-pages before expanding. Full locators remain in notes even when bibliography is off-slide.
-The reference-calibration procedure distinguishes repeated preferences from content fixes
-and editor artifacts. It does not make one user's deck a universal template.
+## 3. Delegate production
 
-Prepare high-resolution original figures. Display the figure/table itself by default;
-remove the paper's surrounding caption and prose, retaining them with the original
-page in local evidence and speaker notes. Preserve data legends, axes, ticks, units,
-panel labels, statistical conditions and uncertainty needed to interpret it. Split
-panels only when the necessary legend and context remain attached. Original data
-plots must not be redrawn or generatively repaired. Native explanatory diagrams are
-allowed, clearly distinguished from evidence. A few style-matched generated concept
-illustrations may also help; follow `references/image-generation.md` for actual tool
-discovery, optional setup, provenance and review. Never use generation to recreate
-published plots, benchmark screenshots or empirical evidence.
+Follow `references/production-handoff.md`.
+Resolve the real ppt-master checkout.
+Read its current entry instructions before invoking it.
+For a new job, update its configured branch when network access and user scope permit.
+Record the actual revision and any update failure.
+Keep that revision stable for the run.
+Do not describe an unfetched checkout as latest.
 
-**Gate:** Sources and assets are available and checked; the talk has an audience-fit
-story and time budget; every page has a real job and planned core visual.
+Run `handoff` to create the fixed preparation copy.
+Pass its files and constraints through the backend's documented route.
+For the default, pass the copied template workspace's absolute root as an explicit template input.
+A style name alone can fall back to free design.
+Follow the backend's selection/install steps and required approvals.
+Read template prototypes only at the permitted stage.
+Keep source claims, scope, figure identity and accepted copy intact.
 
-### 3. Delegate production to current ppt-master
+Within the backend's allowed workflow, inspect representative explanation and dense-evidence pages before expanding the deck.
+Obtain a real PPTX and an accurate build receipt with paths, revision, commands and limitations.
+For default mode, also obtain the installed template's file records and its hashed `template_application` record.
+Installation is not visual approval.
 
-Resolve a real checkout. At the beginning of a new job, update the configured branch
-when network access and user scope permit. Record failures accurately; never call an
-unfetched checkout "latest". Record the actual revision for this job and do not update
-it midway through construction/review. Refreshing a backend is not a reason to refresh
-the paper version or its historical results.
+## 4. Review, repair and deliver
 
-Read the backend's current `AGENTS.md` and skill entry, follow its current documented
-route and required gates. Resolve script names, CLI flags, SVG format and template
-contract from those instructions. Do not forge its confirmations because our preparation exists.
-Pass our brief as source material and constraints, not as its internal design lock.
-Do not disable attribution, integrity, licensing or safety checks.
+Follow `references/review-and-revision.md`.
+Audit the final PPTX against the plan.
+Render it with a real PPTX renderer, including hidden backups.
+Run `review-init` to create the pending review form.
+Inspect every full slide and necessary crop.
+Record concrete observations.
+SVG previews, montages and backend tests do not replace inspection of the final PPTX.
 
-Create an immutable handoff with preparation files and checksums, source/asset paths,
-page requirements, notes and acceptance criteria. For the default mode, give the
-backend the exact template workspace root copied into the handoff. Follow its current
-template selection and installation route, including actual confirmations or existing
-delegation; a bare style name must not silently become free design. Inspect candidate
-metadata before its template gate and full prototypes only at the permitted stage.
-Record how the installed template supplies the accepted navigation, typography,
-page chrome and component patterns; layout adaptation preserves these binding rules.
-The backend should try representative
-method, dense-experiment and explanation pages before expanding. Obtain a build receipt:
-actual command/path/revision, output paths, source locations and limitations. Default
-mode also requires `template_application`: snapshot fingerprint, actual installed
-template files and a hashed application record. Never turn `applied` on to complete
-preparation or treat “referenced its style” as proof of application.
+Make sure that claims agree with sources.
+Inspect figure context, notes, fonts, navigation, page dividers, page badges, content groups and legibility at presentation size.
+For default mode, complete the template-application and projection-readability reviews.
+Never mark unseen pages passed.
 
-**Gate:** A real PPTX exists and the receipt accurately states what was used. Export
-success is not final acceptance.
+If evidence or the plan is wrong, repair the preparation files.
+Then create a new handoff.
+Send layout or export defects to ppt-master.
+Enlarge, split or rearrange unreadable evidence rather than shrinking all fonts.
+Render changed files again.
+Inspect the complete final deck.
+After structural changes, reconcile page order, topic coverage, backups, notes and time.
+Continue routine repairs within the accepted scope.
+Do not infer success from the number of retries.
 
-### 4. Independently inspect the produced deck
+Run `gate` against the final files.
+Resolve all errors that block delivery.
+A changed file or contract invalidates earlier approval.
+Do not rewrite hashes or copy pass values to pretend a new review occurred.
+If no renderer is available, label the output an unvalidated draft.
 
-Audit structural integrity, notes, hidden-slide flags and correspondence to the plan.
-Then render the **actual final PPTX**, including hidden backups, using a real PPTX
-renderer. SVG previews alone do not validate PPTX import/export or font substitution.
-Inspect the montage, every full slide and necessary figure crops at useful magnification.
-Judge the main deck at its intended presentation size: the audience must be able to
-read the explanation and key evidence without zooming. A readable source crop or
-passing machine audit does not establish readable placement on a slide. Follow the
-projection-readability procedure in `references/review-and-revision.md`, especially
-for dense tables, long text and evidence near navigation or footers.
-
-Check scientific claims/numbers/units/conditions against source evidence; inspect axes,
-legends, typography, editable text, clipping, stretching, visual density, source footers,
-notes, speaker timing and audience comprehension. Verify caption removal, consistent
-font roles and limited colors; when navigation is enabled, verify every applicable
-page's labels and active section. Inspect cover/body separation, title dividers,
-current-page badges and semantic text grouping against the accepted style. Compare
-peer box geometry, padding and gaps across pages; check that external context images
-are correctly attributed and do not imply evidence from the main paper. Backend
-self-checks do not replace this independent
-comparison to the preparation contract.
-For default-mode jobs, complete the pending `template_application` review from
-actual renders and the installed-template record. A template name, valid receipt
-or successful install alone cannot approve the resulting design.
-
-Record defects with slide ID, category, evidence or screenshot, severity, requested
-change and acceptance test. Pending/unviewed pages cannot be marked passed. Hashes
-bind records to artifacts but cannot certify that the reviewer understood the science.
-
-### 5. Repair at the correct layer and rerender
-
-For a factual/source issue, repair the evidence/plan and create a new handoff. For a
-visual/export issue, send a targeted request to ppt-master, preserving correct content
-and accepted style. If a figure is illegible, enlarge/split/recrop with context; do not
-shrink all fonts. If repeated local fixes fail, simplify the page structure or report
-the unresolved limitation. Never declare success just because retry budget was used.
-
-Regenerate, render, inspect affected pages and check whole-deck consistency. The final
-review must correspond to the final PPTX and latest contract. A changed file invalidates
-its old approval. Do not rewrite old hashes to pretend an old review was performed anew.
-Complete this repair loop before delivery without asking the user to identify routine
-readability defects. Batch related fixes, then independently inspect every page of the
-final rendered deck; reconcile page order, hidden backups, coverage and notes after
-splitting or moving pages. Unresolved material limitations require an honest status,
-not an approval inferred from elapsed effort or successful export.
-
-### 6. Deliver and learn
-
-Deliver the requested artifacts (normally PPTX, visible-slide PDF, speaker notes and
-source/provenance package). Verify that every path exists. Describe editable vs raster
-content honestly; paper images are not editable source-data charts. Timing is a plan,
-not a measured rehearsal. Missing render support means an explicitly unvalidated draft.
-
-Do not publish papers, private templates, logos, fonts or unpublished results merely
-because this skill is MIT. Extract only generalized, non-identifying lessons for future
-skill improvements; add synthetic regression fixtures rather than private decks.
-
-## Helper tools
-
-`python scripts/workflow.py --help` initializes the workspace, validates preparation,
-creates handoffs, seeds **pending** reviews and checks final gates.
-`python scripts/decktools.py --help` supplies optional material/render/audit helpers.
-These are deterministic preparation and verification tools—not an autonomous
-scientific judge or a replacement for ppt-master production.
+Deliver requested, existing files at the brief's `output_files`, normally
+`exports/<project-name>.pptx`, `exports/<project-name>-preview.pdf` and
+`exports/<project-name>-notes.md`. The preview contains visible slides only.
+Keep backups in the images for the full review.
+Explain which content is editable, which content is an image, and what limitations remain.
+Keep private papers, decks, identities, results, credentials and fonts out of public skill releases.
+Use synthetic fixtures to test skill improvements.

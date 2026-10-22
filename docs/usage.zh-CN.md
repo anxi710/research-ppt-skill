@@ -75,8 +75,8 @@ python scripts/upstream.py status
 未指定其他风格时，采用内置 Academic Navigator 模板，英文默认 Times New Roman、
 中文默认 Microsoft YaHei（微软雅黑），保持统一字号角色、单强调色、
 章节导航、信息封面、标题线、右下当前页码和图文分组；章节与布局随本次内容调整。
-可明确选择其他模板或风格，包括可选的
-[`academic-blue.json`](../skills/research-ppt/profiles/academic-blue.json)。
+导航按钮按最长标签确定等宽尺寸，与标题和正文左边界对齐，不会因栏目少而拉伸铺满页面。
+可明确选择其他模板或风格。
 “简洁学术”或“设计由你决定”本身不表示放弃默认模板。
 
 父技能先复用已有信息，只分批追问缺失或矛盾的关键要求，再展示易读的需求摘要。
@@ -120,7 +120,9 @@ python ./skills/research-ppt/scripts/workflow.py init \
 Agent 负责提供概括后的 `--name`；省略时，辅助脚本只回退到来源文件的文件名主体，
 不会做语义概括。用户提供文件夹时，Agent 先清点并选择能读取的相关材料，对每个选定文件
 重复传入 `--source`；该参数只接收文件，不接收目录。参考模板可加
-`--template /path/to/reference.pptx`。初始化仅复制文件、计算 SHA-256，不阅读或综合内容。
+`--template /path/to/reference.pptx`。不传此参数时，初始化会选择内置 Academic Navigator
+模板作为待确认的默认方案，不代表自由排版。新任务必须通过 `init` 创建，并保留生成的需求与样式约定。
+初始化仅复制文件、计算 SHA-256，不阅读或综合内容。
 
 普通来源初始角色为 `research_source`，参考模板为 `style_reference`。Agent 随后按实际用途
 调整每项来源的 `role`：`research_source`（研究来源）、`reading_note`（阅读笔记）、
@@ -150,6 +152,7 @@ Agent 负责提供概括后的 `--name`；省略时，辅助脚本只回退到�
 {
   "presentation_type": "research_report",
   "detail_level": "detailed",
+  "design_mode": "academic_navigator",
   "audience": "了解基础机器学习，但不熟悉本方向的 AI 研究人员",
   "target_minutes": 25,
   "qa_time_included": true,
@@ -157,12 +160,12 @@ Agent 负责提供概括后的 `--name`；省略时，辅助脚本只回退到�
   "language": "zh-CN",
   "purpose": "讲清研究问题、方法、证据、综合分析和个人进展",
   "sections": ["背景", "问题", "方法", "证据", "综合分析", "局限", "进展与下一步"],
-  "style_intent": "简洁学术，使用来源原图，正文少字，无机构标识",
+  "style_intent": "应用 Academic Navigator 模板，使用来源原图，正文少字，无机构标识",
   "deliverables": ["pptx", "pdf", "speaker_notes"]
 }
 ```
 
-这里的 25 分钟包含 5 分钟问答，因此正文讲述时间为 20 分钟。初始化默认的问答是否计时尚未确定，风格也待补充；汇报类型与详略同样是待接受的提议。Agent 可在确认前修改 `presentation_type` 和 `detail_level`，两项存在时会纳入需求快照。旧需求文件没有这两项仍然有效，不得为套用新默认值而静默改写。填好后再执行：
+这里的 25 分钟包含 5 分钟问答，因此正文讲述时间为 20 分钟。初始化默认的问答是否计时尚未确定；未提供模板时，会明确提议应用 Academic Navigator。模板、汇报类型与详略都须纳入需求确认。Agent 可在确认前修改 `presentation_type` 和 `detail_level`，这两项及 `design_mode` 存在时会纳入需求快照。旧需求文件没有这些字段仍然有效，不得为套用新默认值而静默改写。填好后再执行：
 
 ```bash
 python ./skills/research-ppt/scripts/workflow.py intake --project outputs/课题研究汇报
@@ -181,10 +184,11 @@ python ./skills/research-ppt/scripts/workflow.py intake --project outputs/课题
 
 **操作：** Agent 阅读材料、检查原图，建立证据和图表来源记录，按研究问题而非文件顺序组织叙事，完成风格和逐页方案。每条关键结论可追溯到具体来源，区分文献结论、自己的结果和汇报者分析；笔记可以辅助阅读，不能在缺少原文时充当已发表结论的证明。材料矛盾或证据缺失时明确标出。
 
-保留 `init` 生成的 `design_contract_version` 和样式约定。默认导航已开启，Agent 必须
-填写实际章节、页归属和封面豁免；保留模板绝对路径，将已决定采用的
-`template_reference.status` 记为 `selected`。导航未规划、模板仍待决或默认规范缺失时，
-预检会拒绝交接。不同风格仅依据真实用户选择记录 `user_override`，不把自由排版视为默认。
+保留 `init` 生成的 `design_contract_version`、`design_mode` 和一致的样式约定。默认导航已开启，Agent 必须
+填写实际章节、页归属和封面豁免；保留模板绝对路径及初始化的 `selected` 状态。
+这只是默认模板选择，不是用户或后端确认，`applied` 在实际制作前仍为 false。
+旧工作区的待决选择须在交接前解决。导航未规划或默认规范缺失也会阻止交接。
+不同风格仅依据真实用户选择，将 brief 与 style 中的模式同时改为 `user_override`。
 
 详细报告讲清必要背景、问题、机制与方法、证据、比较综合和局限；个人进展与下一步以所给材料为依据。正文适配约定讲述时间，支撑细节放入充分讲稿和真正隐藏的备答页，不固定页数，也不靠塞满文字增加详细程度。准备好后执行：
 
@@ -205,7 +209,8 @@ python ./skills/research-ppt/scripts/workflow.py handoff \
 
 **操作：** Agent 将交接材料映射到步骤 2 所记录版本的 ppt-master，完成其当前必经关卡，先检查代表页再扩展制作。导出后真实渲染最终 PPTX，逐页检查并修复，覆盖隐藏备答页；修改后的文件使用新的渲染和审查记录。
 
-默认路线把交接中的模板根目录交给后端，完成实际选择、安装及应用记录。
+默认路线把交接中的精确模板根目录作为明确的模板输入交给后端，完成实际选择、安装及应用记录；
+不能只传泛化的学术风格描述，因为后端可能将普通请求默认归入自由排版。
 制作回执保留模板指纹、实际安装文件及应用说明；独立审查从真实渲染核对新版设计。
 仅写模板名称、复制配色或把 `applied` 改成真值不能通过验收。
 

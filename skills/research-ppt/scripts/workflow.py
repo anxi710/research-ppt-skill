@@ -48,6 +48,48 @@ def positive(value: Any) -> bool:
     return type(value) in (int,float) and math.isfinite(value) and value > 0
 
 
+def navigation_layout(style: dict) -> dict | None:
+    """Budget one left-aligned tab group; old profiles retain their accepted geometry."""
+    navigation=style.get('section_navigation')
+    if not isinstance(navigation,dict) or 'width_mode' not in navigation:return None
+    if navigation['width_mode']!='content':
+        raise ValueError('section_navigation width_mode must be content when supplied')
+    if navigation.get('enabled') is not True:return None
+    sections=navigation.get('sections');gap=navigation.get('tab_gap_px')
+    if (not isinstance(sections,list) or not sections
+            or any(not isinstance(section,dict) or not nonempty(section.get('id'))
+                   or not nonempty(section.get('label')) for section in sections)):
+        raise ValueError('section_navigation content width requires sections with IDs and labels')
+    if not positive(gap):raise ValueError('section_navigation content width requires positive tab_gap_px')
+    typography=style.get('typography');roles=typography.get('roles') if isinstance(typography,dict) else None
+    role=roles.get('navigation') if isinstance(roles,dict) else None
+    size=role.get('font_size_px') if isinstance(role,dict) else None
+    if not positive(size):raise ValueError('section_navigation content width requires a positive navigation font_size_px')
+    labels=[f'{i:02d} {section["label"]}' for i,section in enumerate(sections,1)]
+    if any(any(char in label for char in '\r\n\t') for label in labels):
+        raise ValueError('section_navigation content labels must fit on one line')
+    # shortcut: character budgets are not font metrics; use backend measurement and final renders to confirm fit.
+    widths=[sum(0 if unicodedata.combining(char) else
+                1 if unicodedata.east_asian_width(char) in {'W','F'} else 0.65
+                for char in label)*size for label in labels]
+    budget=max(widths)+48
+    if not math.isfinite(budget) or budget>1184:
+        raise ValueError('section_navigation content width exceeds 1184 px; shorten labels or reduce sections without shrinking fonts')
+    width=max(128,math.ceil(budget/8)*8)
+    total=len(sections)*width+(len(sections)-1)*gap
+    if total>1184:
+        raise ValueError('section_navigation content width exceeds 1184 px; shorten labels or reduce sections without shrinking fonts')
+    left=48
+    return {'source':'section_navigation.sections and typography.roles.navigation',
+            'reference_canvas':{'width':1280,'height':720},
+            'width_budget_note':'Align the group with the title at x48 and leave unused space on the right. Character widths reserve space; verify the actual font and final PPTX render. Scale all coordinates with the canvas.',
+            'font_size_px':size,'padding_x_px':24,'tab_gap_px':gap,
+            'group':{'x':left,'y':20,'width':total,'height':44},
+            'tabs':[{'section_id':section['id'],'text':label,'x':left+i*(width+gap),'y':20,
+                     'width':width,'height':44,'text_x':left+i*(width+gap)+width/2,'text_y':48}
+                    for i,(section,label) in enumerate(zip(sections,labels))]}
+
+
 def communication_contract_errors(style: dict) -> list[str]:
     """Version the optional communication rules without invalidating legacy styles."""
     if 'communication_contract' not in style:return []
@@ -103,14 +145,16 @@ def template_files(root: Path, spec: str) -> dict[str, Path]:
 
 def design_contract_errors(brief: dict, style: dict, *, template_snapshot: Path | None=None) -> list[str]:
     """New jobs cannot silently downgrade to a legacy or unresolved design profile."""
-    if 'design_contract_version' not in brief:return []
+    if 'design_contract_version' not in brief and 'design_mode' not in brief:return []
     errors=[];contract=style.get('design_contract')
-    if type(brief['design_contract_version']) is not int or brief['design_contract_version']!=1:
+    if type(brief.get('design_contract_version')) is not int or brief['design_contract_version']!=1:
         errors.append('Design contract: brief design_contract_version must be 1')
     if (not isinstance(contract,dict) or type(contract.get('version')) is not int
             or contract.get('version')!=1 or not isinstance(contract.get('mode'),str)
             or contract.get('mode') not in DESIGN_MODES):
         return errors+['Design contract: style requires version 1 and mode academic_navigator or user_override']
+    if 'design_mode' in brief and brief['design_mode']!=contract['mode']:
+        errors.append('Design contract: brief design_mode must match style design_contract.mode')
     if contract['mode']=='user_override':
         override=contract.get('override')
         if not isinstance(override,dict) or not all(nonempty(override.get(key)) for key in ['reason','user_instruction']):
@@ -214,6 +258,8 @@ def visual_style_errors(style: dict, slides: list[dict]) -> list[str]:
                       and slide.get('id') not in exempt and nonempty(slide.get('section_id'))}
                 for sid in sorted(section_ids-used):
                     errors.append(f'Style: main_talk navigation section {sid!r} has no visible non-exempt slide')
+    try:navigation_layout(style)
+    except ValueError as exc:errors.append(f'Style: {exc}')
     typography=style.get('typography')
     if isinstance(typography,dict) and 'roles' in typography:
         roles=typography['roles']
@@ -368,7 +414,8 @@ def intake_requirements(brief: dict) -> dict:
     result={key:brief.get(key) for key in INTAKE_FIELDS}
     # Preserve accepted legacy briefs that predate these choices without rewriting them.
     result.update({key:brief[key] for key in PRESENTATION_CHOICES if key in brief})
-    if 'design_contract_version' in brief:result['design_contract_version']=brief['design_contract_version']
+    for key in ['design_contract_version','design_mode']:
+        if key in brief:result[key]=brief[key]
     result['sources']=[{key:src.get(key) for key in ['id','sha256','role']}
                        for src in brief.get('sources',[])]
     return copy.deepcopy(result)
@@ -376,6 +423,8 @@ def intake_requirements(brief: dict) -> dict:
 
 def intake_errors(brief: dict, *, require_confirmation: bool=True) -> list[str]:
     errors=[]
+    if 'design_mode' in brief and (not isinstance(brief['design_mode'],str) or brief['design_mode'] not in DESIGN_MODES):
+        errors.append('Intake: invalid design_mode; choose academic_navigator or user_override')
     for key,choices in PRESENTATION_CHOICES.items():
         if key in brief and (not isinstance(brief[key],str) or brief[key] not in choices):
             errors.append(f'Intake: invalid {key}; choose from {", ".join(sorted(choices))}')
@@ -474,11 +523,14 @@ def init(args: argparse.Namespace) -> int:
         sources.append({'id':'STYLE','path':str(dest.relative_to(root)),
                         'original_name':args.template.name,'sha256':sha256(dest),'role':'style_reference'})
     brief={**presentation,'design_contract_version':1,'project_name':name,
+           'design_mode':'user_override' if args.template else 'academic_navigator',
            'output_files':{'pptx':f'exports/{name}.pptx','pdf':f'exports/{name}-preview.pdf',
                            'speaker_notes':f'exports/{name}-notes.md'},
            'language':args.language,'audience':args.audience,'target_minutes':args.minutes,
            'qa_time_included':None,'qa_minutes':0,'purpose':'research_talk','sections':[],
-           'style_intent':'','deliverables':['pptx','pdf','speaker_notes'],
+           'style_intent':('' if args.template else
+                           'Apply the built-in Academic Navigator deck template, including its prototypes, navigation, typography and page chrome.'),
+           'deliverables':['pptx','pdf','speaker_notes'],
            'intake_confirmation':{'status':'pending','user_response':'','requirements':{}},
            'sources':sources,'assumptions':[],'research_connection':None,
            'confidentiality':'private_workspace','backend_preference':'ppt-master'}
@@ -492,13 +544,13 @@ def init(args: argparse.Namespace) -> int:
                                          'palette_policy','page_chrome','content_grouping','external_visuals']}
     defaults['section_navigation']={'enabled':True,'sections':[],'exempt_slide_ids':['P01'],
                                    'active_indicator':example['section_navigation']['active_indicator'],
-                                   'scope':'main_talk','tab_gap_px':16}
+                                   'scope':'main_talk','tab_gap_px':16,'width_mode':'content'}
     if not args.template:
         defaults['template_reference']={
             'kind':'deck',
-            'root':str((Path(__file__).resolve().parents[1]/'assets/academic-navigator').resolve()),
-            'spec':'templates/design_spec.deck.academic-navigator.md',
-            'status':'pending_default','applied':False}
+            'root':str(BUILTIN_TEMPLATE_ROOT.resolve()),
+            'spec':BUILTIN_TEMPLATE_SPEC,
+            'status':'selected','applied':False}
     write(root/'design/style_profile.json',{
         **defaults,'name':'academic-navigator','review_status':'pending',
         'design_contract':({'version':1,'mode':'user_override','override':{'reason':'','user_instruction':''}}
@@ -513,8 +565,6 @@ def init(args: argparse.Namespace) -> int:
                 'Keep scientific conditions, uncertainty and meaningful qualifiers visible where needed to understand the claim; citation placement does not remove them.'
             ]}})
     write(root/'design/slide_plan.json',{'slides':[]})
-    write(root/'state.json',{'stage':'intake','created_at':now(),'accepted_artifacts':[],
-                              'open_issues':[],'review_status':'not_started'})
     print(root)
     return 0
 
@@ -527,6 +577,19 @@ def preflight_report(root: Path, *, template_snapshot: Path | None=None) -> dict
     if errors: return {'status':'fail','errors':errors,'warnings':warnings}
     brief=data['brief.json'];sources=brief.get('sources',[]);source_ids=set()
     errors.extend(intake_errors(brief))
+    outputs=brief.get('output_files',{});output_paths=set()
+    if not isinstance(outputs,dict):errors.append('Delivery: output_files must be an object')
+    else:
+        for kind,relative in outputs.items():
+            if not nonempty(kind) or not nonempty(relative):
+                errors.append('Delivery: output_files keys and paths must be nonempty strings');continue
+            try:
+                if Path(relative).is_absolute():raise ValueError('path must be workspace-relative')
+                path=under(root,relative)
+                if path.is_dir():raise ValueError('path must name a file, not a directory')
+                if path in output_paths:raise ValueError('output paths must resolve to distinct files')
+                output_paths.add(path)
+            except (ValueError,OSError,RuntimeError) as exc:errors.append(f'Delivery: {kind}: {exc}')
     if not sources:errors.append('No source inventory')
     for src in sources:
         sid=src.get('id')
@@ -616,6 +679,32 @@ def preflight_report(root: Path, *, template_snapshot: Path | None=None) -> dict
         display_text_metrics.append({'slide_id':sid,'title_characters':title_characters,
                                      'total_characters':title_characters+sum(len(block) for block in blocks if isinstance(block,str)),
                                      'text_block_count':len(blocks)})
+    coverage=data['design/slide_plan.json'].get('coverage',[])
+    if not isinstance(coverage,list):errors.append('Coverage: must be a list')
+    else:
+        visibility={slide['id']:slide.get('hidden') for slide in slides if nonempty(slide.get('id'))}
+        dispositions={'main':{False},'backup':{True},'main_and_backup':{False,True}}
+        for n,item in enumerate(coverage,1):
+            label=f'Coverage {n}'
+            if not isinstance(item,dict):errors.append(f'{label}: must be an object');continue
+            if not nonempty(item.get('topic')):errors.append(f'{label}: topic missing')
+            disposition=item.get('disposition')
+            if not isinstance(disposition,str) or disposition not in {*dispositions,'notes','excluded','source_gap'}:
+                errors.append(f'{label}: invalid disposition');continue
+            valid_slides=False
+            for key,known in [('source_ids',source_ids),('slide_ids',slide_ids)]:
+                refs=item.get(key)
+                if not isinstance(refs,list) or any(not nonempty(ref) for ref in refs):
+                    errors.append(f'{label}: {key} must be a list of nonempty IDs')
+                elif len(set(refs))!=len(refs) or any(ref not in known for ref in refs):
+                    errors.append(f'{label}: {key} contains duplicate or unknown IDs')
+                elif key=='slide_ids':valid_slides=True
+            if disposition in dispositions and valid_slides:
+                actual={visibility[sid] for sid in item['slide_ids'] if type(visibility[sid]) is bool}
+                if actual!=dispositions[disposition]:
+                    errors.append(f'{label}: slide visibility does not match {disposition}')
+            if disposition in {'excluded','source_gap'} and not nonempty(item.get('rationale')):
+                errors.append(f'{label}: exclusions and source gaps require rationale')
     speaking_minutes=brief.get('target_minutes')
     if positive(speaking_minutes) and brief.get('qa_time_included') is True and positive(brief.get('qa_minutes')):
         speaking_minutes-=brief['qa_minutes']
@@ -623,7 +712,7 @@ def preflight_report(root: Path, *, template_snapshot: Path | None=None) -> dict
         errors.append('Visible-slide timing differs materially from the speaking budget (excluding reserved Q&A); revise plan or brief')
     return {'status':'fail' if errors else 'pass','errors':errors,'warnings':warnings,
             'planned_seconds':seconds,'slides':len(slides),'display_text_metrics':display_text_metrics,
-            'meaning':'Metadata and provenance preflight; display text metrics are informational, not density approval. Agent still judges evidence and design.'}
+            'meaning':'Metadata and provenance preflight; coverage checks references, not completeness. Display text metrics are informational, not density approval. Agent still judges evidence and design.'}
 
 
 def preflight(args: argparse.Namespace) -> int:
@@ -709,6 +798,8 @@ def handoff(args: argparse.Namespace) -> int:
         text+=(f'Use the immutable Academic Navigator deck template rooted at `{template_root}`. '
                f'Its exact specification is `{template_root/BUILTIN_TEMPLATE_SPEC}` and its source manifest '
                f'is `{template_root/"manifest.json"}` (SHA-256 `{manifest["template"]["sha256"]}`). '
+               'Pass this absolute root as an explicit template input at the backend template-choice stage; '
+               'an ordinary generation request may default to free design. '
                'Select/apply this exact workspace through the current backend template-selection and installation route; '
                'do not treat it as optional style inspiration or replace it with free composition. '
                'Read its specification and SVG prototypes, adapt their layouts to the accepted section/page plan, '
@@ -723,6 +814,8 @@ def handoff(args: argparse.Namespace) -> int:
                'must check `audience_copy` against the planned display copy and `reference_match` against '
                'the supplied reference or recorded style basis; neither is approved by metadata or text counts.\n')
     visual_policy={key:style[key] for key in ['figure_policy','section_navigation','typography','palette_policy','page_chrome','content_grouping','external_visuals'] if key in style}
+    layout=navigation_layout(style)
+    if layout is not None:visual_policy['navigation_layout']=layout
     if visual_policy:
         text+='\n## Visual execution contract\n\n```json\n'+json.dumps(visual_policy,ensure_ascii=False,indent=2)+'\n```\n\n'
         text+=('For body_only/notes_only figures, use the display asset path on the slide. '
@@ -731,7 +824,9 @@ def handoff(args: argparse.Namespace) -> int:
                'When section navigation is enabled, preserve the ordered sections and derive the active tab from each slide section_id, '
                'respecting explicit exempt_slide_ids. For scope main_talk, list only sections used by visible non-exempt pages; '
                'hidden backups do not add navigation labels. Preserve the declared tab_gap_px at the canvas scale as visible space between tabs, '
-               'rather than merging them into a compact bar. For active_indicator fill_only, use the filled active tab without an extra navigation underline; '
+               'rather than merging them into a compact bar. When navigation_layout is supplied, use its left-aligned group and equal tab coordinates; '
+               'align with the title at x48, keep the same positions across pages and leave unused space on the right. Verify the actual label font fits without shrinking it. '
+               'For active_indicator fill_only, use the filled active tab without an extra navigation underline; '
                'this does not remove the separate title separator. Preserve the declared font families and sizes for every typography role across slides, '
                'including the selected Latin and CJK faces in mixed-script font-family stacks; use the default Latin-first stack for previews, '
                'or record a documented equivalent backend script mapping and verify actual exported faces, textbox width and line breaks. '

@@ -4,6 +4,8 @@ For first-time use and later maintenance, start with the [usage guide](usage.md)
 ([中文](usage.zh-CN.md)). To ask an agent to configure the software environment,
 use the [environment setup instructions](../skills/research-ppt/references/environment-setup.md).
 This runbook supplies the detailed material-processing and acceptance commands.
+For the synthetic backend upgrade test, use the [PR #3 acceptance guide](pr3-acceptance.md).
+Its PDF import result does not replace actual PPTX production and independent visual review.
 
 The commands below are deterministic helpers for an agent. They do not read research
 materials semantically, choose a narrative, judge visual correctness, or produce the
@@ -64,7 +66,9 @@ python ./skills/research-ppt/scripts/workflow.py init \
   --audience "AI researchers outside this subfield"
 ```
 
-Omit `--template` without a reference. A user may supply a material folder, but
+Omit `--template` without a reference: init then selects Academic Navigator as the
+proposed default, not free design. Every new job must use init and preserve its
+generated brief/profile contracts. A user may supply a material folder, but
 `init --source` requires individual existing files, not a directory. The agent
 inventories the folder, selects relevant readable files and repeats `--source` for
 each one, using the appropriate readers for its format. Initialization copies and
@@ -111,6 +115,7 @@ understand the fields rather than replacing that inventory.
 | `qa_time_included`, `qa_minutes` | Whether Q&A uses that budget; reserve a positive amount smaller than the total when included, otherwise use zero. |
 | `language` | The requested language; describe separate slide/delivery languages when needed. |
 | `style_intent` | Agreed tone, density and template-use intent; detailed visual decisions go in `design/style_profile.json`. |
+| `design_mode` | Init proposes `academic_navigator` without `--template`, otherwise `user_override`. Keep it consistent with the style contract; overrides require the actual user instruction. |
 | `sections` | Required sections in order; an empty list allows the agent to propose a structure from the sources. |
 | `deliverables` | Requested outputs, such as `pptx`, `pdf`, `speaker_notes`. |
 | `sources` | Local copies and fingerprints created by `init`; record exact versions and appropriate roles for each supplied file. |
@@ -139,7 +144,7 @@ source records.
 Update the exact source version, purpose, sections, Q&A policy/reserved minutes, style
 intent, deliverables and explicit assumptions in `brief.json`. New report type/depth
 values are proposals to confirm, not accepted requirements. When present,
-`presentation_type` and `detail_level` are included in intake snapshots; legacy briefs
+`presentation_type`, `detail_level` and `design_mode` are included in intake snapshots; legacy briefs
 without them remain valid and must not be silently rewritten on resume.
 
 Set `qa_minutes` to the included Q&A reservation, or zero when Q&A is outside the budget. Visible-slide time is `target_minutes` minus
@@ -247,22 +252,28 @@ gaps and a single active fill, body-title rules, lower-right current-page badges
 text groups. Peer cards share dimensions/padding and clear gutters across pages;
 evidence-image carriers retain their own aspect ratios. New workspaces receive its
 complete design policies; user overrides take precedence when supported by an actual
-different style/template request. Keep `brief.design_contract_version: 1` and
+different style/template request. Keep `brief.design_contract_version: 1`,
+`brief.design_mode: academic_navigator` and
 `style.design_contract: {version: 1, mode: "academic_navigator"}`. Navigation is
 enabled but has no invented sections: fill its main sections, slide mappings and cover
-exemptions. Preserve init's absolute `template_reference.root` and `spec`; resolve
-its status from `pending_default` to `selected` after choosing the default. This is
-selection, not a claim that production has already applied it. Preflight rejects
+exemptions. Preserve init's absolute `template_reference.root`, `spec` and `selected`
+status. This proposes the default at intake; it does not approve backend gates or claim
+application. `applied` remains false until production. Resolve older pending selections
+before handoff. Preflight rejects
 unresolved choices or missing default policies. Do not overwrite init's profile
 with the example's placeholder root or a legacy style.
 
-Default navigation records `scope: "main_talk"` and `tab_gap_px: 16` at the 1280-wide
-canvas scale. Each listed part is used by a visible main slide; hidden backups do
+New default navigation records `scope: "main_talk"`, `width_mode: "content"` and
+`tab_gap_px: 16` at the 1280-wide canvas scale. Handoff computes equal tab widths
+from the longest numbered label and aligns the group with the left content edge. Use those coordinates
+instead of stretching a small group across the slide. Preflight rejects overflow.
+Existing styles without `width_mode` retain their saved geometry.
+Each listed part is used by a visible main slide; hidden backups do
 not add a part. Keep clear gaps between individual tabs and omit a continuous backing
 rail. Review the final slide at its intended presentation size, including critical
 figure lettering; repair unreadable dense pages before delivery.
 
-For a different requested style, use `mode: "user_override"` and
+For a different requested style, set both brief and style modes to `user_override` and
 `override: {reason: "...", user_instruction: "..."}` with the real instruction or
 traceable reference. A supplied style-reference file can be the basis; ordinary
 design delegation is not a request to drop the default. Legacy workspaces without
@@ -290,7 +301,8 @@ Use commands documented for that checkout; do not manufacture an upstream
 specification or confirmation. For default-mode jobs, `manifest.json.template`
 identifies a copied template workspace and its manifest/hash. Give that **exact
 workspace root**, not a bare style name or its inner `templates/` directory, to the
-backend's current template selection and installation route. Respect its ordering:
+backend's current template selection and installation route as an explicit template input;
+ordinary backend requests may default to free design. Respect its ordering:
 candidate metadata before selection; full prototypes at the permitted installed
 template stage. Keep the recurring design components binding when adapting layouts.
 

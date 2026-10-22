@@ -69,11 +69,15 @@ class DefaultDesignTests(unittest.TestCase):
     def test_current_fixture_retains_initialized_defaults(self):
         brief=d.load(self.project/'brief.json');style=self.style()
         self.assertEqual(brief['design_contract_version'],1)
+        self.assertEqual(brief['design_mode'],'academic_navigator')
+        self.assertIn('Academic Navigator deck template',brief['style_intent'])
+        self.assertEqual(brief['intake_confirmation']['requirements']['design_mode'],'academic_navigator')
         self.assertEqual(style['design_contract'],{'version':1,'mode':'academic_navigator'})
         self.assertEqual(style['template_reference']['status'],'selected')
         self.assertIs(style['template_reference']['applied'],False)
         self.assertEqual(style['section_navigation']['scope'],'main_talk')
         self.assertEqual(style['section_navigation']['tab_gap_px'],16)
+        self.assertEqual(style['section_navigation']['width_mode'],'content')
         self.assertEqual(w.preflight_report(self.project)['status'],'pass')
 
     def test_unplanned_navigation_blocks_handoff(self):
@@ -153,6 +157,84 @@ class DefaultDesignTests(unittest.TestCase):
         d.write(path,plan)
         self.assertEqual(w.preflight_report(self.project)['status'],'pass')
 
+    def test_content_navigation_left_aligns_two_compact_tabs(self):
+        style=self.style()
+        style['section_navigation']['sections']=[{'id':'background','label':'背景'},
+                                                 {'id':'evidence','label':'证据'}]
+        before=copy.deepcopy(style);layout=w.navigation_layout(style)
+        self.assertEqual(style,before)
+        self.assertEqual(layout['reference_canvas'],{'width':1280,'height':720})
+        self.assertEqual(layout['group'],{'x':48,'y':20,'width':272,'height':44})
+        self.assertEqual([tab['text'] for tab in layout['tabs']],['01 背景','02 证据'])
+        self.assertEqual([tab['section_id'] for tab in layout['tabs']],['background','evidence'])
+        for index,tab in enumerate(layout['tabs']):
+            self.assertEqual((tab['x'],tab['y'],tab['width'],tab['height']),(48+index*144,20,128,44))
+            self.assertEqual((tab['text_x'],tab['text_y']),(112+index*144,48))
+        self.assertEqual(layout['font_size_px'],18)
+        self.assertEqual(layout['padding_x_px'],24)
+
+    def test_content_navigation_grows_with_longest_label_and_section_count(self):
+        style=self.style();navigation=style['section_navigation']
+        for count in [1,2,5]:
+            navigation['sections']=[{'id':str(i),'label':'方法'} for i in range(count)]
+            layout=w.navigation_layout(style);group=layout['group'];tabs=layout['tabs']
+            self.assertEqual(group['width'],count*128+(count-1)*16)
+            self.assertEqual(group['x'],48)
+            self.assertLessEqual(group['x']+group['width'],1232)
+            self.assertEqual([tab['x'] for tab in tabs],[48+i*144 for i in range(count)])
+            for previous,current in zip(tabs,tabs[1:]):
+                self.assertEqual(current['x']-previous['x']-previous['width'],16)
+        navigation['sections']=[{'id':'a','label':'背景'},{'id':'b','label':'实验结果与对照分析'}]
+        layout=w.navigation_layout(style)
+        self.assertGreater(layout['tabs'][0]['width'],128)
+        self.assertEqual(layout['tabs'][0]['width'],layout['tabs'][1]['width'])
+        self.assertEqual(layout['tabs'][0]['width']%8,0)
+        self.assertLess(layout['group']['width'],1184)
+
+    def test_content_navigation_budgets_wide_letters_and_combining_marks(self):
+        style=self.style();section=style['section_navigation']['sections'][0]
+        section['label']='A'*12;plain=w.navigation_layout(style)['tabs'][0]['width']
+        section['label']='A\u0301'*12;combined=w.navigation_layout(style)['tabs'][0]['width']
+        section['label']='Ａ'*12;wide=w.navigation_layout(style)['tabs'][0]['width']
+        self.assertEqual(plain,combined)
+        self.assertGreater(wide,plain)
+
+    def test_content_navigation_rejects_invalid_mode_and_overflow_before_handoff(self):
+        original=self.style()
+        for mode in [None,[],False,'stretch']:
+            with self.subTest(mode=mode):
+                style=copy.deepcopy(original);style['section_navigation']['width_mode']=mode
+                self.write_style(style);self.assert_preflight_fails('width_mode must be content')
+        for sections in [[{'id':'example','label':'长'*80}],
+                         [{'id':str(i),'label':'短'} for i in range(9)]]:
+            with self.subTest(sections=sections):
+                style=copy.deepcopy(original);style['section_navigation']['sections']=sections
+                self.write_style(style);self.assert_preflight_fails('content width exceeds 1184 px')
+                with self.assertRaisesRegex(ValueError,'Preparation not ready'):
+                    w.handoff(Namespace(project=self.project,run_id='overflow'))
+                self.assertFalse((self.project/'handoff/overflow').exists())
+
+    def test_content_navigation_handoff_contains_concrete_geometry(self):
+        w.handoff(Namespace(project=self.project,run_id='content-navigation'))
+        text=(self.project/'handoff/content-navigation/handoff.md').read_text(encoding='utf-8')
+        contracts=[json.loads(block) for block in re.findall(r'```json\n(.*?)\n```',text,re.DOTALL)]
+        visual=next(contract for contract in contracts if 'navigation_layout' in contract)
+        self.assertEqual(visual['navigation_layout'],w.navigation_layout(self.style()))
+        self.assertIn('align with the title at x48',text)
+        self.assertIn('leave unused space on the right',text)
+
+    def test_legacy_navigation_keeps_saved_geometry(self):
+        style=self.style();style['section_navigation'].pop('width_mode');self.write_style(style)
+        path=self.project/'design/style_profile.json';before=path.read_bytes()
+        self.assertIsNone(w.navigation_layout(style))
+        self.assertEqual(w.preflight_report(self.project)['status'],'pass')
+        w.handoff(Namespace(project=self.project,run_id='legacy-navigation'))
+        self.assertEqual(path.read_bytes(),before)
+        snapshot=self.project/'handoff/legacy-navigation/design/style_profile.json'
+        self.assertEqual(snapshot.read_bytes(),before)
+        text=(self.project/'handoff/legacy-navigation/handoff.md').read_text(encoding='utf-8')
+        self.assertNotIn('"navigation_layout":',text)
+
     def test_template_selection_is_required_without_pretending_application(self):
         original=self.style()
         for patch_value in [{'status':'pending_default'},{'root':'/synthetic/missing-template'},
@@ -169,6 +251,32 @@ class DefaultDesignTests(unittest.TestCase):
         self.assert_preflight_fails('style requires version 1')
         path=self.project/'brief.json';brief=d.load(path);brief.pop('design_contract_version');d.write(path,brief)
         self.assert_preflight_fails('requirements changed')
+
+    def test_design_mode_change_or_removal_invalidates_intake(self):
+        path=self.project/'brief.json';original=d.load(path)
+        for mode in ['user_override',None]:
+            with self.subTest(mode=mode):
+                brief=copy.deepcopy(original)
+                if mode is None:brief.pop('design_mode')
+                else:brief['design_mode']=mode
+                d.write(path,brief)
+                self.assert_preflight_fails('requirements changed')
+
+    def test_design_mode_requires_version_before_confirmation(self):
+        brief=d.load(self.project/'brief.json');brief.pop('design_contract_version')
+        brief['intake_confirmation']={'status':'pending','user_response':'','requirements':{}}
+        errors=w.design_contract_errors(brief,self.style())
+        self.assertTrue(any('design_contract_version' in error for error in errors),errors)
+
+    def test_older_v1_brief_without_design_mode_remains_accepted(self):
+        path=self.project/'brief.json';brief=d.load(path);brief.pop('design_mode')
+        brief['intake_confirmation']['requirements']=w.intake_requirements(brief)
+        d.write(path,brief);before=path.read_bytes()
+        self.assertEqual(w.preflight_report(self.project)['status'],'pass')
+        w.intake(Namespace(project=self.project))
+        w.handoff(Namespace(project=self.project,run_id='older-v1'))
+        self.assertEqual(path.read_bytes(),before)
+        self.assertNotIn('design_mode',d.load(self.project/'handoff/older-v1/brief.json'))
 
     def test_default_policies_cannot_be_deleted(self):
         original=self.style()
@@ -213,6 +321,9 @@ class DefaultDesignTests(unittest.TestCase):
                                   'override':{'reason':'Explicit synthetic request for a different style.',
                                               'user_instruction':instruction}}}
         self.write_style(style)
+        self.assert_preflight_fails('design_mode')
+        brief['design_mode']='user_override'
+        brief['intake_confirmation']['requirements']=w.intake_requirements(brief);d.write(path,brief)
         self.assertEqual(w.preflight_report(self.project)['status'],'pass')
         args=mock_review_fixture(self.project)
         self.assertEqual(w.gate(args),0)
@@ -225,9 +336,13 @@ class DefaultDesignTests(unittest.TestCase):
         reference.write_text('<svg xmlns="http://www.w3.org/2000/svg"/>')
         w.init(Namespace(project=project,source=[Path(self.tmp.name)/'synthetic_source.md'],
                          template=reference,minutes=2,language='en',audience='researchers'))
-        style=d.load(project/'design/style_profile.json')
+        brief=d.load(project/'brief.json');style=d.load(project/'design/style_profile.json')
+        self.assertEqual(brief['design_mode'],'user_override')
+        self.assertEqual(brief['style_intent'],'')
+        self.assertEqual(brief['intake_confirmation']['status'],'pending')
+        self.assertNotIn('template_reference',style)
         self.assertEqual(style['design_contract']['mode'],'user_override')
-        errors=w.design_contract_errors(d.load(project/'brief.json'),style)
+        errors=w.design_contract_errors(brief,style)
         self.assertTrue(any('actual user_instruction' in error for error in errors))
 
     def test_handoff_pins_actual_package_and_requires_backend_application(self):

@@ -135,6 +135,10 @@ no label exists solely for hidden backups or an exempt cover. Hidden pages can o
 navigation or reuse an existing main section. Check actual whitespace between tabs
 against the declared positive `tab_gap_px`, scaled for the canvas; an unbroken dense
 bar fails this review even when all labels and colors are technically present.
+For `width_mode: "content"`, compare the rendered tabs with the computed coordinates in the handoff.
+Make sure that the group aligns with the title's left edge and each label has clear space on both sides.
+The tabs must keep the same width and position across pages.
+A short group stretched across the full width fails this review.
 When the corresponding policies are enabled, the helper also seeds pending
 `figure_framing`, `section_navigation`, `typography_consistency` and `palette_consistency`
 checks. Complete them from actual inspection, not from the presence of valid settings.
@@ -155,10 +159,6 @@ validation and template previews cannot pass them.
 The helper seeds pending `page_chrome` when that policy is present and
 `content_grouping` when its policy is enabled. Complete them with concrete observations
 about the rendered cover, recurring elements and passage hierarchy.
-For new workspaces, check the built-in research style unless the user chose an
-override: title-information-only cover with separate background, continuous physical
-page numbers, body title separators, meaningful passage groups and coherent active
-navigation. A valid default policy is still pending evidence of correct rendering.
 
 For communication-contract workspaces, `audience_copy` and `reference_match` are separate
 pending checks on every page. Compare final titles/body with the display plan, read the

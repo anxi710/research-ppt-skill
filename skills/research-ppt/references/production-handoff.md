@@ -51,36 +51,21 @@ deck or a string of disconnected paper summaries during layout. Keep explanatory
 source distinctions, key comparisons and planned hidden backups; propose scope/time
 changes rather than deleting necessary explanation to fit a template.
 
-Pass display-ready figure/table crops separately from full captions and original-page
-evidence. The backend uses the display crop, not an uncropped source page. Keep decoding
-legends and consequential conditions visible; use notes for the removed prose caption.
-Carry the named typography roles, limited palette and any section-navigation settings
-with the per-page `section_id` mapping. For the default style, carry Times New Roman
-for English and Microsoft YaHei for Chinese; retain the complete
-`Times New Roman, Microsoft YaHei` stack in the global and per-role font families,
-plus the separate Latin/CJK family fields. The current backend may document an
-equivalent script-specific realization; record it and check actual exported font faces,
-text frames and line breaks rather than assuming stack order proves fidelity.
-Carry the accepted cover-only fields and separate
-background page, coordinated page chrome (navigation, title rule and page badge), and
-the semantic grouping/reading order of multi-passage pages. Specify one active nav
-fill without a redundant underline, peer component dimensions/padding, and minimum
-gutters; keep the body-title divider. Separate image carriers from commentary classes.
-Pass external context images with original-source/version attribution and their
-context-only role, not as evidence of the focal paper's results. Mark generated concept
-assets separately, carry their prompt/tool/model/output provenance, and use native text
-for labels; do not assign paper citations to generated pixels. Complete actual section
-labels and mappings during planning rather than importing a fixed chapter list.
-Default navigation covers only main-talk sections. Hidden backups do not add a tab.
-Carry `scope: "main_talk"` and the canvas-scaled `tab_gap_px` into production: each
-equal-width label is separate, with a visible gutter and no continuous backing rail.
+Pass the accepted style profile and each page's visual requirements from `story-and-style.md` to the backend.
+Include the actual section mappings and exceptions. Preserve each asset's role and provenance.
+Use display-ready figure/table crops on slides. Keep full captions and source-page context in evidence and notes.
+Keep decoding legends and consequential conditions visible.
+Do not use external context or generated illustrations as evidence for the focal results.
+Record how the backend implements the accepted font configuration.
+Inspect the exported font faces, text frames and line breaks.
 
 ## Apply the selected template
 
-For new `design_contract_version: 1` briefs, resolve the style profile's template decision
-before preflight. The default `design_contract.mode: "academic_navigator"` selects the
+For new `design_contract_version: 1` briefs, preserve init's `design_mode` and its matching
+style contract; resolve older pending template decisions before preflight. The default
+`design_mode: "academic_navigator"` and `design_contract.mode: "academic_navigator"` select the
 workspace at `<absolute skill directory>/assets/academic-navigator/`. A real user choice
-may select a replacement under `mode: "user_override"`; retain its instruction and reason.
+may select a replacement with both modes set to `user_override`; retain its instruction and reason.
 An explicit no-template choice under that mode requires the real supporting brief/intake
 instruction; it does not require a template snapshot or application receipt. The default
 cannot take this exception merely because its selection or installation is unfinished.
@@ -113,18 +98,16 @@ delegation path without fabricating confirmation state. Read only candidate fron
 before selection where required. After selection, validate and install the workspace
 through the backend's supported mechanism, then read its complete project-local specs
 and SVG prototypes for planning. Do not let an omitted root silently initialize free
-design. A rejected or incompatible template requires a stated resolution; it is not
-permission to silently discard the design contract.
+design: ordinary backend requests may default to that route, so the parent default must
+be an explicit template input. A backend choice to use no template requires a real user
+override recorded in the brief and style contract. A rejected or incompatible template
+requires a stated resolution; it is not permission to silently discard the design contract.
 
-Persist the backend's concrete template-application explanation. It identifies the
-installed package, maps page roles to prototypes, explains adaptations and states how
-the binding visual elements survive: information-only cover and separate background;
-one active navigation fill without its own underline; the distinct body-title divider;
-lower-right current-physical-page badge; fixed font roles, limited accent palette,
-semantic groups with consistent peer dimensions/padding and visible gutters; and
-display-ready figure bodies separated from prose captions. A backend's style-only or
-flat reuse label does not replace these requirements. Adapt layouts when needed without
-fixing the talk's chapters, scientific content or page count to the prototype roster.
+Save the backend's explanation of template application.
+Record the installed package and the mapping from page roles to prototypes.
+Explain the adaptations and how they preserve the accepted style rules.
+A style-only or flat reuse label does not waive those rules.
+Do not force the talk's chapters, scientific content or page count to match the prototypes.
 
 For the default contract, complete the receipt's `template_application` after actual
 installation: `status: "applied"`, `handoff_template_sha256`, an absolute
@@ -147,25 +130,25 @@ lock or production engine.
 
 ## Preserve communication and output requirements
 
-Carry the style profile's communication contract and concrete reference observations into
-the backend brief. `display_title` and `on_slide_text` are the intended visible copy;
-`question`, `topic`, `takeaway`, reading order and notes are planning/speaking fields unless
-explicitly included in display copy. Apply the recorded terminology, citation placement,
-opening/closing and backup choices. Do not restore a long bibliographic footer because an
-optional generic profile uses one; retain full source locators in notes and necessary
-experimental conditions on the slide. Use the backend's supported math route and verify
-subscripts, superscripts and time indices after export.
+Pass the communication contract and reference observations from the style profile to the backend.
+`display_title` and `on_slide_text` contain the intended visible copy.
+The planning fields are `question`, `topic`, `takeaway`, reading order and notes.
+Unless the plan selects them for display copy, use them only for planning and speaking.
+Apply the recorded terminology, citation placement, opening/closing and backup choices.
+Keep full source locators in notes. Keep necessary experimental conditions on the slide.
+Use the backend's supported math route. Inspect subscripts, superscripts and time indices after export.
 
-Carry `brief.json`'s `project_name` and `output_files` into production. The default
-workspace is `./outputs/<project-name>/` relative to the request's working directory,
-with delivery files `exports/<project-name>.pptx`, `exports/<project-name>-preview.pdf` and
-`exports/<project-name>-notes.md` for requested formats. Explicit user names/paths
-win. Backend build filenames may follow its current route; stage delivery candidates
-at the declared paths before final hashing, rendering and review. Preserve previous
-versions and record the actual paths in the receipt; never rename or replace a file
-after review without verifying the delivered bytes and updating the artifact record.
-The preview PDF contains visible slides rendered from the final PPTX. Keep separate
-all-slide QA renders with hidden backups; preserve saved names on resumed workspaces.
+Pass `brief.json`'s `project_name` and `output_files` to the backend.
+The default workspace is `./outputs/<project-name>/` relative to the request's working directory.
+Default delivery paths are `exports/<project-name>.pptx`, `exports/<project-name>-preview.pdf` and `exports/<project-name>-notes.md`, for requested formats only.
+Honor explicit user names and paths. Keep `output_files` entries distinct, relative to the workspace and inside it.
+The backend can use its own build filenames.
+Before final hashing, rendering and review, put delivery candidates at the declared paths.
+Preserve previous versions. Record the actual paths in the receipt.
+If you rename or replace a reviewed file, inspect the delivered bytes again. Then update its artifact record.
+The preview PDF contains visible slides rendered from the final PPTX.
+Keep separate renders of all slides, including hidden backups, for QA.
+For resumed workspaces, preserve saved filenames.
 
 ## Requested output
 

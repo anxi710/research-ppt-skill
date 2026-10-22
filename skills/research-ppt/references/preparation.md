@@ -26,30 +26,40 @@ claim selection, story design and slide production until the intake gate is sati
 
 ### Resolve essential decisions interactively
 
-Summarize a short, descriptive project name from the request's topic or source title;
-this needs only source identification, not substantive evidence reading. Prefer a
-readable name in the talk's language and avoid claiming a result just to name the file.
-Use `scripts/workflow.py init --name <project-name> ...` from the request's working
-directory, or pass an absolute `--project` derived from that directory after changing
-directories. The default is `./outputs/<project-name>/`; the helper preserves Chinese,
-cleans path separators/punctuation and adds `-02`, `-03`, etc. when a name already
-exists. If no name is supplied, it falls back to the first source filename stem;
-semantic summarization belongs to the agent. Explicit user names and paths override
-these defaults. Reuse the original workspace when resuming rather than initializing.
+Choose a short project name from the topic or source title.
+Use the talk's language without claiming a research result in the filename.
+For every new job, run `scripts/workflow.py init --name <project-name> ...` from the request's working directory.
+If you change directories first, pass an absolute `--project` based on the original directory.
+The default workspace is `./outputs/<project-name>/`.
+Init preserves Chinese, cleans unsafe characters and adds `-02`, `-03` and later suffixes for duplicate names.
+Without a supplied name, it uses the first source filename stem.
+Explicit user names and paths override these defaults.
+When resuming, reuse the original workspace.
 
-Initialization creates `brief.json` at `<private-workspace>/brief.json`; it is not
-a file to find at the skill repository root. Record the actual path printed by init.
-The agent normally maintains it from the conversation. See the complete synthetic,
-pending [brief example](../templates/brief.example.json). Preserve real source paths
-and hashes from initialization when adapting its requirements.
+Init creates `<private-workspace>/brief.json` and prints the actual workspace path.
+Record that path.
+Fill requirements from the conversation, using the [brief example](../templates/brief.example.json) for the format.
+Preserve real source paths, hashes and generated design contracts.
+Do not replace them with reduced, hand-authored JSON.
+
+Without `--template`, init records `design_mode: academic_navigator` and proposes that template in `style_intent`.
+It selects the actual template root in the style profile.
+This proposal does not establish user approval, backend approval or completed application.
+Omitting `--template` does not mean free design.
+With a supplied template, init records `design_mode: user_override`.
+Record the real instruction and matching style contract.
 
 `project_name` and workspace-relative `output_files` describe the delivery defaults:
 `exports/<project-name>.pptx`, `exports/<project-name>-preview.pdf` and
-`exports/<project-name>-notes.md`. Use requested formats only, preserve explicit user
-filenames, and retain old versions for revisions. Include the selected project path
-in the readable brief; naming defaults do not establish consent for research work.
-The PDF is a visible-slide preview of the final PPTX. Preserve saved filenames in
-existing workspaces rather than applying new defaults during a resume.
+`exports/<project-name>-notes.md`. Use requested formats only.
+Preserve explicit user filenames and old revisions.
+Include the selected project path in the readable brief.
+Naming defaults do not establish consent for research work.
+The PDF is a preview of the final PPTX's visible slides.
+When resuming, preserve saved filenames.
+Preflight tests whether output paths name distinct files inside the workspace.
+Custom relative filenames are allowed.
+Use `--project` to set the workspace location.
 
 Collect these decisions in `brief.json`, reusing every answer already supplied:
 
@@ -59,7 +69,7 @@ Collect these decisions in `brief.json`, reusing every answer already supplied:
 | Audience and purpose | Audience role and prior knowledge; what they should understand, discuss or decide after the talk. |
 | Time | Target minutes and whether Q&A is included; when included, agree on reserved `qa_minutes`. For example, 25 minutes including 5 minutes of Q&A leaves 20 minutes for visible slides. |
 | Language | Slide and delivery language, including any bilingual requirement. |
-| Style and references | Desired tone/density; supplied template or reference deck and whether to follow its layout or only its visual style. Record the agreed intent as `style_intent`. |
+| Style and references | Desired tone/density; supplied template or reference deck and whether to follow its layout or only its visual style. Preserve or explicitly revise the proposed `design_mode` and `style_intent`; default to applying Academic Navigator. |
 | Scope and structure | Main focus, required sections, exclusions and any required connection to the user's research. Record the chosen structure in `sections`. |
 | Deliverables | Requested artifacts, such as editable PPTX, PDF or speaker notes. Record a nonempty `deliverables` list. |
 
@@ -114,10 +124,12 @@ Record `intake_confirmation` in `brief.json` with:
   conversation reference. Do not invent or paraphrase approval as a user quotation.
 - `requirements`: a snapshot of `audience`, `target_minutes`, `qa_time_included`,
   `qa_minutes`, `language`, `purpose`, `sections`, `style_intent`, `deliverables`, and `sources`.
-  Each source entry contains only `id`, `sha256` and `role`; assumptions are kept
-  separately. Include `presentation_type` and `detail_level` when present. The snapshot
-  must match the current brief. Older accepted briefs without these two fields remain
-  valid; do not inject defaults or reopen acceptance merely because the skill changed.
+  Each source entry contains only `id`, `sha256` and `role`.
+  Keep assumptions separate.
+  If present, include `presentation_type`, `detail_level`, `design_contract_version` and `design_mode`.
+  The snapshot must match the current brief.
+  Older accepted briefs without these fields remain valid.
+  Do not add defaults or reopen acceptance merely because the skill changed.
 
 From the resolved skill folder, prepare the pending requirement snapshot with
 `python scripts/workflow.py intake --project <private-workspace>`. Record an accepted

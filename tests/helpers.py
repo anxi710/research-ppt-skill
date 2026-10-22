@@ -15,8 +15,10 @@ def workspace(root: Path, *, current_design: bool=False) -> Path:
     project=root/'talk'
     w.init(Namespace(project=project,source=[source],template=None,minutes=2,language='en',audience='researchers'))
     brief=d.load(project/'brief.json');brief['sources'][0]['version']='synthetic fixture v1'
-    if not current_design:brief.pop('design_contract_version')
-    brief.update(qa_time_included=False,style_intent='Synthetic neutral style; no institution')
+    if not current_design:
+        brief.pop('design_contract_version');brief.pop('design_mode')
+        brief['style_intent']='Synthetic neutral style; no institution'
+    brief['qa_time_included']=False
     # Fictional intake record for synthetic tests/examples, never actual user consent.
     brief['intake_confirmation']={'status':'confirmed',
                                   'user_response':'SYNTHETIC FIXTURE ONLY: fictional acceptance of these test requirements.',
@@ -25,7 +27,6 @@ def workspace(root: Path, *, current_design: bool=False) -> Path:
     d.write(project/'analysis/evidence.json',{'claims':[{'id':'C1','kind':'illustration','statement':'Synthetic arithmetic demonstration; not an empirical result.','source_ids':['S1'],'locator':'Synthetic source line 2','conditions':[],'limitations':['No scientific interpretation'],'review_status':'verified'}]})
     if current_design:
         style=d.load(project/'design/style_profile.json');style['review_status']='verified'
-        style['template_reference']['status']='selected'
         style['section_navigation']['sections']=[{'id':'example','label':'Synthetic example'}]
     else:style={'name':'synthetic','review_status':'verified','basis':'Synthetic legacy fixture; no institution'}
     d.write(project/'design/style_profile.json',style)

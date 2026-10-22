@@ -120,10 +120,9 @@ method tutorial, with standard or overview depth. The other choices above are ex
 The skill does not assume an institution, discipline, language, slide count or presenter.
 Without a different requested style, it applies the Academic Navigator template:
 fixed font roles using Times New Roman for English and Microsoft YaHei for Chinese,
-one emphasis color, section navigation, an information cover,
+one emphasis color, content-sized section navigation at the left content edge, an information cover,
 title rules, current-page badges and consistent content groups. Sections and layouts
-follow this talk's content. You can explicitly choose another template or style,
-including the optional [`academic-blue.json`](../skills/research-ppt/profiles/academic-blue.json).
+follow this talk's content. You can explicitly choose another template or style.
 “Clean academic style” or delegating design does not by itself replace the default template.
 
 For automatic discovery, optionally copy or symlink the **complete**
@@ -177,7 +176,9 @@ filename stem and does not summarize meaning. For a supplied folder, the agent
 inventories it, identifies readable relevant materials and repeats `--source` for
 each selected file; `init --source` accepts files, not directories. It copies and
 fingerprints files, but does not read or synthesize their contents. Optionally add
-`--template /path/to/reference.pptx` for style guidance.
+`--template /path/to/reference.pptx` for style guidance. Without it, init selects the
+built-in Academic Navigator template as the proposed default; it does not choose free design.
+Always initialize new jobs this way and preserve the generated brief/profile contracts.
 
 Initialization calculates SHA-256 hashes and initially labels regular inputs
 `research_source` (the template is `style_reference`). The agent then sets each
@@ -217,6 +218,7 @@ Selected fields for the example request are:
 {
   "presentation_type": "research_report",
   "detail_level": "detailed",
+  "design_mode": "academic_navigator",
   "audience": "AI researchers familiar with basic ML but new to this subfield",
   "target_minutes": 25,
   "qa_time_included": true,
@@ -224,16 +226,16 @@ Selected fields for the example request are:
   "language": "zh-CN",
   "purpose": "Explain the research question, methods, evidence, synthesis and our progress",
   "sections": ["Background", "Problem", "Methods", "Evidence", "Synthesis", "Limitations", "Progress and next steps"],
-  "style_intent": "Clean academic style, original figures, concise text, no institutional branding",
+  "style_intent": "Apply the Academic Navigator template; original figures, concise text, no institutional branding",
   "deliverables": ["pptx", "pdf", "speaker_notes"]
 }
 ```
 
 Here the 25-minute slot includes 5 minutes of Q&A, leaving **20 minutes of speaking
-time**. `init` leaves the Q&A policy unspecified and style intent empty; other
-initial values, including report type and depth, are proposals until accepted.
+time**. `init` leaves the Q&A policy unspecified and proposes applying Academic Navigator
+when no template is supplied; initial choices are proposals until accepted.
 The agent may edit `presentation_type` and `detail_level` in the brief before intake;
-when present, both are captured in the acceptance snapshot. Legacy briefs without
+when present, both and `design_mode` are captured in the acceptance snapshot. Legacy briefs without
 these fields remain valid and must not be silently rewritten. After completing
 these choices, the agent creates the requirement snapshot:
 
@@ -275,12 +277,13 @@ evidence, comparisons/synthesis and limitations; include the user's progress and
 next steps only where supported by supplied materials. Main slides fit the agreed
 speaking time, with supporting details in useful notes and genuinely hidden backup
 slides. There is no fixed page count and detail does not mean dense slide text.
-Preserve init's `design_contract_version` and style contract. Default navigation
+Preserve init's `design_contract_version`, `design_mode` and matching style contract. Default navigation
 starts enabled: fill its actual sections, slide mappings and cover exemptions.
-Preserve the generated absolute template root and mark its selection `selected`
-when decided. Pending template selection, unplanned navigation and missing default
-policies block handoff. Record `user_override` only for an actual user-requested
-alternative. When those records and assets are ready, run:
+Preserve the generated absolute template root and `selected` status; the template
+remains unapplied until production. Selection does not approve intake or backend gates.
+Resolve older pending selections before handoff. Unplanned navigation and missing default
+policies also block handoff. Set both brief and style modes to `user_override` only for
+an actual user-requested alternative. When those records and assets are ready, run:
 
 ```bash
 python ./skills/research-ppt/scripts/workflow.py preflight \
@@ -310,8 +313,9 @@ figure crops against the preparation contract. Backend checks and SVG previews d
 not replace this review. Repair defects and create fresh render/review records
 for changed artifacts; preparation changes also require a new handoff.
 
-For default-mode talks, pass the handoff's exact template root through backend
-selection and installation. The receipt records source fingerprints, installed
+For default-mode talks, pass the handoff's exact template root as an explicit input
+through backend selection and installation; ordinary requests may default to free design.
+The receipt records source fingerprints, installed
 files and application notes; independent rendered-page review checks their visual
 application. A template name or copied colors alone cannot complete acceptance.
 

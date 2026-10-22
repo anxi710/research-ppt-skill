@@ -1,5 +1,6 @@
 {
   "design_contract_version": 1,
+  "design_mode": "academic_navigator",
   "presentation_type": "research_report",
   "detail_level": "detailed",
   "project_name": "合成教学汇报",
@@ -21,7 +22,7 @@
     "分析",
     "总结"
   ],
-  "style_intent": "简洁学术风，浅色背景，大幅核心视觉，正文少字；不使用机构标识。",
+  "style_intent": "实际应用内置 Academic Navigator 模板及其页面原型、章节导航、字体和页码规范；浅色背景，大幅核心视觉，正文少字，不使用机构标识。",
   "deliverables": [
     "pptx",
     "pdf",

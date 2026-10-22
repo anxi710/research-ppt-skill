@@ -33,13 +33,17 @@ method's mechanism, experimental setup, key results, comparisons, uncertainty an
 limitations when supported. Include transitions and sufficient speaker notes to teach
 the material, rather than converting headings or an abstract into a finished report.
 
-For detailed or multi-material reports, keep a compact `coverage` list alongside `slides`
-in `design/slide_plan.json`. For each required topic, record supporting source IDs,
-slide IDs or the relevant notes, and whether it is in the main deck, backups, notes,
-deliberately excluded or blocked by a source gap. Give reasons for exclusions/gaps.
-This is an editorial review aid carried in the immutable handoff, not an automatic
-certificate of completeness. An irrelevant supplied file can be excluded with a reason;
-do not add slides merely to cite every file.
+For detailed or multi-material reports, add `coverage` beside `slides` in `design/slide_plan.json`.
+Give each entry a `topic` and a `disposition`.
+Allowed values are `main`, `backup`, `main_and_backup`, `notes`, `excluded` and `source_gap`.
+List existing IDs in `source_ids` and `slide_ids` without duplicates.
+For `main`, reference one or more visible slides only.
+For `backup`, reference one or more hidden slides only.
+For `main_and_backup`, reference both visible and hidden slides.
+For `excluded` or `source_gap`, add a `rationale`. These entries can have empty reference lists.
+Preflight rejects invalid links and slide visibility conflicts when coverage is present.
+Review scientific completeness separately. Exclude irrelevant inputs with a reason.
+Do not add slides merely to cite every file.
 
 Budget main slides against agreed speaking time after reserved Q&A. Keep the reasoning
 needed to understand a conclusion in the main deck; place detailed derivations, additional
@@ -110,45 +114,29 @@ groups, body-only figures, fixed typography roles and one native emphasis color.
 Record this basis in the project style profile; user overrides take precedence. The
 defaults concern visual organization, not a fixed topic, chapter count or slide count.
 
-New briefs record `design_contract_version: 1`; their style profile records
-`design_contract: {version: 1, mode: "academic_navigator"}` for this default. Initialization
-leaves a proposed template decision, not a completed application. Resolve it to a selected
-template before preparation preflight; a `pending_default` decision or `applied: false`
-cannot serve as evidence of backend use. Navigation starts enabled with no sections:
-complete its ordered sections and each applicable page's `section_id` from the real talk.
-Do not disable it merely to pass preflight with an unfinished plan.
+Preserve init's `design_contract_version: 1`, `design_mode: academic_navigator` and
+matching `style.design_contract`. Keep the absolute template root and
+`template_reference.status: selected` that init generates. These propose the default for intake.
+Keep `applied` false until production uses the template. Resolve older pending selections before preflight.
+Follow `production-handoff.md` for the template snapshot, backend gates and application record.
+A style name or similar colors cannot prove template use.
 
-Resolve the default workspace root from this skill's actual absolute directory, not from
-the talk's working directory. Carry the exact root and an immutable template snapshot
-through `production-handoff.md`. A template name or prose statement that the design was
-inspired by Academic Navigator does not select or install its prototypes. The default
-requires actual template application and the binding visual elements below; free layout
-without importing the template system is not an equivalent default.
+If the user explicitly chooses another template or free design, set `brief.design_mode` and `style.design_contract.mode` to `user_override`.
+Record the actual instruction or accepted choice in `override.user_instruction`.
+Explain the override in `override.reason`.
+Record which defaults the choice replaces. Generic PPT requests and delegated design do not override the default.
+A backend's free-design recommendation does not authorize an override.
+A different palette or font does not waive navigation, cover, page-chrome or grouping requirements.
 
-A user-selected replacement or explicit free-design choice records
-`design_contract.mode: "user_override"` and an
-`override` with `reason` and `user_instruction` grounded in the actual instruction or
-accepted choice in the brief or intake response. Record which defaults it replaces.
-A replacement follows the backend's current template workflow; the parent helper's
-mandatory template packaging/application-record format applies only to the built-in
-default. A genuine no-template choice needs no template snapshot or installation receipt.
-A generic request to make a PPT,
-an agent's aesthetic preference or a backend's free-design recommendation is not an
-override. A different palette or suitable installed font does not by itself waive the
-remaining navigation, cover, page-chrome and grouping requirements.
-
-Inspect a selected template's rendered pages and explicit formatting at the backend's
-allowed stage: candidate frontmatter first, full prototypes after selection and
-installation when the current backend requires that order. Theme/master-inherited
-fonts and colors may not appear in run-level statistics. Capture which decisions were
-observed, user-required, or inferred. Reference aesthetics do not authorize reuse of
-another presenter's identity, organization logo or confidential slide content.
+At the backend's allowed stage, inspect the selected template's rendered pages and formatting.
+Record observed, user-required and inferred decisions separately.
+Text statistics can omit fonts and colors inherited from a theme or master.
+Do not reuse another presenter's identity, organization logo or confidential content merely to match a reference's style.
 
 Choose aspect ratio, typography, palette, source/footer convention and 3–5 compatible
 layout patterns. Make academic visual density purposeful: enlarge the core visual,
 arrange comparison panels, add only necessary annotations. Avoid big empty title-only
 section dividers unless they serve the timing and narrative. Avoid copy-paste card grids.
-Other bundled profiles remain selectable alternatives; none supplies a school identity.
 
 For new work without an explicit font choice, use Times New Roman for English and
 Microsoft YaHei for Chinese. Set `typography.font_family` and each default role's
@@ -174,15 +162,25 @@ box or keyword. Record native emphasis colors in `palette_policy.accent_colors` 
 their maximum count in `palette_policy.max_accent_colors`. Preserve original data
 colors and their meanings.
 
-Use section navigation on body pages by default. Once the actual talk sections are
-planned, record `section_navigation` in the style profile: enabled state, ordered
-sections with stable IDs and short labels, applicable pages, placement, equal-sized
-tab geometry, font role and inactive/active treatment. The default records
+Navigation starts enabled with no sections. Define the sections from the actual talk.
+Do not disable navigation to pass preflight.
+In `section_navigation`, record the enabled state, ordered sections, stable IDs and short labels.
+Record applicable pages, placement, equal-sized tab geometry, font role and inactive/active treatment.
+The default records
 `scope: "main_talk"`: each listed section must have a visible, non-exempt content page.
 Hidden backups do not create a separate chapter label. Record positive `tab_gap_px`;
 start with 16 px at 1280 px canvas width (roughly 12–16 px is a useful starting range),
 scale to the actual canvas, and confirm clear whitespace between tabs in the render.
 Use separate equal-width tabs with visible gaps and no continuous backing rail.
+New default profiles use `width_mode: "content"` and include computed navigation coordinates in the handoff.
+Size every tab for the longest numbered label, with 24 px padding on each side.
+Use at least 128 px per tab, rounded up to 8 px, on the 1280 px canvas.
+Align the group with the title and content at x48, at y20 with 44 px height.
+Keep its width within 1184 px and its right edge within x1232.
+Keep this geometry fixed across pages. Do not stretch a short group to fill the width.
+If the group exceeds the limit, shorten labels or replan the sections.
+Measure the final labels with the backend and inspect the rendered PPTX.
+Existing profiles without `width_mode` keep their accepted geometry.
 Keep label spacing, baselines and active shape consistent; highlight exactly the
 current section with the primary color. The active fill is sufficient: omit a second underline or indicator
 under that tab by default. The separate line below the body title remains. Labels follow this talk's actual structure; do not
@@ -209,20 +207,6 @@ The default policy uses `cover: {slide_ids: [...], title_information_only: true}
 policies; initialization does not complete intake or approve their rendering. Cover IDs
 identify visible pages in the plan. Geometry, page-type exceptions and the numbering
 convention remain explicit design decisions.
-
-`assets/academic-navigator/` supplies the reusable synthetic template workspace for this
-default. A user can replace its palette, sections or template without losing
-the evidence requirements. It is not a mandatory chapter list, page count or scientific
-structure. Read the current backend's template contract and supported route before reuse;
-follow its selection, validation and installation sequence rather than treating bundled
-assets as an automatic importer. After installation, derive a concrete application plan
-from the project-local prototypes: record what persists, how page roles map to available
-prototypes, and any required layout adaptation. Even if the backend permits style-only or
-flat reuse, the default retains the binding information-only cover, separate background,
-single-highlight navigation, body-title divider, current-page badge, typography/palette
-roles and consistent peer grouping. Changing the backend's internal reuse scope does not
-waive them. Adapt section labels and content to the accepted talk, and validate actual
-PPTX renders rather than assuming template installation proves its visual application.
 
 When a user supplies their edited final deck, treat it as stronger style evidence than a
 generic profile. Read `references/reference-calibration.md` for pairwise analysis. Record

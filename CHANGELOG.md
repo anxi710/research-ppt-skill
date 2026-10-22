@@ -6,8 +6,28 @@ The current version is recorded in [SKILL.md](skills/research-ppt/SKILL.md)'s
 
 ## Unreleased
 
+### Simplified
+
+- The skill entry now lists stages and required gates in plain English.
+  Detailed visual rules stay in the design reference, without repeated handoff and review prose.
+- The unused `academic-blue` profile is removed, and init no longer creates the unmaintained `state.json`.
+  Existing project styles and state files stay unchanged.
+
+### Fixed
+
+- New default navigation sizes equal tabs for their labels and aligns the group with the title's left edge.
+  Handoff records the computed geometry, and preflight rejects groups that exceed the available width.
+- Initialize new briefs with an explicit Academic Navigator design mode and template-use
+  intent, and select the built-in package without marking it applied or confirmed.
+  Bind the mode to intake acceptance and reject disagreement with the style profile.
+  Preserve existing accepted briefs and explicit user overrides.
+- Preflight now tests coverage references and main/backup classifications.
+  It rejects output paths that escape the workspace or resolve to the same file.
+
 ### Tests
 
+- Add a synthetic PR #3 import test with exact backend commits, six upstream tests, and table and figure comparisons.
+  Keep actual PPTX production and independent visual acceptance separate from the import result.
 - Run the opt-in real PPTX render tests in a separate Linux CI job with LibreOffice
   and open fallback fonts; an explicitly requested render run fails if the renderer
   is missing. Retain synthetic PDFs, PNGs, reports and logs for inspection.
