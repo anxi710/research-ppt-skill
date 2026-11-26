@@ -803,7 +803,10 @@ def handoff(args: argparse.Namespace) -> int:
                'Select/apply this exact workspace through the current backend template-selection and installation route; '
                'do not treat it as optional style inspiration or replace it with free composition. '
                'Read its specification and SVG prototypes, adapt their layouts to the accepted section/page plan, '
-               'and follow the current backend gates. Record the actual installed template root and its source-to-installed '
+               'and follow the current backend gates. Preserve the slide-number placeholder and its recognizable '
+               'slide-number shape ID. Give its single text run the physical output ordinal on every page, '
+               'including covers and hidden backups. Export the badge as a native a:fld of type slidenum. '
+               'Keep section labels literal and omit totals. Record the actual installed template root and its source-to-installed '
                'file mapping in template_application; installation provenance added to the specification is allowed. '
                'Selection in preparation is not proof of production application. The receipt and independent visual '
                'template_application review must both demonstrate application to the actual output.\n')
@@ -1004,7 +1007,7 @@ def gate(args: argparse.Namespace) -> int:
     plan=root/'design/slide_plan.json';rows=load(plan)['slides'];digest=sha256(args.pptx)
     machine=load(args.audit);review=load(args.review);receipt=load(args.receipt)
     # Recompute inexpensive package checks instead of trusting an arbitrary "pass" flag.
-    actual=audit_pptx(args.pptx,plan)
+    actual=audit_pptx(args.pptx,plan,academic_navigator=template_snapshot is not None)
     errors+=actual['errors']
     if machine.get('pptx_sha256')!=digest or machine.get('plan_sha256')!=sha256(plan):errors.append('Machine audit stale')
     if machine.get('machine_status')!='pass':errors.append('Machine audit failed')

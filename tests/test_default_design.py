@@ -66,6 +66,20 @@ class DefaultDesignTests(unittest.TestCase):
         receipt['template_application']['application_record']['sha256']=d.sha256(path)
         d.write(args.receipt,receipt)
 
+    def test_gate_rechecks_actual_badge_on_hidden_backup(self):
+        from pptx import Presentation
+        args,_,_=self.applied_fixture()
+        prs=Presentation(args.pptx)
+        badge=next(shape for shape in prs.slides[-1].shapes if shape.name=='slide-number')
+        badge.text='3'
+        prs.save(args.pptx)
+        # A fresh generic audit still passes, so the gate must enforce the contract.
+        audit=d.audit_pptx(args.pptx,self.project/'design/slide_plan.json')
+        self.assertEqual(audit['machine_status'],'pass')
+        d.write(args.audit,audit)
+        self.assertEqual(w.gate(args),1)
+        self.assertTrue(any('Slide 3: bottom-right badge' in e for e in d.load(args.out)['errors']))
+
     def test_current_fixture_retains_initialized_defaults(self):
         brief=d.load(self.project/'brief.json');style=self.style()
         self.assertEqual(brief['design_contract_version'],1)

@@ -140,7 +140,8 @@ Selection does not approve the brief or prove that the backend applied the templ
 
 The default separates the cover from the background explanation.
 Main-talk section tabs fit their labels and align with the title's left edge, with visible gaps and one active fill.
-Body pages have title dividers and bottom-right badges with the current page number.
+Body pages have title dividers. Every blue page badge must contain a native PowerPoint slide-number field, including on hidden slides.
+Use `decktools.py audit --academic-navigator` for this template. The delivery gate repeats the field check.
 Font roles use Times New Roman and Microsoft YaHei.
 The default uses one native accent color and consistent groups of related content.
 Plan section labels, page mappings and exceptions from the actual talk.

@@ -269,7 +269,55 @@ def render_pptx(args: argparse.Namespace) -> int:
         write(out/'render_report.json',report)
     print(out/'render_report.json')
     return 0
-def audit_pptx(pptx: Path, plan: Path | None = None) -> dict:
+def navigator_badge(slide, width, height, ordinal):
+    """Inspect text over the template's blue badge, nearest slide layer first."""
+    from pptx.enum.shapes import MSO_SHAPE_TYPE
+
+    def carriers(shapes, transform=(1, 1, 0, 0)):
+        sx, sy, dx, dy = transform
+        for shape in shapes:
+            if shape._element.xpath('./*/p:cNvPr[@hidden="1" or @hidden="true"]'):
+                continue
+            if shape.shape_type == MSO_SHAPE_TYPE.GROUP:
+                x = shape._element.xfrm
+                if x is not None and x.chExt is not None and x.chExt.cx and x.chExt.cy:
+                    kx, ky = sx * shape.width / x.chExt.cx, sy * shape.height / x.chExt.cy
+                    yield from carriers(shape.shapes, (kx, ky, dx + sx*shape.left - kx*x.chOff.x,
+                                                       dy + sy*shape.top - ky*x.chOff.y))
+                continue
+            if not shape.has_text_frame or not shape.text.strip():
+                continue
+            if None in (shape.left, shape.top, shape.width, shape.height):
+                continue
+            # The badge occupies (1164,674) to (1232,710) on the 1280x720 prototype.
+            cx = (dx + sx*(shape.left + shape.width/2)) * 1280 / width
+            cy = (dy + sy*(shape.top + shape.height/2)) * 720 / height
+            if 1164 <= cx <= 1232 and 674 <= cy <= 710:
+                yield shape
+
+    layers = [slide]
+    layout = slide.slide_layout
+    if slide._element.get('showMasterSp') not in ('0', 'false'):
+        layers.append(layout)
+        if layout._element.get('showMasterSp') not in ('0', 'false'):
+            layers.append(layout.slide_master)
+    for layer in layers:
+        shapes = list(carriers(layer.shapes))
+        if not shapes:
+            continue
+        if len(shapes) != 1:
+            return False
+        body = shapes[0].text_frame._txBody
+        fields = body.xpath('./a:p/a:fld')
+        if (len(fields) != 1 or fields[0].get('type') != 'slidenum'
+                or any(t.text and t.text.strip() for t in body.xpath('./a:p/a:r/a:t'))):
+            return False
+        # An inherited field shares one cached sample across multiple slides.
+        return layer is not slide or shapes[0].text.strip() == str(ordinal)
+    return False
+
+
+def audit_pptx(pptx: Path, plan: Path | None = None, *, academic_navigator=False) -> dict:
     from pptx import Presentation
     from pptx.enum.shapes import MSO_SHAPE_TYPE
     from lxml import etree
@@ -299,7 +347,11 @@ def audit_pptx(pptx: Path, plan: Path | None = None) -> dict:
                 yield from shape_tree(shape.shapes,True)
 
     prs = Presentation(pptx); records = []; text_count = 0
+    if academic_navigator and prs._element.get('firstSlideNum', '1') != '1':
+        errors.append('Academic Navigator physical page numbering must start at 1')
     for i, sl in enumerate(prs.slides, 1):
+        if academic_navigator and not navigator_badge(sl, prs.slide_width, prs.slide_height, i):
+            errors.append(f'Slide {i}: bottom-right badge requires a native current-slide field (slidenum)')
         if not sl.has_notes_slide or not sl.notes_slide.notes_text_frame.text.strip():
             errors.append(f'Slide {i}: missing speaker notes')
         texts = []; images = 0
@@ -340,7 +392,7 @@ def audit_pptx(pptx: Path, plan: Path | None = None) -> dict:
 
 
 def audit(args: argparse.Namespace) -> int:
-    report = audit_pptx(args.pptx, args.plan); write(args.out, report)
+    report = audit_pptx(args.pptx, args.plan, academic_navigator=args.academic_navigator); write(args.out, report)
     print(f'{report["machine_status"]}: {report["slides"]} slides; visual review pending -> {args.out}')
     return 1 if report['errors'] else 0
 
@@ -354,7 +406,7 @@ def parser() -> argparse.ArgumentParser:
     s=sub.add_parser('crop');s.add_argument('--pdf',type=Path,required=True);s.add_argument('--manifest',type=Path,required=True);s.add_argument('--out',type=Path,required=True);s.add_argument('--dpi',type=int,default=360);s.set_defaults(func=crop)
     s=sub.add_parser('montage');s.add_argument('--images',type=Path,required=True);s.add_argument('--out',type=Path,required=True);s.add_argument('--columns',type=int,default=4);s.set_defaults(func=montage)
     s=sub.add_parser('render-pptx');s.add_argument('--pptx',type=Path,required=True);s.add_argument('--out',type=Path,required=True);s.add_argument('--include-hidden',action='store_true');s.add_argument('--dpi',type=int,default=150);s.add_argument('--libreoffice');s.set_defaults(func=render_pptx)
-    s=sub.add_parser('audit');s.add_argument('--pptx',type=Path,required=True);s.add_argument('--plan',type=Path);s.add_argument('--out',type=Path,required=True);s.set_defaults(func=audit)
+    s=sub.add_parser('audit');s.add_argument('--academic-navigator',action='store_true',help='Require a native slide number in every template badge');s.add_argument('--pptx',type=Path,required=True);s.add_argument('--plan',type=Path);s.add_argument('--out',type=Path,required=True);s.set_defaults(func=audit)
     return p
 
 if __name__=='__main__':

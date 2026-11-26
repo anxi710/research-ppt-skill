@@ -53,6 +53,22 @@ def workspace(root: Path, *, current_design: bool=False) -> Path:
     return project
 
 
+def add_badge(shapes, prs, ordinal):
+    from pptx.oxml.xmlchemy import OxmlElement
+    from uuid import uuid4
+    shape=shapes.add_textbox(int(prs.slide_width*1172/1280), int(prs.slide_height*680/720),
+                             int(prs.slide_width*52/1280), int(prs.slide_height*26/720))
+    shape.name='slide-number'
+    shape.text=str(ordinal)
+    run=shape.text_frame.paragraphs[0].runs[0]._r
+    field=OxmlElement('a:fld')
+    field.set('type','slidenum')
+    field.set('id','{'+str(uuid4())+'}')
+    field.append(run.t)
+    run.getparent().replace(run,field)
+    return shape
+
+
 def deck(project: Path) -> Path:
     from pptx import Presentation
     from pptx.util import Inches
@@ -60,6 +76,8 @@ def deck(project: Path) -> Path:
     plan=d.load(project/'design/slide_plan.json')['slides']
     for i,slide in enumerate(plan):
         sl=prs.slides.add_slide(prs.slide_layouts[6]);sl.shapes.add_textbox(Inches(1),Inches(1),Inches(7),Inches(1)).text=f'Synthetic fixture {i+1}: 2 + 3 = 5'
+        if d.load(project/'brief.json').get('design_mode')=='academic_navigator':
+            add_badge(sl.shapes,prs,i+1)
         sl.notes_slide.notes_text_frame.text='Synthetic only; notes used for structural tests.'
         if slide['hidden']:sl._element.set('show','0')
     path=project/'exports/synthetic.pptx';prs.save(path);return path
